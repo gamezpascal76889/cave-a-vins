@@ -504,7 +504,7 @@ async function analyzeLabel(dataUrl) {
   showAiBox('🔍 Lecture de l\'étiquette…', true);
   const b64=dataUrl.split(',')[1], mime=dataUrl.match(/data:(image\/\w+);/)?.[1]||'image/jpeg';
   try {
-    const r1=await callProxy({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:[
+    const r1=await callProxy({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:[
       {type:'image',source:{type:'base64',media_type:mime,data:b64}},
       {type:'text',text:`Expert vin. Lis cette étiquette. Réponds UNIQUEMENT en JSON sans markdown :
 {"name":"nom complet","type":"red|white|rose|champagne|other","vintage":"année ou null","region":"appellation ou null","producer":"producteur ou null","country":"pays ou null"}`}
@@ -518,7 +518,7 @@ async function analyzeLabel(dataUrl) {
 
     showAiBox('🌐 Recherche sur Vivino / Wine-Searcher…', true);
     const q=[wine.name,wine.vintage,wine.region,wine.producer].filter(Boolean).join(' ');
-    const r2=await callProxy({model:'claude-sonnet-4-20250514',max_tokens:800,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:`Cherche sur Vivino ou Wine-Searcher ce vin : "${q} vin". JSON sans markdown :
+    const r2=await callProxy({model:'claude-sonnet-4-6',max_tokens:800,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:`Cherche sur Vivino ou Wine-Searcher ce vin : "${q} vin". JSON sans markdown :
 {"price_avg":"prix moyen € (ex: 12.50)","rating":"note /5 (ex: 4.2)","description":"2-3 phrases français arômes","food_pairing":"accords français","extra":"info courte"}`}]});
     const web=parseJ(r2);
     if(web.price_avg){const p=parseFloat(String(web.price_avg).replace(/[^\d.,]/g,'').replace(',','.')); if(!isNaN(p)&&!document.getElementById('fPrice').value) document.getElementById('fPrice').value=p.toFixed(2);}
@@ -536,7 +536,7 @@ async function searchManual() {
   showAiBox('🌐 Recherche sur Vivino / Wine-Searcher…', true);
   const q=[name,document.getElementById('fVintage').value,document.getElementById('fRegion').value].filter(Boolean).join(' ');
   try {
-    const raw=await callProxy({model:'claude-sonnet-4-20250514',max_tokens:700,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:`Cherche sur Vivino/Wine-Searcher : "${q} vin". JSON sans markdown :
+    const raw=await callProxy({model:'claude-sonnet-4-6',max_tokens:700,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:`Cherche sur Vivino/Wine-Searcher : "${q} vin". JSON sans markdown :
 {"price_avg":"prix €","rating":"note /5","description":"arômes 2-3 phrases français","food_pairing":"accords français","extra":"info courte"}`}]});
     const web=parseJ(raw);
     if(web.price_avg){const p=parseFloat(String(web.price_avg).replace(/[^\d.,]/g,'').replace(',','.')); if(!isNaN(p)&&!document.getElementById('fPrice').value) document.getElementById('fPrice').value=p.toFixed(2);}
