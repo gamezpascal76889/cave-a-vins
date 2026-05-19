@@ -137,6 +137,10 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
 /* TOAST */
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: rgba(30,12,6,.97); border: 1px solid var(--gold); color: var(--cream); padding: 9px 18px; border-radius: 20px; font-size: .85rem; z-index: 999; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,.5); transition: transform .3s; }
 .toast.show { transform: translateX(-50%) translateY(0); }
+/* TYPE BUTTONS */
+.type-btn { flex: 1; min-width: 70px; padding: 7px 4px; border: 1.5px solid rgba(201,168,76,.25); border-radius: 8px; background: rgba(255,255,255,.05); color: var(--cream-d); font-family: Georgia, serif; font-size: .78rem; cursor: pointer; transition: all .15s; text-align: center; }
+.type-btn:hover { border-color: rgba(201,168,76,.5); background: rgba(201,168,76,.1); }
+.type-btn.active-type { border-color: var(--gold); background: rgba(201,168,76,.2); color: var(--gold); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -260,14 +264,15 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
       <div class="ai-box" id="aiBox"></div>
 
       <div class="form-group">
-        <label>Type de vin</label>
-        <select id="fType">
-          <option value="red">🍷 Rouge</option>
-          <option value="white">🥂 Blanc</option>
-          <option value="rose">🌸 Rosé</option>
-          <option value="champagne">✨ Champagne</option>
-          <option value="other">🍾 Autre</option>
-        </select>
+        <label>Type de vin <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(détecté auto depuis la photo)</span></label>
+        <div id="typeButtons" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          <button type="button" onclick="selectType('red')"       id="tb-red"       class="type-btn active-type">🍷 Rouge</button>
+          <button type="button" onclick="selectType('white')"     id="tb-white"     class="type-btn">🥂 Blanc</button>
+          <button type="button" onclick="selectType('rose')"      id="tb-rose"      class="type-btn">🌸 Rosé</button>
+          <button type="button" onclick="selectType('champagne')" id="tb-champagne" class="type-btn">✨ Champagne</button>
+          <button type="button" onclick="selectType('other')"     id="tb-other"     class="type-btn">🍾 Autre</button>
+        </div>
+        <input type="hidden" id="fType" value="red">
       </div>
       <div class="form-group">
         <label>Nom / Appellation</label>
@@ -294,7 +299,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
 <script>
 // ══ CONFIG ══
 // Remplacez cette URL par votre URL Render après déploiement
-const PROXY_URL = 'https://cave-proxy.onrender.com/api/claude';
+const PROXY_URL = 'https://VOTRE-APP.onrender.com/api/claude';
 
 // ══ CONSTANTES ══
 const ROWS = 10, COLS = 12, TOTAL = 120;
@@ -434,17 +439,24 @@ function showView(b, idx) {
   ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
 }
 
+function selectType(t) {
+  document.getElementById('fType').value = t;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active-type'));
+  const btn=document.getElementById('tb-'+t);
+  if(btn) btn.classList.add('active-type');
+}
+
 function showEdit(b, idx) {
   document.getElementById('modeView').style.display='none'; document.getElementById('modeEdit').style.display='';
   document.getElementById('eTitle').textContent = b?'Modifier la bouteille':'Ajouter une bouteille';
   document.getElementById('eCell').textContent  = `Alvéole n°${idx+1}`;
-  document.getElementById('fType').value    = b?.type    || 'red';
+  selectType(b?.type||'red');
   document.getElementById('fName').value    = b?.name    || '';
   document.getElementById('fVintage').value = b?.vintage || '';
   document.getElementById('fPrice').value   = b?.price   || '';
   document.getElementById('fShop').value    = b?.shop    || '';
   document.getElementById('fRegion').value  = b?.region  || '';
-  document.getElementById('fDate').value    = b?.date    || new Date().toISOString().split('T')[0];
+  document.getElementById('fDate').value    = b?.date    || '';
   document.getElementById('fNotes').value   = b?.notes   || '';
   curPhoto = b?.photo || null;
   const pz=document.getElementById('photoZone');
@@ -511,7 +523,7 @@ async function analyzeLabel(dataUrl) {
     ]}]});
     const wine=parseJ(r1);
     if(wine.name) document.getElementById('fName').value=wine.name;
-    if(wine.type&&TYPES[wine.type]) document.getElementById('fType').value=wine.type;
+    if(wine.type&&TYPES[wine.type]) selectType(wine.type);
     if(wine.vintage) document.getElementById('fVintage').value=wine.vintage;
     if(wine.region)  document.getElementById('fRegion').value=wine.region;
     if(!wine.name){showAiBox('⚠️ Étiquette illisible. Remplissez manuellement.');return;}
@@ -521,7 +533,7 @@ async function analyzeLabel(dataUrl) {
     const r2=await callProxy({model:'claude-sonnet-4-6',max_tokens:800,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:`Cherche sur Vivino ou Wine-Searcher ce vin : "${q} vin". JSON sans markdown :
 {"price_avg":"prix moyen € (ex: 12.50)","rating":"note /5 (ex: 4.2)","description":"2-3 phrases français arômes","food_pairing":"accords français","extra":"info courte"}`}]});
     const web=parseJ(r2);
-    if(web.price_avg){const p=parseFloat(String(web.price_avg).replace(/[^\d.,]/g,'').replace(',','.')); if(!isNaN(p)&&!document.getElementById('fPrice').value) document.getElementById('fPrice').value=p.toFixed(2);}
+    if(web.price_avg){const p=parseFloat(String(web.price_avg).replace(/[^\d.,]/g,'').replace(',','.')); if(!isNaN(p)) document.getElementById('fPrice').value=p.toFixed(2);}
     const np=[web.rating&&`⭐ Note Vivino : ${web.rating}/5`,web.description,web.food_pairing&&`🍽️ Accords : ${web.food_pairing}`,web.extra].filter(Boolean).join('\n');
     if(np&&!document.getElementById('fNotes').value) document.getElementById('fNotes').value=np;
     const html=[wine.name&&`<b style="color:#e8c97a">${wine.name}</b>`,wine.vintage&&`Millésime ${wine.vintage}`,wine.region,web.rating&&`⭐ ${web.rating}/5`,web.price_avg&&`💶 ~${web.price_avg} €`,web.description&&`<em style="opacity:.8">${web.description}</em>`,web.food_pairing&&`🍽️ ${web.food_pairing}`].filter(Boolean).join('<br>');
