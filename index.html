@@ -255,12 +255,22 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
       <div class="wine-title" id="eTitle">Ajouter une bouteille</div>
       <div class="wine-cell"  id="eCell"></div>
 
-      <div class="photo-zone" onclick="document.getElementById('photoFile').click()" id="photoZone">
-        <div class="photo-icon">📷</div>
-        <div class="photo-hint">Photo de l'étiquette</div>
-        <div class="photo-hint2">✨ Analyse IA automatique</div>
+      <div id="photoZone" style="margin-bottom:12px">
+        <div id="photoPreview" style="display:none;margin-bottom:8px">
+          <img id="photoImg" src="" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover;display:block">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="button" onclick="document.getElementById('photoCam').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer">
+            📷 Prendre une photo
+          </button>
+          <button type="button" onclick="document.getElementById('photoGal').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer">
+            🖼️ Galerie photos
+          </button>
+        </div>
+        <div style="text-align:center;margin-top:5px;font-size:.7rem;color:#c9a84c;opacity:.7">✨ Analyse IA automatique de l'étiquette</div>
       </div>
-      <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+      <input type="file" id="photoCam" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+      <input type="file" id="photoGal" accept="image/*" style="display:none" onchange="handlePhoto(event)">
 
       <div class="ai-box" id="aiBox"></div>
 
@@ -503,10 +513,10 @@ function showEdit(b, idx) {
   document.getElementById('fDate').value    = b?.date    || '';
   document.getElementById('fNotes').value   = b?.notes   || '';
   curPhoto = b?.photo || null;
-  const pz=document.getElementById('photoZone');
-  pz.innerHTML = curPhoto
-    ? `<img src="${curPhoto}" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover">`
-    : `<div class="photo-icon">📷</div><div class="photo-hint">Photo de l'étiquette</div><div class="photo-hint2">✨ Analyse IA automatique</div>`;
+  const prev=document.getElementById('photoPreview');
+  const img=document.getElementById('photoImg');
+  if(curPhoto){ img.src=curPhoto; prev.style.display=''; }
+  else { prev.style.display='none'; img.src=''; }
   hideAiBox();
   // Afficher le bouton Coller si presse-papier non vide et alvéole vide
   const pasteBtn = document.getElementById('pasteBtn');
@@ -566,10 +576,35 @@ function pasteBottle() {
 }
 
 // ══ PHOTO + IA ══
+function compressPhoto(dataUrl, maxSize=800, quality=0.7) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else       { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
 function handlePhoto(evt) {
   const file=evt.target.files[0]; if(!file)return;
   const rd=new FileReader();
-  rd.onload=async e=>{ curPhoto=e.target.result; document.getElementById('photoZone').innerHTML=`<img src="${curPhoto}" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover">`; await analyzeLabel(curPhoto); };
+  rd.onload=async e=>{
+    const compressed = await compressPhoto(e.target.result);
+    curPhoto=compressed;
+    const prev=document.getElementById('photoPreview');
+    document.getElementById('photoImg').src=compressed;
+    prev.style.display='';
+    await analyzeLabel(compressed);
+  };
   rd.readAsDataURL(file); evt.target.value='';
 }
 
