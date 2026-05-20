@@ -350,9 +350,9 @@ input[type=hidden] { display:none; }
         <div class="form-group"><label>Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Cave Nicolas, Supermarché…"></div>
         <div class="form-group"><label>Région / Appellation</label><input type="text" id="fRegion" placeholder="ex: Bordeaux, Bourgogne…"></div>
         <div class="form-group"><label>Date d'achat</label><input type="date" id="fDate"></div>
-        <div class="form-group"><label>Notes / Dégustation</label><textarea id="fNotes" placeholder="Arômes, accords mets-vins…"></textarea></div>
+        <div class="form-group"><label>🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
+        <div class="form-group"><label>🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
 
-        <button class="btn btn-search" onclick="searchManual()">🌐 Rechercher infos manuellement</button>
         <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
         <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="cancelEdit()">Annuler</button>
@@ -556,6 +556,7 @@ function renderHistory() {
       <div style="flex:1;min-width:0">
         <div class="hist-name">${h.name||'Sans nom'}</div>
         <div class="hist-meta">Alvéole ${h.cell} · ${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
+        ${h.aromas?`<div class="hist-meta">🌸 ${h.aromas}</div>`:''}
         ${h.price?`<div class="hist-meta">💶 ${parseFloat(h.price).toFixed(2).replace('.',',')} €</div>`:''}
       </div>
       <div class="hist-date">${fmtDate(h.consumedAt)}</div>
@@ -585,9 +586,13 @@ function showView(b, idx) {
   const pw=document.getElementById('vPhotoWrap');
   if(b.photo){pw.style.display='';document.getElementById('vPhoto').src=b.photo;}else pw.style.display='none';
   document.getElementById('vInfoCard').innerHTML=[
-    ['Millésime',b.vintage||'—'],['Prix',b.price?parseFloat(b.price).toFixed(2).replace('.',',')+' €':'—'],
-    ['Acheté chez',b.shop||'—'],['Région',b.region||'—'],
-    ['Date d\'achat',b.date?fmtDate(b.date):'—'],['Notes',b.notes||'—']
+    ['Millésime',b.vintage||'—'],
+    ['Prix',b.price?parseFloat(b.price).toFixed(2).replace('.',',')+' €':'—'],
+    ['Acheté chez',b.shop||'—'],
+    ['Région',b.region||'—'],
+    ['Date d\'achat',b.date?fmtDate(b.date):'—'],
+    ['🌸 Arômes',b.aromas||'—'],
+    ['🍽️ Accords mets-vins',b.pairing||'—']
   ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
 }
 
@@ -609,7 +614,8 @@ function showEdit(b, idx) {
   document.getElementById('fShop').value    = b?.shop    || '';
   document.getElementById('fRegion').value  = b?.region  || '';
   document.getElementById('fDate').value    = b?.date    || '';
-  document.getElementById('fNotes').value   = b?.notes   || '';
+  document.getElementById('fAromas').value  = b?.aromas  || '';
+  document.getElementById('fPairing').value = b?.pairing || '';
   curPhoto = b?.photo||null;
   const prev=document.getElementById('photoPreview'), img=document.getElementById('photoImg');
   if(curPhoto){img.src=curPhoto;prev.style.display='';}else{prev.style.display='none';img.src='';}
@@ -633,7 +639,8 @@ function saveBottle() {
     shop:    document.getElementById('fShop').value,
     region:  document.getElementById('fRegion').value,
     date:    document.getElementById('fDate').value,
-    notes:   document.getElementById('fNotes').value,
+    aromas:  document.getElementById('fAromas').value,
+    pairing: document.getElementById('fPairing').value,
     photo:   curPhoto,
     addedAt: cellar[curIdx]?.addedAt||new Date().toISOString()
   };
@@ -710,9 +717,17 @@ function hideAiBox(){const b=document.getElementById('aiBox');b.classList.remove
 async function callProxy(body){
   const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const d=await r.json(); if(d.error)throw new Error(d.error.message||'Erreur API');
-  return d.content.map(i=>i.type==='text'?i.text:'').join('').trim();
+  // Extraire TOUS les blocs texte (y compris après tool_use/tool_result)
+  return (d.content||[]).map(i=>i.type==='text'?i.text:'').filter(Boolean).join('\n').trim();
 }
-function parseJ(raw){try{return JSON.parse(raw.replace(/```json|```/g,'').trim());}catch{return {};}}
+function parseJ(raw){
+  try{
+    // Chercher un bloc JSON n'importe où dans la réponse
+    const match = raw.match(/\{[\s\S]*\}/);
+    if(match) return JSON.parse(match[0]);
+    return {};
+  }catch{return {};}
+}
 
 async function analyzeLabel(dataUrl){
   showAiBox('🔍 Lecture de l\'étiquette…',true);
@@ -720,44 +735,47 @@ async function analyzeLabel(dataUrl){
   try{
     const r1=await callProxy({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:[
       {type:'image',source:{type:'base64',media_type:mime,data:b64}},
-      {type:'text',text:`Expert vin. Lis cette étiquette. Réponds UNIQUEMENT en JSON sans markdown :
+      {type:'text',text:`Expert vin. Lis cette étiquette. Réponds UNIQUEMENT en JSON sans markdown ni texte avant/après :
 {"name":"nom complet","type":"red|white|rose|petillant|other","vintage":"année ou null","region":"appellation ou null","producer":"producteur ou null","country":"pays ou null"}`}
     ]}]});
     const wine=parseJ(r1);
-    if(wine.name) document.getElementById('fName').value=wine.name;
+    if(wine.name)    document.getElementById('fName').value=wine.name;
     if(wine.type&&TYPES[wine.type]) selectType(wine.type);
     if(wine.vintage) document.getElementById('fVintage').value=wine.vintage;
     if(wine.region)  document.getElementById('fRegion').value=wine.region;
     if(!wine.name){showAiBox('⚠️ Étiquette illisible. Remplissez manuellement.');return;}
-    showAiBox('🌐 Recherche sur Vivino / Wine-Searcher…',true);
+    showAiBox('🌐 Recherche prix, arômes & accords…',true);
     const q=[wine.name,wine.vintage,wine.region,wine.producer].filter(Boolean).join(' ');
-    const r2=await callProxy({model:'claude-sonnet-4-6',max_tokens:800,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:`Cherche sur Vivino ou Wine-Searcher ce vin : "${q} vin". JSON sans markdown :
-{"price_avg":"prix moyen € (ex: 12.50)","rating":"note /5 (ex: 4.2)","description":"2-3 phrases français arômes","food_pairing":"accords français","extra":"info courte"}`}]});
+    const r2=await callProxy({
+      model:'claude-sonnet-4-6',
+      max_tokens:1000,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:`Tu es un expert en vins. Cherche sur Vivino et Wine-Searcher le vin "${q}".
+Trouve le prix moyen, la note, les arômes et les accords mets-vins.
+Réponds UNIQUEMENT avec ce JSON (sans texte avant ni après, sans markdown) :
+{"price_avg":"prix moyen en euros ex: 12.50","rating":"note sur 5 ex: 4.2","aromas":"arômes principaux en français","food_pairing":"accords mets-vins en français"}`}]
+    });
     const web=parseJ(r2);
-    if(web.price_avg){const p=parseFloat(String(web.price_avg).replace(/[^\d.,]/g,'').replace(',','.'));if(!isNaN(p))document.getElementById('fPrice').value=p.toFixed(2);}
-    const np=[web.rating&&`⭐ Note Vivino : ${web.rating}/5`,web.description,web.food_pairing&&`🍽️ Accords : ${web.food_pairing}`,web.extra].filter(Boolean).join('\n');
-    if(np&&!document.getElementById('fNotes').value) document.getElementById('fNotes').value=np;
-    const html=[wine.name&&`<b style="color:#e8c97a">${wine.name}</b>`,wine.vintage&&`Millésime ${wine.vintage}`,wine.region,web.rating&&`⭐ ${web.rating}/5`,web.price_avg&&`💶 ~${web.price_avg} €`,web.description&&`<em style="opacity:.8">${web.description}</em>`,web.food_pairing&&`🍽️ ${web.food_pairing}`].filter(Boolean).join('<br>');
+    // Prix
+    if(web.price_avg){
+      const p=parseFloat(String(web.price_avg).replace(/[^\d.,]/g,'').replace(',','.'));
+      if(!isNaN(p)&&p>0) document.getElementById('fPrice').value=p.toFixed(2);
+    }
+    // Arômes & accords
+    if(web.aromas     &&!document.getElementById('fAromas').value)  document.getElementById('fAromas').value=web.aromas;
+    if(web.food_pairing&&!document.getElementById('fPairing').value) document.getElementById('fPairing').value=web.food_pairing;
+    const html=[
+      wine.name&&`<b style="color:#e8c97a">${wine.name}</b>`,
+      wine.vintage&&`Millésime ${wine.vintage}`,
+      wine.region,
+      web.rating&&`⭐ ${web.rating}/5`,
+      web.price_avg&&`💶 ~${web.price_avg} €`,
+      web.aromas&&`🌸 ${web.aromas}`,
+      web.food_pairing&&`🍽️ ${web.food_pairing}`
+    ].filter(Boolean).join('<br>');
     showAiBox(html||'Champs remplis !');
     showToast('✅ Étiquette analysée et champs remplis !');
   }catch(err){showAiBox('⚠️ Erreur : '+(err.message||'Vérifiez votre connexion.'));}
-}
-
-async function searchManual(){
-  const name=document.getElementById('fName').value.trim();
-  if(!name){showToast('⚠️ Saisissez d\'abord un nom de vin');return;}
-  showAiBox('🌐 Recherche sur Vivino / Wine-Searcher…',true);
-  const q=[name,document.getElementById('fVintage').value,document.getElementById('fRegion').value].filter(Boolean).join(' ');
-  try{
-    const raw=await callProxy({model:'claude-sonnet-4-6',max_tokens:700,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:`Cherche sur Vivino/Wine-Searcher : "${q} vin". JSON sans markdown :
-{"price_avg":"prix €","rating":"note /5","description":"arômes 2-3 phrases français","food_pairing":"accords français","extra":"info courte"}`}]});
-    const web=parseJ(raw);
-    if(web.price_avg){const p=parseFloat(String(web.price_avg).replace(/[^\d.,]/g,'').replace(',','.'));if(!isNaN(p)&&!document.getElementById('fPrice').value)document.getElementById('fPrice').value=p.toFixed(2);}
-    const np=[web.rating&&`⭐ Note Vivino : ${web.rating}/5`,web.description,web.food_pairing&&`🍽️ Accords : ${web.food_pairing}`,web.extra].filter(Boolean).join('\n');
-    if(np&&!document.getElementById('fNotes').value) document.getElementById('fNotes').value=np;
-    const html=[web.rating&&`⭐ ${web.rating}/5`,web.price_avg&&`💶 ~${web.price_avg} €`,web.description,web.food_pairing&&`🍽️ ${web.food_pairing}`].filter(Boolean).join('<br>');
-    showAiBox(html||'Aucune info trouvée.');
-  }catch(err){showAiBox('⚠️ '+(err.message||'Erreur réseau.'));}
 }
 
 // ══ STATS ══
