@@ -374,9 +374,11 @@ function renderTable() {
   const q  = document.getElementById('tSearch').value.toLowerCase();
   const f  = document.getElementById('tFilter').value;
   const tb = document.getElementById('tableBody');
-  let rows = cellar.map((b,i)=>({...b,_i:i,_id:i+1}));
-  if (f==='empty') rows=rows.filter(r=>!r.name);
-  else if (f) rows=rows.filter(r=>r.type===f);
+  // On mappe en gardant trace des alvéoles vides vs remplies
+  let rows = cellar.map((b,i)=>b ? {...b, _i:i, _id:i+1, _empty:false} : {_i:i, _id:i+1, _empty:true});
+  if (f==='empty') rows=rows.filter(r=>r._empty);
+  else if (f) rows=rows.filter(r=>!r._empty && r.type===f);
+  else rows=rows.filter(r=>!r._empty); // Par défaut : seulement les bouteilles
   if (q) rows=rows.filter(r=>[r.name,r.vintage,r.region,r.shop,r.notes].join(' ').toLowerCase().includes(q));
   rows.sort((a,b)=>{
     let va=sortKey==='id'?a._id:(a[sortKey]||''), vb=sortKey==='id'?b._id:(b[sortKey]||'');
@@ -385,7 +387,7 @@ function renderTable() {
     return sortAsc?(va>vb?1:-1):(va<vb?1:-1);
   });
   tb.innerHTML = rows.length===0 ? '<tr><td colspan="6" style="text-align:center;padding:20px;opacity:.35;font-style:italic">Aucun résultat</td></tr>' :
-    rows.map(r=>`<tr class="${r.name?'':'empty-row'}">
+    rows.map(r=>`<tr class="${r._empty?'empty-row':''}">
       <td>${r._id}</td>
       <td>${r.type?`<span class="type-dot-sm" style="background:${TYPES[r.type]?.bg}"></span>${TYPES[r.type]?.label}`:'—'}</td>
       <td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name||'<em style="opacity:.4">Vide</em>'}</td>
