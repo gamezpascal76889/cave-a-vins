@@ -143,6 +143,24 @@ input[type=hidden] { display:none; }
 /* ── EMPTY STATE ── */
 .empty-state { text-align:center; padding:40px 20px; opacity:.4; }
 .empty-icon { font-size:2.5rem; margin-bottom:10px; }
+
+/* ── STATS ── */
+.stats-section { margin-bottom: 18px; }
+.stats-title { font-style:italic; color:var(--gold); font-size:.88rem; letter-spacing:.06em; margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid rgba(201,168,76,.2); display:flex; align-items:center; gap:6px; }
+.stat-card { background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.15); border-radius:8px; padding:10px 13px; margin-bottom:6px; }
+.stat-card-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.stat-card-label { font-size:.82rem; color:var(--cream-d); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.stat-card-label small { opacity:.55; font-size:.72rem; }
+.stat-card-val { font-size:.9rem; color:var(--gold); font-weight:600; flex-shrink:0; }
+.stat-bar-wrap { margin-top:6px; background:rgba(255,255,255,.07); border-radius:3px; height:5px; overflow:hidden; }
+.stat-bar { height:100%; border-radius:3px; }
+.stat-kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px; }
+.stat-kpi { background:rgba(255,255,255,.05); border:1px solid rgba(201,168,76,.2); border-radius:8px; padding:12px 10px; text-align:center; }
+.stat-kpi-num { font-size:1.5rem; color:var(--gold); font-weight:600; line-height:1.1; }
+.stat-kpi-lbl { font-size:.67rem; color:var(--cream-d); opacity:.55; margin-top:3px; text-transform:uppercase; letter-spacing:.05em; }
+.stat-anecdote { background:rgba(201,168,76,.07); border:1px solid rgba(201,168,76,.22); border-radius:8px; padding:10px 13px; margin-bottom:6px; font-size:.8rem; color:var(--cream-d); line-height:1.55; }
+.stat-anecdote strong { color:var(--gold-l); }
+.stat-empty { text-align:center; padding:40px 20px; opacity:.35; font-style:italic; }
 </style>
 </head>
 <body>
@@ -168,6 +186,7 @@ input[type=hidden] { display:none; }
 <nav class="nav">
   <button class="nav-btn active" onclick="switchView('shelf',this)">🗄️ Étagères</button>
   <button class="nav-btn" onclick="switchView('table',this)">📋 Tableau</button>
+  <button class="nav-btn" onclick="switchView('stats',this)">📊 Stats</button>
   <button class="nav-btn" onclick="switchView('history',this)">📜 Archives</button>
   <button class="nav-btn" onclick="switchView('backup',this)">💾 Backup</button>
 </nav>
@@ -230,6 +249,11 @@ input[type=hidden] { display:none; }
     </tr></thead>
     <tbody id="tableBody"></tbody>
   </table></div>
+</div>
+
+<!-- STATS -->
+<div class="view" id="view-stats">
+  <div id="statsContent"></div>
 </div>
 
 <!-- ARCHIVES -->
@@ -736,7 +760,86 @@ async function searchManual(){
   }catch(err){showAiBox('⚠️ '+(err.message||'Erreur réseau.'));}
 }
 
-// ══ BACKUP ══
+// ══ STATS ══
+function groupBy(arr, fn) {
+  const m={};
+  arr.forEach(b=>{ const k=fn(b); if(k!=null && k!=='') { m[k]=m[k]||[]; m[k].push(b); } });
+  return Object.entries(m).sort((a,b)=>b[1].length-a[1].length);
+}
+
+function barColor(type) {
+  return {red:'#c0304a',white:'#d4b84a',rose:'#d4768a',petillant:'#c8a84a',other:'#5a7a4a'}[type]||'var(--gold)';
+}
+
+function renderStats() {
+  const bottles = cellar.map((b,i)=>b?{...b,_i:i}:null).filter(Boolean);
+  const el = document.getElementById('statsContent');
+  if (!bottles.length) { el.innerHTML='<div class="stat-empty">🍾 Aucune bouteille en cave pour le moment.</div>'; return; }
+
+  const total = bottles.length;
+  const totalVal = bottles.reduce((a,b)=>a+(parseFloat(b.price)||0),0);
+  const avgPrice = totalVal/total;
+  const withPrice = bottles.filter(b=>parseFloat(b.price)>0);
+  const maxPrice = withPrice.length ? withPrice.reduce((a,b)=>parseFloat(b.price)>parseFloat(a.price)?b:a) : null;
+  const oldest = bottles.filter(b=>b.vintage).reduce((a,b)=>(!a||parseInt(b.vintage)<parseInt(a.vintage))?b:a, null);
+  const newest = bottles.filter(b=>b.vintage).reduce((a,b)=>(!a||parseInt(b.vintage)>parseInt(a.vintage))?b:a, null);
+  const vides = TOTAL - total;
+
+  const byType          = groupBy(bottles, b=>b.type);
+  const byRegion        = groupBy(bottles, b=>(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||'Non renseignée');
+  const byVintage       = groupBy(bottles, b=>b.vintage||'Non renseigné');
+  const byShop          = groupBy(bottles, b=>b.shop||'Non renseigné');
+  const byShelf         = groupBy(bottles, b=>b._i<S1_TOTAL?'Étagère 1':'Étagère 2');
+  const byRegionType    = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const t=TYPES[b.type]?.label||null; return r&&t?`${r} · ${t}`:r||t||'Non renseigné'; });
+  const byRegionVintage = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const v=b.vintage||null; return r&&v?`${r} ${v}`:null; });
+
+  function renderGroup(entries, maxN, colorFn, showPct=true) {
+    if(!entries.length) return '<div style="opacity:.4;font-size:.8rem;padding:6px 0">Aucune donnée</div>';
+    const maxCount = entries[0][1].length;
+    return entries.slice(0,maxN).map(([k,arr])=>{
+      const pct = Math.round(arr.length/total*100);
+      const val = arr.reduce((a,b)=>a+(parseFloat(b.price)||0),0);
+      const color = colorFn(arr[0]?.type);
+      return `<div class="stat-card">
+        <div class="stat-card-row">
+          <span class="stat-card-label">${k}</span>
+          <span class="stat-card-val">${arr.length} bouteille${arr.length>1?'s':''} ${showPct?`<small style="color:var(--cream-d);opacity:.5;font-weight:normal">${pct}%</small>`:''}</span>
+        </div>
+        ${val>0?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">Valeur : ${val.toFixed(2).replace('.',',')} €</div>`:''}
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.max(4,Math.round(arr.length/maxCount*100))}%;background:${color}"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  const anecdotes = byRegionVintage.filter(([k,arr])=>arr.length>=2).slice(0,8)
+    .map(([k,arr])=>{ const t=TYPES[arr[0].type]?.label||''; return `<div class="stat-anecdote">🍾 <strong>${arr.length} bouteilles</strong> de <strong>${k}</strong>${t?' ('+t+')':''}</div>`; }).join('');
+
+  const topVal = [...bottles].filter(b=>parseFloat(b.price)>0).sort((a,b)=>parseFloat(b.price)-parseFloat(a.price)).slice(0,5);
+
+  el.innerHTML = `
+    <div class="stat-kpi-grid">
+      <div class="stat-kpi"><div class="stat-kpi-num">${total}</div><div class="stat-kpi-lbl">Bouteilles en cave</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${vides}</div><div class="stat-kpi-lbl">Alvéoles libres</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${totalVal.toFixed(0)} €</div><div class="stat-kpi-lbl">Valeur totale</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${avgPrice.toFixed(2).replace('.',',')} €</div><div class="stat-kpi-lbl">Prix moyen</div></div>
+    </div>
+    <div class="stats-section"><div class="stats-title">🗄️ Par étagère</div>${renderGroup(byShelf,2,()=>'var(--gold)',false)}</div>
+    <div class="stats-section"><div class="stats-title">🍷 Par type de vin</div>${renderGroup(byType.map(([k,arr])=>[(TYPES[k]?.emoji||'')+' '+(TYPES[k]?.label||k),arr]),6,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">🗺️ Par région / appellation</div>${renderGroup(byRegion,12,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">🔍 Par appellation & type</div>${renderGroup(byRegionType,12,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">📅 Par millésime</div>${renderGroup(byVintage,12,t=>barColor(t))}</div>
+    ${anecdotes?`<div class="stats-section"><div class="stats-title">🔢 Séries identiques (≥ 2 bouteilles)</div>${anecdotes}</div>`:''}
+    ${topVal.length?`<div class="stats-section"><div class="stats-title">💎 Les 5 plus belles bouteilles</div>${topVal.map(b=>`<div class="stat-card"><div class="stat-card-row"><span class="stat-card-label">${TYPES[b.type]?.emoji||'🍾'} ${b.name||'Sans nom'} <small>${b.vintage||''}</small></span><span class="stat-card-val">${parseFloat(b.price).toFixed(2).replace('.',',')} €</span></div>${b.region?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">${b.region}</div>`:''}</div>`).join('')}</div>`:''}
+    <div class="stats-section"><div class="stats-title">🛒 Par lieu d'achat</div>${renderGroup(byShop,8,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">✨ Le saviez-vous ?</div>
+      ${oldest?`<div class="stat-anecdote">📜 La plus ancienne : <strong>${oldest.name||'?'} ${oldest.vintage}</strong>${oldest.region?' · '+oldest.region:''}</div>`:''}
+      ${newest&&newest.vintage!==oldest?.vintage?`<div class="stat-anecdote">🆕 La plus récente : <strong>${newest.name||'?'} ${newest.vintage}</strong>${newest.region?' · '+newest.region:''}</div>`:''}
+      ${maxPrice?`<div class="stat-anecdote">💰 La plus chère : <strong>${maxPrice.name||'?'}</strong> à <strong>${parseFloat(maxPrice.price).toFixed(2).replace('.',',')} €</strong></div>`:''}
+      ${history.length?`<div class="stat-anecdote">🍽️ Bouteilles consommées depuis l'ouverture : <strong>${history.length}</strong></div>`:''}
+    </div>
+  `;
+}
+
 function exportData(){
   const blob=new Blob([JSON.stringify({version:2,exportDate:new Date().toISOString(),cellar,history})],{type:'application/json'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');
@@ -771,6 +874,7 @@ function switchView(name,btn){
   btn.classList.add('active');
   if(name==='table')   renderTable();
   if(name==='history') renderHistory();
+  if(name==='stats')   renderStats();
   if(name==='backup'){
     const f=cellar.filter(Boolean).length,v=cellar.reduce((a,b)=>a+(b?parseFloat(b.price)||0:0),0);
     document.getElementById('bkInfo').textContent=`${f} bouteilles · ${history.length} archives · ${v.toFixed(2).replace('.',',')} €`;
