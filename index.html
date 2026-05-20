@@ -315,7 +315,23 @@ const TYPES = {
 const EMPTY_BG = 'radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830)';
 
 // ══ STATE ══
-let cellar  = JSON.parse(localStorage.getItem('pascal_cellar')  || 'null') || Array(TOTAL).fill(null);
+function loadCellar() {
+  try {
+    const raw = localStorage.getItem('pascal_cellar');
+    if (!raw) return Array(TOTAL).fill(null);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return Array(TOTAL).fill(null);
+    // Forcer exactement TOTAL éléments, nettoyer les valeurs corrompues
+    return Array.from({length: TOTAL}, (_, i) => {
+      const b = parsed[i];
+      if (!b || typeof b !== 'object') return null;
+      if (!b.name) return null; // alvéole sans nom = vide
+      if (!TYPES[b.type]) b.type = 'red'; // type inconnu -> rouge
+      return b;
+    });
+  } catch(e) { return Array(TOTAL).fill(null); }
+}
+let cellar  = loadCellar();
 let history = JSON.parse(localStorage.getItem('pascal_history') || '[]');
 let curIdx  = null, curPhoto = null;
 let sortKey = 'id', sortAsc = true;
@@ -485,9 +501,13 @@ function switchEdit() { showEdit(cellar[curIdx], curIdx); }
 function cancelEdit()  { cellar[curIdx]?showView(cellar[curIdx],curIdx):closeModal(); }
 
 function saveBottle() {
+  if(curIdx === null || curIdx < 0 || curIdx >= TOTAL){showToast('⚠️ Erreur : alvéole invalide');return;}
   const name=document.getElementById('fName').value.trim();
   if(!name){showToast('⚠️ Saisissez un nom ou une appellation');return;}
-  cellar[curIdx]={ type:document.getElementById('fType').value, name, vintage:document.getElementById('fVintage').value, price:document.getElementById('fPrice').value, shop:document.getElementById('fShop').value, region:document.getElementById('fRegion').value, date:document.getElementById('fDate').value, notes:document.getElementById('fNotes').value, photo:curPhoto, addedAt:cellar[curIdx]?.addedAt||new Date().toISOString() };
+  const type = document.getElementById('fType').value;
+  cellar[curIdx]={ type: TYPES[type] ? type : 'red', name, vintage:document.getElementById('fVintage').value, price:document.getElementById('fPrice').value, shop:document.getElementById('fShop').value, region:document.getElementById('fRegion').value, date:document.getElementById('fDate').value, notes:document.getElementById('fNotes').value, photo:curPhoto, addedAt:cellar[curIdx]?.addedAt||new Date().toISOString() };
+  // S'assurer que le tableau reste propre (pas de trous)
+  if(cellar.length !== TOTAL) cellar = Array.from({length:TOTAL}, (_,i)=>cellar[i]||null);
   save(); renderShelf(); renderTable();
   showToast('✅ Bouteille enregistrée !');
   showView(cellar[curIdx], curIdx);
@@ -552,7 +572,7 @@ async function analyzeLabel(dataUrl) {
     const r1=await callProxy({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:[
       {type:'image',source:{type:'base64',media_type:mime,data:b64}},
       {type:'text',text:`Expert vin. Lis cette étiquette. Réponds UNIQUEMENT en JSON sans markdown :
-{"name":"nom complet","type":"red|white|rose|champagne|other","vintage":"année ou null","region":"appellation ou null","producer":"producteur ou null","country":"pays ou null"}`}
+{"name":"nom complet","type":"red|white|rose|petillant|other","vintage":"année ou null","region":"appellation ou null","producer":"producteur ou null","country":"pays ou null"}`}
     ]}]});
     const wine=parseJ(r1);
     if(wine.name) document.getElementById('fName').value=wine.name;
