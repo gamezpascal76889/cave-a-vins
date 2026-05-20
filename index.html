@@ -352,6 +352,14 @@ function updateStats() {
 }
 
 // ══ SHELF ══
+const CELL_COLORS = {
+  red:       'background:#7a1f35;background:radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18);border-color:#8a1a2a',
+  white:     'background:#d4b84a;background:radial-gradient(circle at 35% 30%,#f0e080,#d4b84a 50%,#8a7010);border-color:#a07820',
+  rose:      'background:#d4768a;background:radial-gradient(circle at 35% 30%,#f0a0b0,#d4768a 50%,#8a3050);border-color:#9a4060',
+  petillant: 'background:#c8a84a;background:radial-gradient(circle at 35% 30%,#f8e8a0,#c8a84a 50%,#7a6010);border-color:#b09020',
+  other:     'background:#5a7a4a;background:radial-gradient(circle at 35% 30%,#80b080,#5a7a4a 50%,#2a4a20);border-color:#3a6030',
+};
+
 function renderShelf() {
   const grid = document.getElementById('shelfGrid');
   grid.innerHTML = '';
@@ -364,12 +372,12 @@ function renderShelf() {
     const plank = document.createElement('div');
     plank.className = 'shelf-plank';
     for (let c=0; c<COLS; c++) {
-      const idx = r*COLS+c, b = cellar[idx], tc = b ? TYPES[b.type] : null;
+      const idx = r*COLS+c, b = cellar[idx];
       const cell = document.createElement('div');
-      cell.className = 'cell' + (tc?' '+b.type:'');
-      // Fix couleur: appliquer le background via style inline pour garantir l'affichage
-      if (tc) cell.style.background = tc.bg;
-      if (tc) cell.style.borderColor = tc.border;
+      cell.className = 'cell';
+      if (b && b.type && CELL_COLORS[b.type]) {
+        cell.setAttribute('style', CELL_COLORS[b.type]);
+      }
       cell.title = b ? `${b.name||'Sans nom'}${b.vintage?' '+b.vintage:''}` : `Vide — Alvéole ${idx+1}`;
       if (b) { const cap=document.createElement('div'); cap.className='cell-cap'; cell.appendChild(cap); }
       const num2=document.createElement('span'); num2.className='cell-num'; num2.textContent=idx+1;
@@ -379,7 +387,6 @@ function renderShelf() {
     }
     row.appendChild(plank); grid.appendChild(row);
   }
-  // Legend
   const leg = document.getElementById('legend');
   leg.innerHTML = Object.entries(TYPES).map(([k,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${v.bg};border:1px solid ${v.border}"></div>${v.label}</div>`).join('') +
     `<div class="legend-item"><div class="legend-dot" style="background:${EMPTY_BG};border:1px solid #6a5640"></div>Vide</div>`;
