@@ -321,12 +321,12 @@ function loadCellar() {
     if (!raw) return Array(TOTAL).fill(null);
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return Array(TOTAL).fill(null);
-    // Forcer exactement TOTAL éléments, nettoyer les valeurs corrompues
     return Array.from({length: TOTAL}, (_, i) => {
       const b = parsed[i];
-      if (!b || typeof b !== 'object') return null;
-      if (!b.name) return null; // alvéole sans nom = vide
-      if (!TYPES[b.type]) b.type = 'red'; // type inconnu -> rouge
+      if (!b || typeof b !== 'object' || !b.name) return null;
+      if (!TYPES[b.type]) b.type = 'red';
+      const photo = localStorage.getItem('pascal_photo_'+i);
+      if (photo) b.photo = photo;
       return b;
     });
   } catch(e) { return Array(TOTAL).fill(null); }
@@ -337,8 +337,22 @@ let curIdx  = null, curPhoto = null;
 let sortKey = 'id', sortAsc = true;
 
 function save() {
-  localStorage.setItem('pascal_cellar',  JSON.stringify(cellar));
-  localStorage.setItem('pascal_history', JSON.stringify(history));
+  try {
+    // Photos stockées séparément pour éviter de dépasser 5MB
+    const cellarNoPhoto = cellar.map(b => b ? {...b, photo: null} : null);
+    cellar.forEach((b, i) => {
+      if (b?.photo) { try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {} }
+      else { localStorage.removeItem('pascal_photo_'+i); }
+    });
+    localStorage.setItem('pascal_cellar', JSON.stringify(cellarNoPhoto));
+    localStorage.setItem('pascal_history', JSON.stringify(history));
+  } catch(e) {
+    try {
+      const cellarNoPhoto = cellar.map(b => b ? {...b, photo: null} : null);
+      localStorage.setItem('pascal_cellar', JSON.stringify(cellarNoPhoto));
+      localStorage.setItem('pascal_history', JSON.stringify(history));
+    } catch(e2) { showToast('⚠️ Erreur sauvegarde : stockage plein ?'); }
+  }
   updateStats();
 }
 
