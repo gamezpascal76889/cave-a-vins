@@ -636,13 +636,16 @@ function clearCell() {
 let clipboard = null;
 function copyBottle() {
   const b=cellar[curIdx]; if(!b)return;
-  clipboard={...b};
+  // Récupérer la photo depuis localStorage si elle n'est pas dans l'objet mémoire
+  const photo = b.photo || localStorage.getItem('pascal_photo_'+curIdx) || null;
+  clipboard = {...b, photo};
   showToast('📋 Bouteille copiée — cliquez sur une alvéole vide pour coller');
   closeModal();
 }
+
 function pasteBottle() {
   if(!clipboard)return;
-  cellar[curIdx]={...clipboard, addedAt:new Date().toISOString()};
+  cellar[curIdx] = {...clipboard, addedAt: new Date().toISOString()};
   save(); renderShelves(); renderTable();
   showToast('✅ Bouteille collée dans l\'alvéole !');
   showView(cellar[curIdx], curIdx);
