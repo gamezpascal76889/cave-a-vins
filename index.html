@@ -43,7 +43,7 @@ body { font-family: Georgia, serif; background: var(--bx); color: var(--cream); 
 .cell.red    { background: radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18); border-color: #8a1a2a; }
 .cell.white  { background: radial-gradient(circle at 35% 30%,#f0e080,#d4b84a 50%,#8a7010); border-color: #a07820; }
 .cell.rose   { background: radial-gradient(circle at 35% 30%,#f0a0b0,#d4768a 50%,#8a3050); border-color: #9a4060; }
-.cell.champagne { background: radial-gradient(circle at 35% 30%,#f8e8a0,#c8a84a 50%,#7a6010); border-color: #b09020; }
+.cell.petillant { background: radial-gradient(circle at 35% 30%,#f8e8a0,#c8a84a 50%,#7a6010); border-color: #b09020; }
 .cell.other  { background: radial-gradient(circle at 35% 30%,#80b080,#5a7a4a 50%,#2a4a20); border-color: #3a6030; }
 .cell-cap { position: absolute; top: 14%; left: 33%; width: 34%; height: 20%; background: rgba(255,255,255,.65); border-radius: 50%; opacity: .55; }
 .cell-num { position: absolute; bottom: 1px; right: 1px; font-size: .4rem; color: rgba(255,255,255,.4); line-height: 1; }
@@ -182,7 +182,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
       <option value="red">Rouge</option>
       <option value="white">Blanc</option>
       <option value="rose">Rosé</option>
-      <option value="champagne">Champagne</option>
+      <option value="petillant">Pétillant</option>
       <option value="other">Autre</option>
       <option value="empty">Vides</option>
     </select>
@@ -245,6 +245,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
       </div>
       <div class="info-card" id="vInfoCard"></div>
       <button class="btn btn-primary" onclick="switchEdit()">✏️ Modifier</button>
+      <button class="btn btn-ghost"   onclick="copyBottle()">📋 Copier cette bouteille</button>
       <button class="btn btn-danger"  onclick="consume()">🍽️ Consommer / Sortir</button>
       <button class="btn btn-warn"    onclick="clearCell()">🗑️ Vider l'alvéole</button>
     </div>
@@ -269,7 +270,7 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
           <button type="button" onclick="selectType('red')"       id="tb-red"       class="type-btn active-type">🍷 Rouge</button>
           <button type="button" onclick="selectType('white')"     id="tb-white"     class="type-btn">🥂 Blanc</button>
           <button type="button" onclick="selectType('rose')"      id="tb-rose"      class="type-btn">🌸 Rosé</button>
-          <button type="button" onclick="selectType('champagne')" id="tb-champagne" class="type-btn">✨ Champagne</button>
+          <button type="button" onclick="selectType('petillant')" id="tb-petillant" class="type-btn">✨ Pétillant</button>
           <button type="button" onclick="selectType('other')"     id="tb-other"     class="type-btn">🍾 Autre</button>
         </div>
         <input type="hidden" id="fType" value="red">
@@ -280,14 +281,15 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(
       </div>
       <div class="form-row">
         <div><label>Millésime</label><input type="number" id="fVintage" placeholder="2023"></div>
-        <div><label>Prix (€)</label><input type="number" id="fPrice" placeholder="6.99" step="0.01"></div>
+        <div><label>Prix (€)</label><input type="number" id="fPrice" placeholder="0.00" step="0.01"></div>
       </div>
-      <div class="form-group"><label>Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Lidl, Cave Nicolas…"></div>
+      <div class="form-group"><label>Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Cave Nicolas, Supermarché…"></div>
       <div class="form-group"><label>Région / Provenance</label><input type="text" id="fRegion" placeholder="ex: Bordeaux, Bourgogne…"></div>
       <div class="form-group"><label>Date d'achat</label><input type="date" id="fDate"></div>
       <div class="form-group"><label>Notes personnelles</label><textarea id="fNotes" placeholder="Arômes, accords mets-vins, occasion…"></textarea></div>
 
       <button class="btn btn-search" onclick="searchManual()">🌐 Rechercher infos manuellement</button>
+      <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
       <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px">💾 Enregistrer</button>
       <button class="btn btn-ghost" onclick="cancelEdit()">Annuler</button>
     </div>
@@ -307,7 +309,7 @@ const TYPES = {
   red:       { bg:'radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18)', border:'#8a1a2a', label:'Rouge',     emoji:'🍷', badge:'rgba(122,31,53,.3)', bc:'#ff9090' },
   white:     { bg:'radial-gradient(circle at 35% 30%,#f0e080,#d4b84a 50%,#8a7010)', border:'#a07820', label:'Blanc',     emoji:'🥂', badge:'rgba(180,160,50,.3)', bc:'#f0d060' },
   rose:      { bg:'radial-gradient(circle at 35% 30%,#f0a0b0,#d4768a 50%,#8a3050)', border:'#9a4060', label:'Rosé',      emoji:'🌸', badge:'rgba(180,80,120,.3)', bc:'#ffb0c8' },
-  champagne: { bg:'radial-gradient(circle at 35% 30%,#f8e8a0,#c8a84a 50%,#7a6010)', border:'#b09020', label:'Champagne', emoji:'✨', badge:'rgba(160,130,40,.3)', bc:'#f0d080' },
+  petillant: { bg:'radial-gradient(circle at 35% 30%,#f8e8a0,#c8a84a 50%,#7a6010)', border:'#b09020', label:'Pétillant', emoji:'✨', badge:'rgba(160,130,40,.3)', bc:'#f0d080' },
   other:     { bg:'radial-gradient(circle at 35% 30%,#80b080,#5a7a4a 50%,#2a4a20)', border:'#3a6030', label:'Autre',     emoji:'🍾', badge:'rgba(80,120,60,.3)',  bc:'#a0d090' },
 };
 const EMPTY_BG = 'radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830)';
@@ -349,6 +351,9 @@ function renderShelf() {
       const idx = r*COLS+c, b = cellar[idx], tc = b ? TYPES[b.type] : null;
       const cell = document.createElement('div');
       cell.className = 'cell' + (tc?' '+b.type:'');
+      // Fix couleur: appliquer le background via style inline pour garantir l'affichage
+      if (tc) cell.style.background = tc.bg;
+      if (tc) cell.style.borderColor = tc.border;
       cell.title = b ? `${b.name||'Sans nom'}${b.vintage?' '+b.vintage:''}` : `Vide — Alvéole ${idx+1}`;
       if (b) { const cap=document.createElement('div'); cap.className='cell-cap'; cell.appendChild(cap); }
       const num2=document.createElement('span'); num2.className='cell-num'; num2.textContent=idx+1;
@@ -464,6 +469,14 @@ function showEdit(b, idx) {
     ? `<img src="${curPhoto}" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover">`
     : `<div class="photo-icon">📷</div><div class="photo-hint">Photo de l'étiquette</div><div class="photo-hint2">✨ Analyse IA automatique</div>`;
   hideAiBox();
+  // Afficher le bouton Coller si presse-papier non vide et alvéole vide
+  const pasteBtn = document.getElementById('pasteBtn');
+  const pasteName = document.getElementById('pasteName');
+  if(pasteBtn) {
+    const show = !b && clipboard;
+    pasteBtn.style.display = show ? '' : 'none';
+    if(show && pasteName) pasteName.textContent = clipboard.name || 'bouteille copiée';
+  }
 }
 
 function switchEdit() { showEdit(cellar[curIdx], curIdx); }
@@ -489,6 +502,24 @@ function clearCell() {
   if(!confirm('Vider cette alvéole sans archiver ?'))return;
   cellar[curIdx]=null; save(); renderShelf(); renderTable();
   showToast('🗑️ Alvéole vidée'); closeModal();
+}
+
+// ══ COPIER / COLLER ══
+let clipboard = null;
+
+function copyBottle() {
+  const b = cellar[curIdx]; if(!b) return;
+  clipboard = {...b};
+  showToast('📋 Bouteille copiée — cliquez sur une alvéole vide pour coller');
+  closeModal();
+}
+
+function pasteBottle() {
+  if(!clipboard) return;
+  cellar[curIdx] = {...clipboard, addedAt: new Date().toISOString()};
+  save(); renderShelf(); renderTable();
+  showToast('✅ Bouteille collée dans l\'alvéole !');
+  showView(cellar[curIdx], curIdx);
 }
 
 // ══ PHOTO + IA ══
