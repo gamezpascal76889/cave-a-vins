@@ -170,8 +170,12 @@ input[type=hidden] { display:none; }
   <div class="header-top">
     <div class="header-icon">🍷</div>
     <div class="header-text">
-      <div class="header-title">La Cave à Vins de Pascal</div>
-      <div class="header-sub">Collection personnelle</div>
+      <div class="header-title" id="hTitle">La Cave à Vins de Pascal</div>
+      <div class="header-sub" id="hSub">Collection personnelle</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <button onclick="setLang('fr')" id="btn-fr" style="background:none;border:2px solid var(--gold);border-radius:6px;padding:2px 6px;font-size:1.1rem;cursor:pointer;opacity:1" title="Français">🇫🇷</button>
+      <button onclick="setLang('de')" id="btn-de" style="background:none;border:2px solid transparent;border-radius:6px;padding:2px 6px;font-size:1.1rem;cursor:pointer;opacity:.5" title="Deutsch">🇩🇪</button>
     </div>
   </div>
   <div class="header-stats">
@@ -184,18 +188,18 @@ input[type=hidden] { display:none; }
 
 <!-- NAV -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="switchView('shelf',this)">🗄️ Étagères</button>
-  <button class="nav-btn" onclick="switchView('table',this)">📋 Tableau</button>
-  <button class="nav-btn" onclick="switchView('stats',this)">📊 Stats</button>
-  <button class="nav-btn" onclick="switchView('history',this)">📜 Archives</button>
-  <button class="nav-btn" onclick="switchView('backup',this)">💾 Backup</button>
+  <button class="nav-btn active" onclick="switchView('shelf',this)" data-i18n="navShelves">🗄️ Étagères</button>
+  <button class="nav-btn" onclick="switchView('table',this)" data-i18n="navTable">📋 Tableau</button>
+  <button class="nav-btn" onclick="switchView('stats',this)" data-i18n="navStats">📊 Stats</button>
+  <button class="nav-btn" onclick="switchView('history',this)" data-i18n="navHistory">📜 Archives</button>
+  <button class="nav-btn" onclick="switchView('backup',this)" data-i18n="navBackup">💾 Backup</button>
 </nav>
 
 <!-- ÉTAGÈRES -->
 <div class="view active" id="view-shelf">
   <div class="shelf-tabs">
-    <button class="shelf-tab active" id="stab1" onclick="switchShelf(1)">🗄️ Étagère 1 · 120 alvéoles</button>
-    <button class="shelf-tab" id="stab2" onclick="switchShelf(2)">🗄️ Étagère 2 · 56 alvéoles</button>
+    <button class="shelf-tab active" id="stab1" onclick="switchShelf(1)" data-i18n="shelf1tab">🗄️ Étagère 1 · 120 alvéoles</button>
+    <button class="shelf-tab" id="stab2" onclick="switchShelf(2)" data-i18n="shelf2tab">🗄️ Étagère 2 · 56 alvéoles</button>
   </div>
 
   <!-- Étagère 1 -->
@@ -226,25 +230,25 @@ input[type=hidden] { display:none; }
 <!-- TABLEAU -->
 <div class="view" id="view-table">
   <div class="table-controls">
-    <input class="t-search" type="text" placeholder="🔍 Rechercher…" oninput="renderTable()" id="tSearch">
+    <input class="t-search" type="text" placeholder="🔍 Rechercher…" oninput="renderTable()" id="tSearch" data-i18n-ph="searchPh">
     <select class="t-filter" onchange="renderTable()" id="tFilter">
-      <option value="">Tous</option>
-      <option value="red">Rouge</option>
-      <option value="white">Blanc</option>
-      <option value="rose">Rosé</option>
-      <option value="petillant">Pétillant</option>
-      <option value="other">Autre</option>
-      <option value="empty">Vides</option>
+      <option value="" data-i18n="filterAll">Tous</option>
+      <option value="red" data-i18n="typeRed">Rouge</option>
+      <option value="white" data-i18n="typeWhite">Blanc</option>
+      <option value="rose" data-i18n="typeRose">Rosé</option>
+      <option value="petillant" data-i18n="typePet">Pétillant</option>
+      <option value="other" data-i18n="typeOther">Autre</option>
+      <option value="empty" data-i18n="filterEmpty">Vides</option>
     </select>
   </div>
   <div class="table-wrap"><table>
     <thead><tr>
       <th onclick="sortBy('id')"># <span id="s-id"></span></th>
-      <th onclick="sortBy('shelf')">Ét. <span id="s-shelf"></span></th>
-      <th onclick="sortBy('type')">Type <span id="s-type"></span></th>
-      <th onclick="sortBy('name')">Nom <span id="s-name"></span></th>
-      <th onclick="sortBy('vintage')">Mill. <span id="s-vintage"></span></th>
-      <th onclick="sortBy('price')">Prix <span id="s-price"></span></th>
+      <th onclick="sortBy('shelf')" data-i18n="thShelf">Ét. <span id="s-shelf"></span></th>
+      <th onclick="sortBy('type')" data-i18n="thType">Type <span id="s-type"></span></th>
+      <th onclick="sortBy('name')" data-i18n="thName">Nom <span id="s-name"></span></th>
+      <th onclick="sortBy('vintage')" data-i18n="thVintage">Mill. <span id="s-vintage"></span></th>
+      <th onclick="sortBy('price')" data-i18n="thPrice">Prix <span id="s-price"></span></th>
       <th>–</th>
     </tr></thead>
     <tbody id="tableBody"></tbody>
@@ -264,24 +268,24 @@ input[type=hidden] { display:none; }
 <!-- BACKUP -->
 <div class="view" id="view-backup">
   <div class="bk-card">
-    <div class="bk-title">📤 Exporter</div>
-    <div class="bk-text">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, photos et archives.</div>
+    <div class="bk-title" data-i18n="bkExportTitle">📤 Exporter</div>
+    <div class="bk-text" data-i18n="bkExportText">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, photos et archives.</div>
     <div id="bkInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px"></div>
-    <button class="btn btn-primary" onclick="exportData()">📥 Télécharger la sauvegarde</button>
+    <button class="btn btn-primary" onclick="exportData()" data-i18n="bkExportBtn">📥 Télécharger la sauvegarde</button>
   </div>
   <div class="bk-card">
-    <div class="bk-title">📂 Importer</div>
-    <div class="bk-text">⚠️ L'import <b style="color:#ffb060">remplace</b> toutes les données actuelles. Faites d'abord un export !</div>
+    <div class="bk-title" data-i18n="bkImportTitle">📂 Importer</div>
+    <div class="bk-text" data-i18n="bkImportText">⚠️ L'import <b style="color:#ffb060">remplace</b> toutes les données actuelles. Faites d'abord un export !</div>
     <div class="drop-zone" onclick="document.getElementById('importFile').click()">
       <div class="drop-zone-icon">📁</div>
-      <div class="drop-zone-text">Choisir un fichier .json</div>
+      <div class="drop-zone-text" data-i18n="bkImportDrop">Choisir un fichier .json</div>
     </div>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
   </div>
   <div class="bk-card danger">
-    <div class="bk-title danger">🗑️ Réinitialiser</div>
-    <div class="bk-text">Efface <b style="color:#ff8080">toutes</b> les bouteilles et l'historique. Irréversible.</div>
-    <button class="btn btn-danger" onclick="resetAll()">⚠️ Tout effacer</button>
+    <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
+    <div class="bk-text" data-i18n="bkResetText">Efface <b style="color:#ff8080">toutes</b> les bouteilles et l'historique. Irréversible.</div>
+    <button class="btn btn-danger" onclick="resetAll()" data-i18n="bkResetBtn">⚠️ Tout effacer</button>
   </div>
 </div>
 
@@ -302,12 +306,13 @@ input[type=hidden] { display:none; }
         <div id="vPhotoWrap" style="display:none;margin-bottom:12px">
           <img id="vPhoto" src="" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid rgba(201,168,76,.2)">
         </div>
-        <div id="vInfoCard" style="margin-bottom:16px"></div>
-        <button class="btn btn-primary" onclick="switchEdit()">✏️ Modifier</button>
-        <button class="btn btn-ghost"   onclick="copyBottle()">📋 Copier cette bouteille</button>
-        <button class="btn btn-danger"  onclick="consume()">🍽️ Consommer / Sortir</button>
-        <button class="btn btn-warn"    onclick="clearCell()">🗑️ Vider l'alvéole</button>
-        <button class="btn btn-ghost"   onclick="closeModal()" style="margin-top:4px;opacity:.6">← Retour à l'étagère</button>
+        <div id="vInfoCard" style="margin-bottom:12px"></div>
+        <div id="vSearchBtns" style="margin-bottom:12px"></div>
+        <button class="btn btn-primary" onclick="switchEdit()" data-i18n="btnEdit">✏️ Modifier</button>
+        <button class="btn btn-ghost"   onclick="copyBottle()" data-i18n="btnCopy">📋 Copier cette bouteille</button>
+        <button class="btn btn-danger"  onclick="consume()" data-i18n="btnConsume">🍽️ Consommer / Sortir</button>
+        <button class="btn btn-warn"    onclick="clearCell()" data-i18n="btnClear">🗑️ Vider l'alvéole</button>
+        <button class="btn btn-ghost"   onclick="closeModal()" style="margin-top:4px;opacity:.6" data-i18n="btnBack">← Retour à l'étagère</button>
       </div>
 
       <!-- MODE ÉDITION -->
@@ -320,8 +325,8 @@ input[type=hidden] { display:none; }
             <img id="photoImg" src="" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover;display:block">
           </div>
           <div style="display:flex;gap:8px">
-            <button type="button" onclick="document.getElementById('photoCam').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer">📷 Prendre une photo</button>
-            <button type="button" onclick="document.getElementById('photoGal').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer">🖼️ Galerie photos</button>
+            <button type="button" onclick="document.getElementById('photoCam').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer" data-i18n="btnCamera">📷 Prendre une photo</button>
+            <button type="button" onclick="document.getElementById('photoGal').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer" data-i18n="btnGallery">🖼️ Galerie photos</button>
           </div>
           <div style="text-align:center;margin-top:5px;font-size:.7rem;color:#c9a84c;opacity:.7">✨ Analyse IA automatique de l'étiquette</div>
         </div>
@@ -331,7 +336,7 @@ input[type=hidden] { display:none; }
         <div class="ai-box" id="aiBox"></div>
 
         <div class="form-group">
-          <label>Type de vin <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(détecté auto depuis la photo)</span></label>
+          <label id="label-type">Type de vin <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(détecté auto depuis la photo)</span></label>
           <input type="hidden" id="fType" value="red">
           <div class="type-btns">
             <button type="button" onclick="selectType('red')"       id="tb-red"       class="type-btn">🍷 Rouge</button>
@@ -342,20 +347,20 @@ input[type=hidden] { display:none; }
           </div>
         </div>
 
-        <div class="form-group"><label>Nom / Appellation *</label><input type="text" id="fName" placeholder="ex: Château Margaux, Sancerre…"></div>
+        <div class="form-group"><label id="label-name">Nom / Appellation *</label><input type="text" id="fName" placeholder="ex: Château Margaux, Sancerre…"></div>
         <div class="form-row">
-          <div><label>Millésime</label><input type="number" id="fVintage" placeholder="2020" min="1900" max="2099"></div>
-          <div><label>Prix (€)</label><input type="number" id="fPrice" placeholder="0.00" step="0.01"></div>
+          <div><label id="label-vintage">Millésime</label><input type="number" id="fVintage" placeholder="2020" min="1900" max="2099"></div>
+          <div><label id="label-price">Prix (€)</label><input type="number" id="fPrice" placeholder="0.00" step="0.01"></div>
         </div>
-        <div class="form-group"><label>Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Cave Nicolas, Supermarché…"></div>
-        <div class="form-group"><label>Région / Appellation</label><input type="text" id="fRegion" placeholder="ex: Bordeaux, Bourgogne…"></div>
-        <div class="form-group"><label>Date d'achat</label><input type="date" id="fDate"></div>
-        <div class="form-group"><label>🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
-        <div class="form-group"><label>🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-shop">Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Cave Nicolas, Supermarché…"></div>
+        <div class="form-group"><label id="label-region">Région / Appellation</label><input type="text" id="fRegion" placeholder="ex: Bordeaux, Bourgogne…"></div>
+        <div class="form-group"><label id="label-date">Date d'achat</label><input type="date" id="fDate"></div>
+        <div class="form-group"><label id="label-aromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
 
         <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
-        <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px">💾 Enregistrer</button>
-        <button class="btn btn-ghost" onclick="cancelEdit()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px" data-i18n="btnSave">💾 Enregistrer</button>
+        <button class="btn btn-ghost" onclick="cancelEdit()" data-i18n="btnCancel">Annuler</button>
       </div>
 
     </div>
@@ -367,6 +372,164 @@ input[type=hidden] { display:none; }
 <script>
 // ══ CONFIG ══
 const PROXY_URL = 'https://cave-proxy.onrender.com/api/claude';
+
+// ══ TRADUCTIONS ══
+const I18N = {
+  fr: {
+    hTitle:'La Cave à Vins de Pascal', hSub:'Collection personnelle',
+    navShelves:'🗄️ Étagères', navTable:'📋 Tableau', navStats:'📊 Stats', navHistory:'📜 Archives', navBackup:'💾 Backup',
+    shelf1tab:'🗄️ Étagère 1 · 120 alvéoles', shelf2tab:'🗄️ Étagère 2 · 56 alvéoles',
+    shelf1name:'🏛️ Étagère 1', shelf2name:'🏛️ Étagère 2',
+    bottleCount:(f,t)=>`${f} bouteille${f!==1?'s':''} · ${t-f} vide${t-f!==1?'s':''}`,
+    statTotal:(n)=>`${n} / 176 bouteilles`, statE1:(f)=>`Ét.1 : ${f}/120`, statE2:(f)=>`Ét.2 : ${f}/56`,
+    searchPh:'🔍 Rechercher…',
+    filterAll:'Tous', typeRed:'Rouge', typeWhite:'Blanc', typeRose:'Rosé', typePet:'Pétillant', typeOther:'Autre', filterEmpty:'Vides',
+    thShelf:'Ét.', thType:'Type', thName:'Nom', thVintage:'Mill.', thPrice:'Prix',
+    tblEmpty:'Aucun résultat', tblVide:'Vide', tblSee:'Voir',
+    bkExportTitle:'📤 Exporter', bkExportText:'Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, photos et archives.', bkExportBtn:'📥 Télécharger la sauvegarde',
+    bkImportTitle:'📂 Importer', bkImportText:'⚠️ L\'import <b style="color:#ffb060">remplace</b> toutes les données actuelles. Faites d\'abord un export !', bkImportDrop:'Choisir un fichier .json',
+    bkResetTitle:'🗑️ Réinitialiser', bkResetText:'Efface <b style="color:#ff8080">toutes</b> les bouteilles et l\'historique. Irréversible.', bkResetBtn:'⚠️ Tout effacer',
+    btnEdit:'✏️ Modifier', btnCopy:'📋 Copier cette bouteille', btnConsume:'🍽️ Consommer / Sortir', btnClear:'🗑️ Vider l\'alvéole', btnBack:'← Retour à l\'étagère',
+    btnCamera:'📷 Prendre une photo', btnGallery:'🖼️ Galerie photos',
+    btnSave:'💾 Enregistrer', btnCancel:'Annuler',
+    labelType:'Type de vin', labelTypeHint:'(détecté auto depuis la photo)',
+    labelName:'Nom / Appellation *', labelVintage:'Millésime', labelPrice:'Prix (€)',
+    labelShop:'Lieu d\'achat', labelRegion:'Région / Appellation', labelDate:'Date d\'achat',
+    labelAromas:'🌸 Arômes', labelAromasHint:'(rempli auto par IA)', labelAromasPh:'ex: Fruits rouges, vanille, épices…',
+    labelPairing:'🍽️ Accords mets-vins', labelPairingHint:'(rempli auto par IA)', labelPairingPh:'ex: Viandes rouges, fromages affinés…',
+    labelNamePh:'ex: Château Margaux, Sancerre…', labelShopPh:'ex: Cave Nicolas, Supermarché…', labelRegionPh:'ex: Bordeaux, Bourgogne…',
+    aiAnalyzing:'🔍 Lecture de l\'étiquette…', aiSearching:'🌐 Recherche arômes & accords…', aiUnreadable:'⚠️ Étiquette illisible. Remplissez manuellement.', aiDone:'✅ Étiquette lue ! Consultez Vivino pour le prix.', aiError:'⚠️ Erreur : ',
+    infoVintage:'Millésime', infoPrice:'Prix', infoShop:'Acheté chez', infoRegion:'Région', infoDate:'Date d\'achat', infoAromas:'🌸 Arômes', infoPairing:'🍽️ Accords mets-vins',
+    toastSaved:'✅ Bouteille enregistrée !', toastConsumed:'🍽️ Bouteille consommée — archivée !', toastCleared:'🗑️ Alvéole vidée', toastCopied:'📋 Bouteille copiée — cliquez sur une alvéole vide pour coller', toastPasted:'✅ Bouteille collée dans l\'alvéole !',
+    toastExported:(n)=>`✅ Sauvegarde exportée (${n} bouteilles)`, toastImported:'✅ Cave importée avec succès !', toastReset:'🗑️ Cave réinitialisée', toastInvalidName:'⚠️ Saisissez un nom ou une appellation',
+    confirmClear:'Vider cette alvéole sans archiver ?', confirmReset:'⚠️ Effacer TOUTES les bouteilles et l\'historique ?\nAction irréversible !', confirmImport:(d)=>`Importer la sauvegarde du ${d} ?\nCela remplacera toutes vos données.`,
+    histEmpty:'Aucune consommation enregistrée', statEmpty:'🍾 Aucune bouteille en cave pour le moment.',
+    kpiBottles:'Bouteilles en cave', kpiFree:'Alvéoles libres', kpiValue:'Valeur totale', kpiAvg:'Prix moyen',
+    statsShelf:'🗄️ Par étagère', statsType:'🍷 Par type de vin', statsRegion:'🗺️ Par région / appellation',
+    statsRegionType:'🔍 Par appellation & type', statsVintage:'📅 Par millésime', statsSeries:'🔢 Séries identiques (≥ 2 bouteilles)',
+    statsTop5:'💎 Les 5 plus belles bouteilles', statsShop:'🛒 Par lieu d\'achat', statsAnecdotes:'✨ Le saviez-vous ?',
+    statNoData:'Aucune donnée',
+    anecOldest:(n,v,r)=>`📜 La plus ancienne : <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecNewest:(n,v,r)=>`🆕 La plus récente : <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecMost:(n,p)=>`💰 La plus chère : <strong>${n}</strong> à <strong>${p} €</strong>`,
+    anecConsumed:(c)=>`🍽️ Bouteilles consommées depuis l'ouverture : <strong>${c}</strong>`,
+    anecSeries:(c,k,t)=>`🍾 <strong>${c} bouteilles</strong> de <strong>${k}</strong>${t?' ('+t+')':''}`,
+    vivinoBtn:'🍷 Voir sur Vivino', wsBtn:'🔍 Wine-Searcher',
+    shelfLabel:(n)=>`Étagère ${n}`, cellLabel:(s,n)=>`Étagère ${s} · Alvéole n°${n}`,
+    addBottle:'Ajouter une bouteille', editBottle:'Modifier la bouteille',
+    emptyCell:(n)=>`Vide — Alvéole ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Alvéole ${n}`,
+    aiPhotoHint:'✨ Analyse IA automatique de l\'étiquette',
+  },
+  de: {
+    hTitle:'Pascals Weinkeller', hSub:'Persönliche Sammlung',
+    navShelves:'🗄️ Regale', navTable:'📋 Tabelle', navStats:'📊 Statistik', navHistory:'📜 Archiv', navBackup:'💾 Backup',
+    shelf1tab:'🗄️ Regal 1 · 120 Fächer', shelf2tab:'🗄️ Regal 2 · 56 Fächer',
+    shelf1name:'🏛️ Regal 1', shelf2name:'🏛️ Regal 2',
+    bottleCount:(f,t)=>`${f} Flasche${f!==1?'n':''} · ${t-f} leer${t-f!==1?'e':''}`,
+    statTotal:(n)=>`${n} / 176 Flaschen`, statE1:(f)=>`R.1 : ${f}/120`, statE2:(f)=>`R.2 : ${f}/56`,
+    searchPh:'🔍 Suchen…',
+    filterAll:'Alle', typeRed:'Rotwein', typeWhite:'Weißwein', typeRose:'Roséwein', typePet:'Perlwein', typeOther:'Andere', filterEmpty:'Leer',
+    thShelf:'Reg.', thType:'Typ', thName:'Name', thVintage:'Jahr.', thPrice:'Preis',
+    tblEmpty:'Keine Ergebnisse', tblVide:'Leer', tblSee:'Ansehen',
+    bkExportTitle:'📤 Exportieren', bkExportText:'Lädt eine Datei <b style="color:#f5ede0">cave-pascal.json</b> mit allen Flaschen, Fotos und Archiven herunter.', bkExportBtn:'📥 Sicherung herunterladen',
+    bkImportTitle:'📂 Importieren', bkImportText:'⚠️ Import <b style="color:#ffb060">ersetzt</b> alle aktuellen Daten. Zuerst exportieren!', bkImportDrop:'.json-Datei auswählen',
+    bkResetTitle:'🗑️ Zurücksetzen', bkResetText:'Löscht <b style="color:#ff8080">alle</b> Flaschen und den Verlauf. Unwiderruflich.', bkResetBtn:'⚠️ Alles löschen',
+    btnEdit:'✏️ Bearbeiten', btnCopy:'📋 Flasche kopieren', btnConsume:'🍽️ Trinken / Entfernen', btnClear:'🗑️ Fach leeren', btnBack:'← Zurück zum Regal',
+    btnCamera:'📷 Foto aufnehmen', btnGallery:'🖼️ Galerie',
+    btnSave:'💾 Speichern', btnCancel:'Abbrechen',
+    labelType:'Weintyp', labelTypeHint:'(automatisch erkannt)',
+    labelName:'Name / Appellation *', labelVintage:'Jahrgang', labelPrice:'Preis (€)',
+    labelShop:'Kaufort', labelRegion:'Region / Appellation', labelDate:'Kaufdatum',
+    labelAromas:'🌸 Aromen', labelAromasHint:'(automatisch durch KI)', labelAromasPh:'z.B. Rote Früchte, Vanille, Gewürze…',
+    labelPairing:'🍽️ Speiseempfehlungen', labelPairingHint:'(automatisch durch KI)', labelPairingPh:'z.B. Rotes Fleisch, gereifter Käse…',
+    labelNamePh:'z.B. Château Margaux, Riesling…', labelShopPh:'z.B. Weinhandlung, Supermarkt…', labelRegionPh:'z.B. Bordeaux, Burgund…',
+    aiAnalyzing:'🔍 Etikett wird gelesen…', aiSearching:'🌐 Suche nach Aromen & Empfehlungen…', aiUnreadable:'⚠️ Etikett unleserlich. Bitte manuell ausfüllen.', aiDone:'✅ Etikett gelesen! Vivino für den Preis prüfen.', aiError:'⚠️ Fehler: ',
+    infoVintage:'Jahrgang', infoPrice:'Preis', infoShop:'Gekauft bei', infoRegion:'Region', infoDate:'Kaufdatum', infoAromas:'🌸 Aromen', infoPairing:'🍽️ Speiseempfehlungen',
+    toastSaved:'✅ Flasche gespeichert!', toastConsumed:'🍽️ Flasche getrunken — archiviert!', toastCleared:'🗑️ Fach geleert', toastCopied:'📋 Flasche kopiert — leeres Fach anklicken zum Einfügen', toastPasted:'✅ Flasche eingefügt!',
+    toastExported:(n)=>`✅ Sicherung exportiert (${n} Flaschen)`, toastImported:'✅ Keller erfolgreich importiert!', toastReset:'🗑️ Keller zurückgesetzt', toastInvalidName:'⚠️ Bitte einen Namen eingeben',
+    confirmClear:'Dieses Fach ohne Archivierung leeren?', confirmReset:'⚠️ ALLE Flaschen und den Verlauf löschen?\nUnwiderruflich!', confirmImport:(d)=>`Sicherung vom ${d} importieren?\nAlle aktuellen Daten werden ersetzt.`,
+    histEmpty:'Keine Konsumeinträge vorhanden', statEmpty:'🍾 Noch keine Flaschen im Keller.',
+    kpiBottles:'Flaschen im Keller', kpiFree:'Freie Fächer', kpiValue:'Gesamtwert', kpiAvg:'Durchschnittspreis',
+    statsShelf:'🗄️ Nach Regal', statsType:'🍷 Nach Weintyp', statsRegion:'🗺️ Nach Region / Appellation',
+    statsRegionType:'🔍 Nach Appellation & Typ', statsVintage:'📅 Nach Jahrgang', statsSeries:'🔢 Identische Serien (≥ 2 Flaschen)',
+    statsTop5:'💎 Die 5 wertvollsten Flaschen', statsShop:'🛒 Nach Kaufort', statsAnecdotes:'✨ Wussten Sie?',
+    statNoData:'Keine Daten',
+    anecOldest:(n,v,r)=>`📜 Älteste Flasche: <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecNewest:(n,v,r)=>`🆕 Neueste Flasche: <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecMost:(n,p)=>`💰 Teuerste Flasche: <strong>${n}</strong> für <strong>${p} €</strong>`,
+    anecConsumed:(c)=>`🍽️ Seit Kellereröffnung getrunken: <strong>${c}</strong>`,
+    anecSeries:(c,k,t)=>`🍾 <strong>${c} Flaschen</strong> von <strong>${k}</strong>${t?' ('+t+')':''}`,
+    vivinoBtn:'🍷 Auf Vivino ansehen', wsBtn:'🔍 Wine-Searcher',
+    shelfLabel:(n)=>`Regal ${n}`, cellLabel:(s,n)=>`Regal ${s} · Fach Nr. ${n}`,
+    addBottle:'Flasche hinzufügen', editBottle:'Flasche bearbeiten',
+    emptyCell:(n)=>`Leer — Fach ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Fach ${n}`,
+    aiPhotoHint:'✨ Automatische KI-Etikettenanalyse',
+  }
+};
+let lang = localStorage.getItem('pascal_lang') || 'fr';
+function t(key, ...args) {
+  const val = I18N[lang][key];
+  if(typeof val === 'function') return val(...args);
+  return val || I18N['fr'][key] || key;
+}
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('pascal_lang', l);
+  // Drapeaux
+  document.getElementById('btn-fr').style.borderColor = l==='fr' ? 'var(--gold)' : 'transparent';
+  document.getElementById('btn-fr').style.opacity     = l==='fr' ? '1' : '.5';
+  document.getElementById('btn-de').style.borderColor = l==='de' ? 'var(--gold)' : 'transparent';
+  document.getElementById('btn-de').style.opacity     = l==='de' ? '1' : '.5';
+  // Éléments statiques data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(I18N[lang][key] && typeof I18N[lang][key] === 'string') el.innerHTML = I18N[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.dataset.i18nPh;
+    if(I18N[lang][key]) el.placeholder = I18N[lang][key];
+  });
+  // Titres header
+  document.getElementById('hTitle').textContent = t('hTitle');
+  document.getElementById('hSub').textContent   = t('hSub');
+  // Formulaire labels dynamiques — on re-génère via updateFormLabels
+  updateFormLabels();
+  // TYPES labels
+  TYPES.red.label       = t('typeRed');
+  TYPES.white.label     = t('typeWhite');
+  TYPES.rose.label      = t('typeRose');
+  TYPES.petillant.label = t('typePet');
+  TYPES.other.label     = t('typeOther');
+  // Re-render tout
+  updateStats(); renderShelves(); renderTable(); renderHistory();
+  if(document.getElementById('view-stats').classList.contains('active')) renderStats();
+}
+function updateFormLabels() {
+  const labels = {
+    'label-type':    [t('labelType'),    t('labelTypeHint')],
+    'label-name':    [t('labelName'),    ''],
+    'label-vintage': [t('labelVintage'), ''],
+    'label-price':   [t('labelPrice'),   ''],
+    'label-shop':    [t('labelShop'),    ''],
+    'label-region':  [t('labelRegion'),  ''],
+    'label-date':    [t('labelDate'),    ''],
+    'label-aromas':  [t('labelAromas'),  t('labelAromasHint')],
+    'label-pairing': [t('labelPairing'), t('labelPairingHint')],
+  };
+  Object.entries(labels).forEach(([id,[main,hint]])=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.innerHTML = main + (hint?` <span style="font-size:.7rem;color:#c9a84c;opacity:.7">${hint}</span>`:'');
+  });
+  // Placeholders
+  const phs = { fName:t('labelNamePh'), fShop:t('labelShopPh'), fRegion:t('labelRegionPh'), fAromas:t('labelAromasPh'), fPairing:t('labelPairingPh') };
+  Object.entries(phs).forEach(([id,ph])=>{ const el=document.getElementById(id); if(el) el.placeholder=ph; });
+  // Bouton sauvegarder / annuler
+  const btnS=document.querySelector('[data-i18n="btnSave"]'); if(btnS) btnS.innerHTML=t('btnSave');
+  const btnC=document.querySelector('[data-i18n="btnCancel"]'); if(btnC) btnC.innerHTML=t('btnCancel');
+  // Photo hint
+  const ph=document.getElementById('photoHint'); if(ph) ph.textContent=t('aiPhotoHint');
+}
+
 
 // ══ CONSTANTES ══
 // Étagère 1 : 10 rangées × 12 colonnes = 120 (alvéoles 1-120)
@@ -441,12 +604,12 @@ function updateStats() {
   const f2 = cellar.slice(S1_TOTAL).filter(Boolean).length;
   const fT = f1 + f2;
   const v  = cellar.reduce((a,b) => a+(b?parseFloat(b.price)||0:0), 0);
-  document.getElementById('sTotal').textContent = `${fT} / ${TOTAL} bouteilles`;
+  document.getElementById('sTotal').textContent = t('statTotal', fT);
   document.getElementById('sVal').textContent   = v.toFixed(2).replace('.',',') + ' €';
-  document.getElementById('sE1').textContent    = `Ét.1 : ${f1}/${S1_TOTAL}`;
-  document.getElementById('sE2').textContent    = `Ét.2 : ${f2}/${S2_TOTAL}`;
-  document.getElementById('badge1').textContent = `${f1} bouteille${f1!==1?'s':''} · ${S1_TOTAL-f1} vide${S1_TOTAL-f1!==1?'s':''}`;
-  document.getElementById('badge2').textContent = `${f2} bouteille${f2!==1?'s':''} · ${S2_TOTAL-f2} vide${S2_TOTAL-f2!==1?'s':''}`;
+  document.getElementById('sE1').textContent    = t('statE1', f1);
+  document.getElementById('sE2').textContent    = t('statE2', f2);
+  document.getElementById('badge1').textContent = t('bottleCount', f1, S1_TOTAL);
+  document.getElementById('badge2').textContent = t('bottleCount', f2, S2_TOTAL);
 }
 
 // ══ SHELF ══
@@ -476,8 +639,8 @@ function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
         cell.setAttribute('style', CELL_COLORS[b.type]);
       }
       cell.title = b
-        ? `${b.name||'Sans nom'}${b.vintage?' '+b.vintage:''} — Alvéole ${idx+1}`
-        : `Vide — Alvéole ${idx+1}`;
+        ? t('filledCell', b.name||'?', b.vintage, idx+1)
+        : t('emptyCell', idx+1);
       if (b) { const cap=document.createElement('div'); cap.className='cell-cap'; cell.appendChild(cap); }
       const num2=document.createElement('span'); num2.className='cell-num'; num2.textContent=idx+1;
       cell.appendChild(num2);
@@ -494,6 +657,8 @@ function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
 }
 
 function renderShelves() {
+  document.querySelector('.shelf-name').textContent = t('shelf1name');
+  document.querySelectorAll('.shelf-name')[1] && (document.querySelectorAll('.shelf-name')[1].textContent = t('shelf2name'));
   buildShelfGrid('shelfGrid1','legend1', 0,         S1_ROWS, S1_COLS);
   buildShelfGrid('shelfGrid2','legend2', S1_TOTAL,  S2_ROWS, S2_COLS);
 }
@@ -527,15 +692,15 @@ function renderTable() {
     return sortAsc?(va>vb?1:-1):(va<vb?1:-1);
   });
   tb.innerHTML = rows.length===0
-    ? '<tr><td colspan="7" style="text-align:center;padding:20px;opacity:.35;font-style:italic">Aucun résultat</td></tr>'
+    ? `<tr><td colspan="7" style="text-align:center;padding:20px;opacity:.35;font-style:italic">${t('tblEmpty')}</td></tr>`
     : rows.map(r=>`<tr class="${r._empty?'empty-row':''}">
       <td>${r._id}</td>
-      <td><span style="opacity:.6;font-size:.7rem">Ét.${r._shelf}</span></td>
+      <td><span style="opacity:.6;font-size:.7rem">${t('shelfLabel',r._shelf)}</span></td>
       <td>${r.type?`<span class="type-dot-sm" style="background:${TYPES[r.type]?.bg}"></span>${TYPES[r.type]?.label}`:'—'}</td>
-      <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name||'<em style="opacity:.4">Vide</em>'}</td>
+      <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name||`<em style="opacity:.4">${t('tblVide')}</em>`}</td>
       <td>${r.vintage||'—'}</td>
       <td>${r.price?parseFloat(r.price).toFixed(2).replace('.',',')+' €':'—'}</td>
-      <td><button class="t-btn" onclick="openModal(${r._i})">Voir</button></td>
+      <td><button class="t-btn" onclick="openModal(${r._i})">${t('tblSee')}</button></td>
     </tr>`).join('');
 }
 
@@ -549,13 +714,13 @@ function sortBy(k) {
 // ══ HISTORY ══
 function renderHistory() {
   const list = document.getElementById('historyList');
-  if (!history.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">📜</div><div>Aucune consommation enregistrée</div></div>'; return; }
+  if (!history.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">📜</div><div>${t('histEmpty')}</div></div>`; return; }
   list.innerHTML = [...history].reverse().map(h=>`
     <div class="hist-card">
       <div class="hist-icon">${TYPES[h.type]?.emoji||'🍾'}</div>
       <div style="flex:1;min-width:0">
         <div class="hist-name">${h.name||'Sans nom'}</div>
-        <div class="hist-meta">Alvéole ${h.cell} · ${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
+        <div class="hist-meta">${t('cellLabel', h._shelf||1, h.cell)} · ${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
         ${h.aromas?`<div class="hist-meta">🌸 ${h.aromas}</div>`:''}
         ${h.price?`<div class="hist-meta">💶 ${parseFloat(h.price).toFixed(2).replace('.',',')} €</div>`:''}
       </div>
@@ -582,18 +747,26 @@ function showView(b, idx) {
   document.getElementById('vBadge').style.cssText=`background:${tc.badge||'rgba(100,100,100,.3)'};color:${tc.bc||'#ccc'};border:1px solid ${tc.border||'#555'}`;
   document.getElementById('vName').textContent=b.name||'Sans nom';
   const shelf = idx < S1_TOTAL ? 1 : 2;
-  document.getElementById('vCell').textContent=`Étagère ${shelf} · Alvéole n°${idx+1}`;
+  document.getElementById('vCell').textContent = t('cellLabel', shelf, idx+1);
   const pw=document.getElementById('vPhotoWrap');
   if(b.photo){pw.style.display='';document.getElementById('vPhoto').src=b.photo;}else pw.style.display='none';
   document.getElementById('vInfoCard').innerHTML=[
-    ['Millésime',b.vintage||'—'],
-    ['Prix',b.price?parseFloat(b.price).toFixed(2).replace('.',',')+' €':'—'],
-    ['Acheté chez',b.shop||'—'],
-    ['Région',b.region||'—'],
-    ['Date d\'achat',b.date?fmtDate(b.date):'—'],
-    ['🌸 Arômes',b.aromas||'—'],
-    ['🍽️ Accords mets-vins',b.pairing||'—']
+    [t('infoVintage'), b.vintage||'—'],
+    [t('infoPrice'),   b.price?parseFloat(b.price).toFixed(2).replace('.',',')+' €':'—'],
+    [t('infoShop'),    b.shop||'—'],
+    [t('infoRegion'),  b.region||'—'],
+    [t('infoDate'),    b.date?fmtDate(b.date):'—'],
+    [t('infoAromas'),  b.aromas||'—'],
+    [t('infoPairing'), b.pairing||'—']
   ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
+  // Boutons Vivino & Wine-Searcher
+  const name = b.name||'';
+  const vintage = b.vintage||'';
+  const qG  = encodeURIComponent(`site:vivino.com ${name} ${vintage}`.trim());
+  const qws = encodeURIComponent(`${name} ${vintage}`.trim()).replace(/%20/g,'+');
+  document.getElementById('vSearchBtns').innerHTML=`
+    <a href="https://www.google.com/search?q=${qG}" target="_blank" style="display:inline-block;background:rgba(180,30,50,.5);border:1px solid rgba(220,80,80,.4);color:#ffaaaa;padding:7px 12px;border-radius:6px;font-size:.8rem;text-decoration:none;margin-right:6px;margin-bottom:8px">${t('vivinoBtn')}</a>
+    <a href="https://www.wine-searcher.com/find/${qws}/1/france" target="_blank" style="display:inline-block;background:rgba(40,80,140,.5);border:1px solid rgba(80,140,220,.3);color:#aaccff;padding:7px 12px;border-radius:6px;font-size:.8rem;text-decoration:none;margin-bottom:8px">${t('wsBtn')}</a>`;
 }
 
 function selectType(t) {
@@ -605,8 +778,8 @@ function selectType(t) {
 function showEdit(b, idx) {
   document.getElementById('modeView').style.display='none'; document.getElementById('modeEdit').style.display='';
   const shelf = idx < S1_TOTAL ? 1 : 2;
-  document.getElementById('eTitle').textContent = b?'Modifier la bouteille':'Ajouter une bouteille';
-  document.getElementById('eCell').textContent  = `Étagère ${shelf} · Alvéole n°${idx+1}`;
+  document.getElementById('eTitle').textContent = b ? t('editBottle') : t('addBottle');
+  document.getElementById('eCell').textContent  = t('cellLabel', idx < S1_TOTAL ? 1 : 2, idx+1);
   selectType(b?.type||'red');
   document.getElementById('fName').value    = b?.name    || '';
   document.getElementById('fVintage').value = b?.vintage || '';
@@ -630,7 +803,7 @@ function cancelEdit()  { cellar[curIdx]?showView(cellar[curIdx],curIdx):closeMod
 function saveBottle() {
   if(curIdx===null||curIdx<0||curIdx>=TOTAL){showToast('⚠️ Erreur : alvéole invalide');return;}
   const name=document.getElementById('fName').value.trim();
-  if(!name){showToast('⚠️ Saisissez un nom ou une appellation');return;}
+  if(!name){showToast(t('toastInvalidName'));return;}
   const type=document.getElementById('fType').value;
   cellar[curIdx]={
     type: TYPES[type]?type:'red', name,
@@ -646,7 +819,7 @@ function saveBottle() {
   };
   if(cellar.length!==TOTAL) cellar=Array.from({length:TOTAL},(_,i)=>cellar[i]||null);
   save(); renderShelves(); renderTable();
-  showToast('✅ Bouteille enregistrée !');
+  showToast(t('toastSaved'));
   showView(cellar[curIdx], curIdx);
 }
 
@@ -654,13 +827,13 @@ function consume() {
   const b=cellar[curIdx]; if(!b)return;
   history.push({...b, cell:curIdx+1, consumedAt:new Date().toISOString()});
   cellar[curIdx]=null; save(); renderShelves(); renderTable(); renderHistory();
-  showToast('🍽️ Bouteille consommée — archivée !'); closeModal();
+  showToast(t('toastConsumed')); closeModal();
 }
 
 function clearCell() {
-  if(!confirm('Vider cette alvéole sans archiver ?'))return;
+  if(!confirm(t('confirmClear')))return;
   cellar[curIdx]=null; save(); renderShelves(); renderTable();
-  showToast('🗑️ Alvéole vidée'); closeModal();
+  showToast(t('toastCleared')); closeModal();
 }
 
 // ══ COPIER / COLLER ══
@@ -670,7 +843,7 @@ function copyBottle() {
   // Récupérer la photo depuis localStorage si elle n'est pas dans l'objet mémoire
   const photo = b.photo || localStorage.getItem('pascal_photo_'+curIdx) || null;
   clipboard = {...b, photo};
-  showToast('📋 Bouteille copiée — cliquez sur une alvéole vide pour coller');
+  showToast(t('toastCopied'));
   closeModal();
 }
 
@@ -678,7 +851,7 @@ function pasteBottle() {
   if(!clipboard)return;
   cellar[curIdx] = {...clipboard, addedAt: new Date().toISOString()};
   save(); renderShelves(); renderTable();
-  showToast('✅ Bouteille collée dans l\'alvéole !');
+  showToast(t('toastPasted'));
   showView(cellar[curIdx], curIdx);
 }
 
@@ -730,7 +903,7 @@ function parseJ(raw){
 }
 
 async function analyzeLabel(dataUrl){
-  showAiBox('🔍 Lecture de l\'étiquette…',true);
+  showAiBox(t('aiAnalyzing'),true);
   const b64=dataUrl.split(',')[1], mime=dataUrl.match(/data:(image\/\w+);/)?.[1]||'image/jpeg';
   try{
     const r1=await callProxy({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:[
@@ -743,18 +916,19 @@ async function analyzeLabel(dataUrl){
     if(wine.type&&TYPES[wine.type]) selectType(wine.type);
     if(wine.vintage) document.getElementById('fVintage').value=wine.vintage;
     if(wine.region)  document.getElementById('fRegion').value=wine.region;
-    if(!wine.name){showAiBox('⚠️ Étiquette illisible. Remplissez manuellement.');return;}
-    // Bouton Vivino + Wine-Searcher (zéro coût API)
+    if(!wine.name){showAiBox(t('aiUnreadable'));return;}
     const searchTerm = [wine.name, wine.vintage].filter(Boolean).join(' ');
-    const qv = encodeURIComponent(searchTerm);
-    const qws = encodeURIComponent(searchTerm).replace(/%20/g,'+');
-    const vivinoUrl = `https://www.vivino.com/search/wines?q=${qv}`;
+    const qGoogle = encodeURIComponent(`site:vivino.com ${searchTerm}`);
+    const qws     = encodeURIComponent(searchTerm).replace(/%20/g,'+');
+    const vivinoUrl = `https://www.google.com/search?q=${qGoogle}`;
     const wsUrl     = `https://www.wine-searcher.com/find/${qws}/1/france`;
+    document.getElementById('fName').dataset.vivinoUrl = vivinoUrl;
+    document.getElementById('fName').dataset.wsUrl     = wsUrl;
     showAiBox(`<b style="color:#e8c97a">${wine.name}</b>${wine.vintage?' '+wine.vintage:''}${wine.region?'<br>'+wine.region:''}<br><br>
-<a href="${vivinoUrl}" target="_blank" style="display:inline-block;background:rgba(180,30,50,.5);border:1px solid rgba(220,80,80,.4);color:#ffaaaa;padding:6px 12px;border-radius:6px;font-size:.8rem;text-decoration:none;margin-right:8px">🍷 Voir sur Vivino</a>
-<a href="${wsUrl}" target="_blank" style="display:inline-block;background:rgba(40,80,140,.5);border:1px solid rgba(80,140,220,.3);color:#aaccff;padding:6px 12px;border-radius:6px;font-size:.8rem;text-decoration:none">🔍 Wine-Searcher</a>`);
-    showToast('✅ Étiquette lue ! Consultez Vivino pour le prix.');
-  }catch(err){showAiBox('⚠️ Erreur : '+(err.message||'Vérifiez votre connexion.'));}
+<a href="${vivinoUrl}" target="_blank" style="display:inline-block;background:rgba(180,30,50,.5);border:1px solid rgba(220,80,80,.4);color:#ffaaaa;padding:6px 12px;border-radius:6px;font-size:.8rem;text-decoration:none;margin-right:8px">${t('vivinoBtn')}</a>
+<a href="${wsUrl}" target="_blank" style="display:inline-block;background:rgba(40,80,140,.5);border:1px solid rgba(80,140,220,.3);color:#aaccff;padding:6px 12px;border-radius:6px;font-size:.8rem;text-decoration:none">${t('wsBtn')}</a>`);
+    showToast(t('aiDone'));
+  }catch(err){showAiBox(t('aiError')+(err.message||''));}
 }
 
 // ══ STATS ══
@@ -771,7 +945,7 @@ function barColor(type) {
 function renderStats() {
   const bottles = cellar.map((b,i)=>b?{...b,_i:i}:null).filter(Boolean);
   const el = document.getElementById('statsContent');
-  if (!bottles.length) { el.innerHTML='<div class="stat-empty">🍾 Aucune bouteille en cave pour le moment.</div>'; return; }
+  if (!bottles.length) { el.innerHTML=`<div class="stat-empty">${t('statEmpty')}</div>`; return; }
 
   const total = bottles.length;
   const totalVal = bottles.reduce((a,b)=>a+(parseFloat(b.price)||0),0);
@@ -791,7 +965,7 @@ function renderStats() {
   const byRegionVintage = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const v=b.vintage||null; return r&&v?`${r} ${v}`:null; });
 
   function renderGroup(entries, maxN, colorFn, showPct=true) {
-    if(!entries.length) return '<div style="opacity:.4;font-size:.8rem;padding:6px 0">Aucune donnée</div>';
+    if(!entries.length) return `<div style="opacity:.4;font-size:.8rem;padding:6px 0">${t('statNoData')}</div>`;
     const maxCount = entries[0][1].length;
     return entries.slice(0,maxN).map(([k,arr])=>{
       const pct = Math.round(arr.length/total*100);
@@ -809,30 +983,30 @@ function renderStats() {
   }
 
   const anecdotes = byRegionVintage.filter(([k,arr])=>arr.length>=2).slice(0,8)
-    .map(([k,arr])=>{ const t=TYPES[arr[0].type]?.label||''; return `<div class="stat-anecdote">🍾 <strong>${arr.length} bouteilles</strong> de <strong>${k}</strong>${t?' ('+t+')':''}</div>`; }).join('');
+    .map(([k,arr])=>{ const tp=TYPES[arr[0].type]?.label||''; return `<div class="stat-anecdote">${t('anecSeries',arr.length,k,tp)}</div>`; }).join('');
 
   const topVal = [...bottles].filter(b=>parseFloat(b.price)>0).sort((a,b)=>parseFloat(b.price)-parseFloat(a.price)).slice(0,5);
 
   el.innerHTML = `
     <div class="stat-kpi-grid">
-      <div class="stat-kpi"><div class="stat-kpi-num">${total}</div><div class="stat-kpi-lbl">Bouteilles en cave</div></div>
-      <div class="stat-kpi"><div class="stat-kpi-num">${vides}</div><div class="stat-kpi-lbl">Alvéoles libres</div></div>
-      <div class="stat-kpi"><div class="stat-kpi-num">${totalVal.toFixed(0)} €</div><div class="stat-kpi-lbl">Valeur totale</div></div>
-      <div class="stat-kpi"><div class="stat-kpi-num">${avgPrice.toFixed(2).replace('.',',')} €</div><div class="stat-kpi-lbl">Prix moyen</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${total}</div><div class="stat-kpi-lbl">${t('kpiBottles')}</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${vides}</div><div class="stat-kpi-lbl">${t('kpiFree')}</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${totalVal.toFixed(0)} €</div><div class="stat-kpi-lbl">${t('kpiValue')}</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${avgPrice.toFixed(2).replace('.',',')} €</div><div class="stat-kpi-lbl">${t('kpiAvg')}</div></div>
     </div>
-    <div class="stats-section"><div class="stats-title">🗄️ Par étagère</div>${renderGroup(byShelf,2,()=>'var(--gold)',false)}</div>
-    <div class="stats-section"><div class="stats-title">🍷 Par type de vin</div>${renderGroup(byType.map(([k,arr])=>[(TYPES[k]?.emoji||'')+' '+(TYPES[k]?.label||k),arr]),6,t=>barColor(t))}</div>
-    <div class="stats-section"><div class="stats-title">🗺️ Par région / appellation</div>${renderGroup(byRegion,12,t=>barColor(t))}</div>
-    <div class="stats-section"><div class="stats-title">🔍 Par appellation & type</div>${renderGroup(byRegionType,12,t=>barColor(t))}</div>
-    <div class="stats-section"><div class="stats-title">📅 Par millésime</div>${renderGroup(byVintage,12,t=>barColor(t))}</div>
-    ${anecdotes?`<div class="stats-section"><div class="stats-title">🔢 Séries identiques (≥ 2 bouteilles)</div>${anecdotes}</div>`:''}
-    ${topVal.length?`<div class="stats-section"><div class="stats-title">💎 Les 5 plus belles bouteilles</div>${topVal.map(b=>`<div class="stat-card"><div class="stat-card-row"><span class="stat-card-label">${TYPES[b.type]?.emoji||'🍾'} ${b.name||'Sans nom'} <small>${b.vintage||''}</small></span><span class="stat-card-val">${parseFloat(b.price).toFixed(2).replace('.',',')} €</span></div>${b.region?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">${b.region}</div>`:''}</div>`).join('')}</div>`:''}
-    <div class="stats-section"><div class="stats-title">🛒 Par lieu d'achat</div>${renderGroup(byShop,8,t=>barColor(t))}</div>
-    <div class="stats-section"><div class="stats-title">✨ Le saviez-vous ?</div>
-      ${oldest?`<div class="stat-anecdote">📜 La plus ancienne : <strong>${oldest.name||'?'} ${oldest.vintage}</strong>${oldest.region?' · '+oldest.region:''}</div>`:''}
-      ${newest&&newest.vintage!==oldest?.vintage?`<div class="stat-anecdote">🆕 La plus récente : <strong>${newest.name||'?'} ${newest.vintage}</strong>${newest.region?' · '+newest.region:''}</div>`:''}
-      ${maxPrice?`<div class="stat-anecdote">💰 La plus chère : <strong>${maxPrice.name||'?'}</strong> à <strong>${parseFloat(maxPrice.price).toFixed(2).replace('.',',')} €</strong></div>`:''}
-      ${history.length?`<div class="stat-anecdote">🍽️ Bouteilles consommées depuis l'ouverture : <strong>${history.length}</strong></div>`:''}
+    <div class="stats-section"><div class="stats-title">${t('statsShelf')}</div>${renderGroup(byShelf,2,()=>'var(--gold)',false)}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsType')}</div>${renderGroup(byType.map(([k,arr])=>[(TYPES[k]?.emoji||'')+' '+(TYPES[k]?.label||k),arr]),6,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsRegion')}</div>${renderGroup(byRegion,12,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsRegionType')}</div>${renderGroup(byRegionType,12,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsVintage')}</div>${renderGroup(byVintage,12,t=>barColor(t))}</div>
+    ${anecdotes?`<div class="stats-section"><div class="stats-title">${t('statsSeries')}</div>${anecdotes}</div>`:''}
+    ${topVal.length?`<div class="stats-section"><div class="stats-title">${t('statsTop5')}</div>${topVal.map(b=>`<div class="stat-card"><div class="stat-card-row"><span class="stat-card-label">${TYPES[b.type]?.emoji||'🍾'} ${b.name||'?'} <small>${b.vintage||''}</small></span><span class="stat-card-val">${parseFloat(b.price).toFixed(2).replace('.',',')} €</span></div>${b.region?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">${b.region}</div>`:''}</div>`).join('')}</div>`:''}
+    <div class="stats-section"><div class="stats-title">${t('statsShop')}</div>${renderGroup(byShop,8,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsAnecdotes')}</div>
+      ${oldest?`<div class="stat-anecdote">${t('anecOldest',oldest.name||'?',oldest.vintage,oldest.region)}</div>`:''}
+      ${newest&&newest.vintage!==oldest?.vintage?`<div class="stat-anecdote">${t('anecNewest',newest.name||'?',newest.vintage,newest.region)}</div>`:''}
+      ${maxPrice?`<div class="stat-anecdote">${t('anecMost',maxPrice.name||'?',parseFloat(maxPrice.price).toFixed(2).replace('.',','))}</div>`:''}
+      ${history.length?`<div class="stat-anecdote">${t('anecConsumed',history.length)}</div>`:''}
     </div>
   `;
 }
@@ -841,7 +1015,7 @@ function exportData(){
   const blob=new Blob([JSON.stringify({version:2,exportDate:new Date().toISOString(),cellar,history})],{type:'application/json'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download=`cave-pascal-${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(url);
-  showToast(`✅ Sauvegarde exportée (${cellar.filter(Boolean).length} bouteilles)`);
+  showToast(t('toastExported', cellar.filter(Boolean).length));
 }
 function importData(evt){
   const f=evt.target.files[0];if(!f)return;
@@ -849,18 +1023,18 @@ function importData(evt){
     try{
       const d=JSON.parse(e.target.result);
       if(!Array.isArray(d.cellar))throw new Error('Format invalide');
-      if(!confirm(`Importer la sauvegarde du ${fmtDate(d.exportDate)} ?\nCela remplacera toutes vos données.`))return;
+      if(!confirm(t('confirmImport', fmtDate(d.exportDate))))return;
       // Compatibilité : ancienne cave 120, nouvelle 176
       cellar = Array.from({length:TOTAL},(_,i)=>d.cellar[i]||null);
       history=d.history||[];save();renderShelves();renderTable();renderHistory();
-      showToast('✅ Cave importée avec succès !');
+      showToast(t('toastImported'));
     }catch(err){showToast('❌ '+err.message);}
   };rd.readAsText(f);evt.target.value='';
 }
 function resetAll(){
-  if(!confirm('⚠️ Effacer TOUTES les bouteilles et l\'historique ?\nAction irréversible !'))return;
+  if(!confirm(t('confirmReset')))return;
   cellar=Array(TOTAL).fill(null);history=[];save();renderShelves();renderTable();renderHistory();
-  showToast('🗑️ Cave réinitialisée');
+  showToast(t('toastReset'));
 }
 
 // ══ NAV ══
@@ -885,6 +1059,7 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ══ INIT ══
 renderShelves();
 updateStats();
+setLang(lang); // Applique la langue sauvegardée
 </script>
 </body>
 </html>
