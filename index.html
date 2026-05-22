@@ -70,6 +70,7 @@ body { font-family: Georgia, serif; background: var(--bx); color: var(--cream); 
 table { width:100%; border-collapse:collapse; font-size:.8rem; min-width:420px; }
 th { background:rgba(201,168,76,.15); color:var(--gold); padding:7px 8px; text-align:left; cursor:pointer; border-bottom:1px solid rgba(201,168,76,.3); white-space:nowrap; font-size:.72rem; font-weight:normal; }
 td { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,.04); color:var(--cream-d); vertical-align:middle; }
+tr:hover td { background:rgba(201,168,76,.06); }
 tr.empty-row { opacity:.35; }
 .type-dot-sm { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px; vertical-align:middle; }
 .t-btn { background:none; border:1px solid rgba(201,168,76,.3); color:var(--gold); border-radius:4px; padding:2px 7px; font-size:.72rem; cursor:pointer; font-family:Georgia,serif; }
@@ -249,7 +250,6 @@ input[type=hidden] { display:none; }
       <th onclick="sortBy('name')" data-i18n="thName">Nom <span id="s-name"></span></th>
       <th onclick="sortBy('vintage')" data-i18n="thVintage">Mill. <span id="s-vintage"></span></th>
       <th onclick="sortBy('price')" data-i18n="thPrice">Prix <span id="s-price"></span></th>
-      <th>–</th>
     </tr></thead>
     <tbody id="tableBody"></tbody>
   </table></div>
@@ -692,15 +692,14 @@ function renderTable() {
     return sortAsc?(va>vb?1:-1):(va<vb?1:-1);
   });
   tb.innerHTML = rows.length===0
-    ? `<tr><td colspan="7" style="text-align:center;padding:20px;opacity:.35;font-style:italic">${t('tblEmpty')}</td></tr>`
-    : rows.map(r=>`<tr class="${r._empty?'empty-row':''}">
+    ? `<tr><td colspan="6" style="text-align:center;padding:20px;opacity:.35;font-style:italic">${t('tblEmpty')}</td></tr>`
+    : rows.map(r=>`<tr style="cursor:pointer" onclick="openModal(${r._i});switchView('shelf',document.querySelector('.nav-btn'))">
       <td>${r._id}</td>
       <td><span style="opacity:.6;font-size:.7rem">${t('shelfLabel',r._shelf)}</span></td>
       <td>${r.type?`<span class="type-dot-sm" style="background:${TYPES[r.type]?.bg}"></span>${TYPES[r.type]?.label}`:'—'}</td>
       <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name||`<em style="opacity:.4">${t('tblVide')}</em>`}</td>
       <td>${r.vintage||'—'}</td>
       <td>${r.price?parseFloat(r.price).toFixed(2).replace('.',',')+' €':'—'}</td>
-      <td><button class="t-btn" onclick="openModal(${r._i})">${t('tblSee')}</button></td>
     </tr>`).join('');
 }
 
