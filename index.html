@@ -166,7 +166,22 @@ input[type=hidden] { display:none; }
 .empty-state { text-align:center; padding:40px 20px; opacity:.4; }
 .empty-icon { font-size:2.5rem; margin-bottom:10px; }
 
-/* ── STATS ── */
+/* ── RECHERCHE GLOBALE ── */
+.search-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:300; backdrop-filter:blur(4px); padding:16px; }
+.search-overlay.open { display:flex; flex-direction:column; }
+.search-box { display:flex; align-items:center; gap:10px; background:rgba(30,15,8,.98); border:2px solid var(--gold); border-radius:12px; padding:10px 14px; margin-bottom:12px; }
+.search-box input { flex:1; background:none; border:none; color:var(--cream); font-family:Georgia,serif; font-size:1rem; outline:none; }
+.search-box input::placeholder { color:rgba(245,237,224,.3); }
+.search-close { background:none; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; padding:0 4px; }
+.search-results { flex:1; overflow-y:auto; }
+.search-result { background:rgba(255,255,255,.05); border:1px solid rgba(201,168,76,.15); border-radius:8px; padding:11px 13px; margin-bottom:7px; cursor:pointer; transition:background .15s; }
+.search-result:hover { background:rgba(201,168,76,.1); border-color:rgba(201,168,76,.4); }
+.search-result-name { font-size:.92rem; color:var(--cream); font-weight:600; margin-bottom:3px; }
+.search-result-meta { font-size:.74rem; color:var(--cream-d); opacity:.6; }
+.search-result-badge { display:inline-block; font-size:.7rem; padding:1px 7px; border-radius:10px; margin-right:5px; }
+.search-empty { text-align:center; padding:40px; opacity:.35; font-style:italic; font-size:.9rem; }
+mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; padding:0 1px; }
+
 .stats-section { margin-bottom: 18px; }
 .stats-title { font-style:italic; color:var(--gold); font-size:.88rem; letter-spacing:.06em; margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid rgba(201,168,76,.2); display:flex; align-items:center; gap:6px; }
 .stat-card { background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.15); border-radius:8px; padding:10px 13px; margin-bottom:6px; }
@@ -196,6 +211,7 @@ input[type=hidden] { display:none; }
       <div class="header-sub" id="hSub">Collection personnelle</div>
     </div>
     <div style="display:flex;gap:6px;flex-shrink:0">
+      <button onclick="openSearch()" style="background:none;border:2px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 8px;font-size:1.1rem;cursor:pointer;color:var(--gold)" title="Rechercher">🔍</button>
       <button onclick="setLang('fr')" id="btn-fr" style="background:none;border:2px solid var(--gold);border-radius:6px;padding:2px 6px;font-size:1.1rem;cursor:pointer;opacity:1" title="Français">🇫🇷</button>
       <button onclick="setLang('de')" id="btn-de" style="background:none;border:2px solid transparent;border-radius:6px;padding:2px 6px;font-size:1.1rem;cursor:pointer;opacity:.5" title="Deutsch">🇩🇪</button>
     </div>
@@ -397,6 +413,18 @@ input[type=hidden] { display:none; }
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- RECHERCHE GLOBALE -->
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-box">
+    <span style="font-size:1.1rem;opacity:.6">🔍</span>
+    <input type="text" id="searchInput" placeholder="Nom, région, millésime, lieu d'achat…" oninput="doSearch(this.value)" autocomplete="off">
+    <button class="search-close" onclick="closeSearch()">✕</button>
+  </div>
+  <div class="search-results" id="searchResults">
+    <div class="search-empty" id="searchEmpty" style="display:none"></div>
   </div>
 </div>
 
@@ -1208,6 +1236,55 @@ function renderStats() {
     </div>
   `;
 }
+
+// ══ RECHERCHE GLOBALE ══
+function openSearch() {
+  document.getElementById('searchOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('searchInput').focus(), 100);
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchInput').value = '';
+}
+function closeSearch() {
+  document.getElementById('searchOverlay').classList.remove('open');
+}
+function highlight(text, q) {
+  if (!q || !text) return text||'';
+  return String(text).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
+}
+function doSearch(q) {
+  const res = document.getElementById('searchResults');
+  q = q.trim();
+  if (q.length < 2) { res.innerHTML = ''; return; }
+  const bottles = cellar.map((b,i)=>b?{...b,_i:i}:null).filter(Boolean);
+  const matches = bottles.filter(b =>
+    [b.name,b.region,b.vintage,b.shop,b.aromas,b.pairing,b.producer,b.country]
+    .join(' ').toLowerCase().includes(q.toLowerCase())
+  );
+  if (!matches.length) {
+    res.innerHTML = `<div class="search-empty">${lang==='de'?'Keine Ergebnisse für':'Aucun résultat pour'} "<b>${q}</b>"</div>`;
+    return;
+  }
+  const tc = tp => ({red:'#c0304a',white:'#d4b84a',rose:'#d4768a',petillant:'#c8a84a',other:'#5a7a4a'}[tp]||'#888');
+  res.innerHTML = matches.map(b => {
+    const shelf = b._i < S1_TOTAL ? 1 : 2;
+    const metas = [
+      b.vintage && highlight(b.vintage, q),
+      b.region  && highlight(b.region, q),
+      b.shop    && highlight(b.shop, q),
+      b.price   && parseFloat(b.price).toFixed(2).replace('.',',') + ' €',
+      b.aromas  && `🌸 ${highlight(b.aromas, q)}`,
+      b.pairing && `🍽️ ${highlight(b.pairing, q)}`,
+    ].filter(Boolean).join(' · ');
+    return `<div class="search-result" onclick="closeSearch();openModal(${b._i})">
+      <div class="search-result-name">
+        <span class="search-result-badge" style="background:${tc(b.type)}22;color:${tc(b.type)};border:1px solid ${tc(b.type)}44">${TYPES[b.type]?.emoji||'🍾'} ${TYPES[b.type]?.label||''}</span>
+        ${highlight(b.name||'?', q)}
+      </div>
+      <div class="search-result-meta">${lang==='de'?'Regal':'Étagère'} ${shelf} · ${lang==='de'?'Fach':'Alvéole'} ${b._i+1}${metas?' · '+metas:''}</div>
+    </div>`;
+  }).join('');
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSearch(); });
 
 function exportData(){
   const blob=new Blob([JSON.stringify({version:2,exportDate:new Date().toISOString(),cellar,history})],{type:'application/json'});
