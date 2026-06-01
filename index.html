@@ -141,6 +141,27 @@ input[type=hidden] { display:none; }
 .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:rgba(30,20,10,.95); border:1px solid var(--gold); color:var(--cream); padding:9px 18px; border-radius:20px; font-size:.82rem; opacity:0; transition:opacity .3s,transform .3s; z-index:999; pointer-events:none; white-space:nowrap; }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
+/* ── DRAG & DROP ── */
+.cell.dragging      { opacity:.3; transform:scale(.9); transition:none; }
+.cell.drag-over     { box-shadow:0 0 0 3px var(--gold),0 0 14px rgba(201,168,76,.5); transform:scale(1.18); z-index:10; }
+.cell.drag-over-bad { box-shadow:0 0 0 3px #c03040; }
+.drag-hint { text-align:center; font-size:.7rem; color:var(--gold); opacity:0; margin-top:6px; transition:opacity .3s; }
+.drag-hint.show { opacity:.65; }
+
+/* ── BOUTON AJOUTER ── */
+.add-btn { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:10px; background:rgba(201,168,76,.1); border:1px dashed rgba(201,168,76,.35); border-radius:8px; color:var(--gold); font-family:Georgia,serif; font-size:.85rem; cursor:pointer; margin-bottom:10px; transition:background .2s; }
+.add-btn:hover { background:rgba(201,168,76,.18); }
+
+/* ── SÉLECTEUR ALVÉOLE ── */
+.cell-picker-wrap { background:rgba(0,0,0,.25); border:1px solid rgba(201,168,76,.2); border-radius:8px; padding:10px; margin-bottom:10px; }
+.cell-picker-title { font-size:.75rem; color:var(--gold); margin-bottom:8px; }
+.cell-picker { display:grid; gap:3px; background:rgba(0,0,0,.2); border-radius:6px; padding:6px; }
+.cell-pick { aspect-ratio:1; border-radius:50%; border:1.5px solid #6a5640; background:radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.42rem; color:rgba(255,255,255,.35); transition:transform .1s,box-shadow .1s; }
+.cell-pick:hover:not(.occupied) { transform:scale(1.25); z-index:5; }
+.cell-pick.occupied { opacity:.25; cursor:not-allowed; }
+.cell-pick.selected { box-shadow:0 0 0 2.5px var(--gold); transform:scale(1.2); }
+
+
 /* ── EMPTY STATE ── */
 .empty-state { text-align:center; padding:40px 20px; opacity:.4; }
 .empty-icon { font-size:2.5rem; margin-bottom:10px; }
@@ -230,6 +251,7 @@ input[type=hidden] { display:none; }
 
 <!-- TABLEAU -->
 <div class="view" id="view-table">
+  <button class="add-btn" onclick="openAddFromTable()" id="addFromTableBtn">➕ Ajouter une bouteille</button>
   <div class="table-controls">
     <input class="t-search" type="text" placeholder="🔍 Rechercher…" oninput="renderTable()" id="tSearch" data-i18n-ph="searchPh">
     <select class="t-filter" onchange="renderTable()" id="tFilter">
@@ -310,6 +332,7 @@ input[type=hidden] { display:none; }
         <div id="vSearchBtns" style="margin-bottom:12px"></div>
         <button class="btn btn-primary" onclick="switchEdit()" data-i18n="btnEdit">✏️ Modifier</button>
         <button class="btn btn-ghost"   onclick="copyBottle()" data-i18n="btnCopy">📋 Copier cette bouteille</button>
+        <button class="btn btn-ghost"   onclick="moveBottle()" data-i18n="btnMove">↕️ Déplacer vers autre alvéole</button>
         <button class="btn btn-danger"  onclick="consume()" data-i18n="btnConsume">🍽️ Consommer / Sortir</button>
         <button class="btn btn-warn"    onclick="clearCell()" data-i18n="btnClear">🗑️ Vider l'alvéole</button>
         <button class="btn btn-ghost"   onclick="closeModal()" style="margin-top:4px;opacity:.6" data-i18n="btnBack">← Retour à l'étagère</button>
@@ -359,6 +382,16 @@ input[type=hidden] { display:none; }
         <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
 
         <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
+        <div id="cellPickerWrap" style="display:none">
+          <div class="cell-picker-wrap">
+            <div class="cell-picker-title" id="cellPickerTitle">📍 Choisir une alvéole</div>
+            <div class="cell-picker" id="cellPickerGrid1" style="grid-template-columns:repeat(12,1fr)"></div>
+            <div style="margin-top:6px;font-size:.72rem;color:var(--gold);opacity:.6;cursor:pointer" id="cellPickerShelf2Toggle" onclick="togglePickerShelf()">▼ Voir aussi l'étagère 2</div>
+            <div class="cell-picker" id="cellPickerGrid2" style="grid-template-columns:repeat(7,1fr);display:none;margin-top:6px"></div>
+          </div>
+          <button class="btn btn-primary" id="btnMoveConfirm" onclick="confirmMove()" style="display:none;margin-bottom:6px">✅ Confirmer le déplacement</button>
+          <button class="btn btn-ghost" id="btnMoveCancel" onclick="cancelMove();cancelEdit()" style="display:none">Annuler</button>
+        </div>
         <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px" data-i18n="btnSave">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="cancelEdit()" data-i18n="btnCancel">Annuler</button>
       </div>
@@ -389,7 +422,7 @@ const I18N = {
     bkExportTitle:'📤 Exporter', bkExportText:'Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, photos et archives.', bkExportBtn:'📥 Télécharger la sauvegarde',
     bkImportTitle:'📂 Importer', bkImportText:'⚠️ L\'import <b style="color:#ffb060">remplace</b> toutes les données actuelles. Faites d\'abord un export !', bkImportDrop:'Choisir un fichier .json',
     bkResetTitle:'🗑️ Réinitialiser', bkResetText:'Efface <b style="color:#ff8080">toutes</b> les bouteilles et l\'historique. Irréversible.', bkResetBtn:'⚠️ Tout effacer',
-    btnEdit:'✏️ Modifier', btnCopy:'📋 Copier cette bouteille', btnConsume:'🍽️ Consommer / Sortir', btnClear:'🗑️ Vider l\'alvéole', btnBack:'← Retour à l\'étagère',
+    btnEdit:'✏️ Modifier', btnCopy:'📋 Copier cette bouteille', btnMove:'↕️ Déplacer vers autre alvéole', btnConsume:'🍽️ Consommer / Sortir', btnClear:'🗑️ Vider l\'alvéole', btnBack:'← Retour à l\'étagère',
     btnCamera:'📷 Prendre une photo', btnGallery:'🖼️ Galerie photos',
     btnSave:'💾 Enregistrer', btnCancel:'Annuler',
     labelType:'Type de vin', labelTypeHint:'(détecté auto depuis la photo)',
@@ -416,7 +449,7 @@ const I18N = {
     anecSeries:(c,k,t)=>`🍾 <strong>${c} bouteilles</strong> de <strong>${k}</strong>${t?' ('+t+')':''}`,
     vivinoBtn:'🍷 Voir sur Vivino', wsBtn:'🔍 Wine-Searcher',
     shelfLabel:(n)=>`Étagère ${n}`, cellLabel:(s,n)=>`Étagère ${s} · Alvéole n°${n}`,
-    addBottle:'Ajouter une bouteille', editBottle:'Modifier la bouteille',
+    addFromTable:'➕ Ajouter une bouteille', cellPickerTitle:'📍 Choisir une alvéole', shelf2toggle:'▼ Voir aussi l\'étagère 2',
     emptyCell:(n)=>`Vide — Alvéole ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Alvéole ${n}`,
     aiPhotoHint:'✨ Analyse IA automatique de l\'étiquette',
   },
@@ -434,7 +467,7 @@ const I18N = {
     bkExportTitle:'📤 Exportieren', bkExportText:'Lädt eine Datei <b style="color:#f5ede0">cave-pascal.json</b> mit allen Flaschen, Fotos und Archiven herunter.', bkExportBtn:'📥 Sicherung herunterladen',
     bkImportTitle:'📂 Importieren', bkImportText:'⚠️ Import <b style="color:#ffb060">ersetzt</b> alle aktuellen Daten. Zuerst exportieren!', bkImportDrop:'.json-Datei auswählen',
     bkResetTitle:'🗑️ Zurücksetzen', bkResetText:'Löscht <b style="color:#ff8080">alle</b> Flaschen und den Verlauf. Unwiderruflich.', bkResetBtn:'⚠️ Alles löschen',
-    btnEdit:'✏️ Bearbeiten', btnCopy:'📋 Flasche kopieren', btnConsume:'🍽️ Trinken / Entfernen', btnClear:'🗑️ Fach leeren', btnBack:'← Zurück zum Regal',
+    btnEdit:'✏️ Bearbeiten', btnCopy:'📋 Flasche kopieren', btnMove:'↕️ In anderes Fach verschieben', btnConsume:'🍽️ Trinken / Entfernen', btnClear:'🗑️ Fach leeren', btnBack:'← Zurück zum Regal',
     btnCamera:'📷 Foto aufnehmen', btnGallery:'🖼️ Galerie',
     btnSave:'💾 Speichern', btnCancel:'Abbrechen',
     labelType:'Weintyp', labelTypeHint:'(automatisch erkannt)',
@@ -461,7 +494,7 @@ const I18N = {
     anecSeries:(c,k,t)=>`🍾 <strong>${c} Flaschen</strong> von <strong>${k}</strong>${t?' ('+t+')':''}`,
     vivinoBtn:'🍷 Auf Vivino ansehen', wsBtn:'🔍 Wine-Searcher',
     shelfLabel:(n)=>`Regal ${n}`, cellLabel:(s,n)=>`Regal ${s} · Fach Nr. ${n}`,
-    addBottle:'Flasche hinzufügen', editBottle:'Flasche bearbeiten',
+    addFromTable:'➕ Flasche hinzufügen', cellPickerTitle:'📍 Fach auswählen', shelf2toggle:'▼ Regal 2 anzeigen',
     emptyCell:(n)=>`Leer — Fach ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Fach ${n}`,
     aiPhotoHint:'✨ Automatische KI-Etikettenanalyse',
   }
@@ -613,11 +646,12 @@ function updateStats() {
 }
 
 // ══ SHELF ══
+let dragSrcIdx = null;
+
 function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
   const grid = document.getElementById(gridId);
   grid.innerHTML = '';
   for (let r=0; r<rows; r++) {
-    // Séparateur visuel entre rangées (effet planche)
     if (r > 0) {
       const sp = document.createElement('div');
       sp.className = 'shelf-spacer';
@@ -635,26 +669,189 @@ function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
       const b = cellar[idx];
       const cell = document.createElement('div');
       cell.className = 'cell';
-      if (b && b.type && CELL_COLORS[b.type]) {
-        cell.setAttribute('style', CELL_COLORS[b.type]);
-      }
-      cell.title = b
-        ? t('filledCell', b.name||'?', b.vintage, idx+1)
-        : t('emptyCell', idx+1);
+      if (b && b.type && CELL_COLORS[b.type]) cell.setAttribute('style', CELL_COLORS[b.type]);
+      cell.title = b ? t('filledCell', b.name||'?', b.vintage, idx+1) : t('emptyCell', idx+1);
       if (b) { const cap=document.createElement('div'); cap.className='cell-cap'; cell.appendChild(cap); }
       const num2=document.createElement('span'); num2.className='cell-num'; num2.textContent=idx+1;
       cell.appendChild(num2);
-      cell.addEventListener('click', ()=>openModal(idx));
+
+      // Drag & drop — seulement si la cellule est remplie
+      if (b) {
+        cell.draggable = true;
+        cell.addEventListener('dragstart', e => {
+          dragSrcIdx = idx;
+          setTimeout(()=>cell.classList.add('dragging'), 0);
+          e.dataTransfer.effectAllowed = 'move';
+          // Afficher hint
+          document.querySelectorAll('.drag-hint').forEach(h=>h.classList.add('show'));
+        });
+        cell.addEventListener('dragend', () => {
+          cell.classList.remove('dragging');
+          dragSrcIdx = null;
+          document.querySelectorAll('.drag-hint').forEach(h=>h.classList.remove('show'));
+          document.querySelectorAll('.cell').forEach(c=>c.classList.remove('drag-over','drag-over-bad'));
+        });
+      }
+
+      // Drag over — toutes les cellules sont des cibles
+      cell.addEventListener('dragover', e => {
+        if (dragSrcIdx === null || dragSrcIdx === idx) return;
+        e.preventDefault();
+        document.querySelectorAll('.cell').forEach(c=>c.classList.remove('drag-over','drag-over-bad'));
+        cell.classList.add('drag-over');
+      });
+      cell.addEventListener('dragleave', () => {
+        cell.classList.remove('drag-over','drag-over-bad');
+      });
+      cell.addEventListener('drop', e => {
+        e.preventDefault();
+        cell.classList.remove('drag-over','drag-over-bad');
+        if (dragSrcIdx === null || dragSrcIdx === idx) return;
+        // Déplacer ou échanger
+        const src = cellar[dragSrcIdx];
+        const dst = cellar[idx];
+        if (dst) {
+          // Échange
+          cellar[idx] = src;
+          cellar[dragSrcIdx] = dst;
+          showToast(`🔄 Échange alvéoles ${dragSrcIdx+1} ↔ ${idx+1}`);
+        } else {
+          // Déplacement simple
+          cellar[idx] = src;
+          cellar[dragSrcIdx] = null;
+          showToast(`✅ Bouteille déplacée vers alvéole ${idx+1}`);
+        }
+        dragSrcIdx = null;
+        save(); renderShelves(); renderTable();
+      });
+
+      cell.addEventListener('click', ()=>{ if(dragSrcIdx===null) openModal(idx); });
       plank.appendChild(cell);
     }
     row.appendChild(plank);
     grid.appendChild(row);
   }
+
+  // Hint drag sous la légende
+  const hint = document.createElement('div');
+  hint.className = 'drag-hint';
+  hint.textContent = lang==='de' ? '↕ Flasche ziehen zum Verschieben oder Tauschen' : '↕ Glissez une bouteille pour la déplacer ou l\'échanger';
+  grid.appendChild(hint);
+
   // Légende
   const leg = document.getElementById(legendId);
   leg.innerHTML = Object.entries(TYPES).map(([k,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${v.bg};border:1px solid ${v.border}"></div>${v.label}</div>`).join('') +
     `<div class="legend-item"><div class="legend-dot" style="background:${EMPTY_BG};border:1px solid #6a5640"></div>Vide</div>`;
 }
+
+function moveBottle() {
+  const b = cellar[curIdx]; if(!b) return;
+  // Ouvrir le sélecteur d'alvéole en mode "déplacement"
+  document.getElementById('modeView').style.display = 'none';
+  document.getElementById('modeEdit').style.display = '';
+  document.getElementById('eTitle').textContent = lang==='de' ? '↕️ Flasche verschieben' : '↕️ Déplacer la bouteille';
+  document.getElementById('eCell').textContent  = t('cellLabel', curIdx < S1_TOTAL ? 1 : 2, curIdx+1);
+  // Cacher tout le formulaire sauf le sélecteur
+  document.getElementById('photoZone').style.display    = 'none';
+  document.getElementById('aiBox').style.display        = 'none';
+  document.querySelector('.type-btns').parentElement.style.display = 'none';
+  document.querySelectorAll('#modeEdit .form-group').forEach(el=>el.style.display='none');
+  document.querySelector('[data-i18n="btnSave"]').style.display   = 'none';
+  document.getElementById('pasteBtn').style.display     = 'none';
+  // Montrer le sélecteur
+  document.getElementById('cellPickerWrap').style.display = '';
+  document.getElementById('cellPickerTitle').textContent  = lang==='de' ? '📍 Ziel-Fach wählen' : '📍 Choisir l\'alvéole de destination';
+  buildCellPickerForMove();
+  // Bouton confirmer déplacement
+  document.getElementById('btnMoveConfirm').style.display = '';
+  document.getElementById('btnMoveCancel').style.display  = '';
+}
+
+function buildCellPickerForMove() {
+  const g1 = document.getElementById('cellPickerGrid1');
+  const g2 = document.getElementById('cellPickerGrid2');
+  g1.innerHTML = ''; g2.innerHTML = '';
+  for (let i=0; i<TOTAL; i++) {
+    const b = cellar[i];
+    const grid = i < S1_TOTAL ? g1 : g2;
+    const pick = document.createElement('div');
+    // Source = grisée, occupées = grisées, vides = cliquables
+    const isSrc = i === curIdx;
+    pick.className = 'cell-pick' + (b && !isSrc ? ' occupied' : '') + (isSrc ? ' selected' : '');
+    if (b && b.type && CELL_COLORS[b.type]) pick.setAttribute('style', CELL_COLORS[b.type]);
+    pick.textContent = i+1;
+    if (!b) pick.addEventListener('click', ()=>{ document.querySelectorAll('.cell-pick').forEach(p=>p.classList.remove('selected')); pick.classList.add('selected'); curMoveTarget = i; });
+    grid.appendChild(pick);
+  }
+}
+
+let curMoveTarget = null;
+
+function confirmMove() {
+  if(curMoveTarget === null){ showToast('⚠️ ' + (lang==='de'?'Kein Ziel gewählt':'Aucune alvéole choisie')); return; }
+  cellar[curMoveTarget] = cellar[curIdx];
+  cellar[curIdx] = null;
+  save(); renderShelves(); renderTable();
+  showToast(`✅ ${lang==='de'?'Verschoben':'Déplacée'} → alvéole ${curMoveTarget+1}`);
+  curMoveTarget = null;
+  cancelMove();
+  closeModal();
+}
+
+function cancelMove() {
+  // Restaurer le formulaire complet
+  document.getElementById('photoZone').style.display    = '';
+  document.querySelector('.type-btns').parentElement.style.display = '';
+  document.querySelectorAll('#modeEdit .form-group').forEach(el=>el.style.display='');
+  document.querySelector('[data-i18n="btnSave"]').style.display   = '';
+  document.getElementById('cellPickerWrap').style.display = 'none';
+  document.getElementById('btnMoveConfirm').style.display = 'none';
+  curMoveTarget = null;
+}
+function openAddFromTable() {
+  // Trouver la première alvéole vide
+  const firstEmpty = cellar.findIndex(b=>!b);
+  curIdx = firstEmpty >= 0 ? firstEmpty : 0;
+  curPhoto = null;
+  showEdit(null, curIdx);
+  // Afficher le sélecteur d'alvéole
+  document.getElementById('cellPickerWrap').style.display = '';
+  buildCellPicker();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function buildCellPicker() {
+  const g1 = document.getElementById('cellPickerGrid1');
+  const g2 = document.getElementById('cellPickerGrid2');
+  g1.innerHTML = ''; g2.innerHTML = '';
+  for (let i=0; i<TOTAL; i++) {
+    const b = cellar[i];
+    const grid = i < S1_TOTAL ? g1 : g2;
+    const pick = document.createElement('div');
+    pick.className = 'cell-pick' + (b?' occupied':'') + (i===curIdx?' selected':'');
+    if (b && b.type && CELL_COLORS[b.type]) pick.setAttribute('style', CELL_COLORS[b.type]);
+    pick.textContent = i+1;
+    if (!b) pick.addEventListener('click', ()=>selectPickerCell(i));
+    grid.appendChild(pick);
+  }
+}
+
+function selectPickerCell(idx) {
+  curIdx = idx;
+  document.querySelectorAll('.cell-pick').forEach((p,i)=>p.classList.toggle('selected', i===idx));
+  document.getElementById('eCell').textContent = t('cellLabel', idx < S1_TOTAL ? 1 : 2, idx+1);
+}
+
+function togglePickerShelf() {
+  const g2 = document.getElementById('cellPickerGrid2');
+  const tog = document.getElementById('cellPickerShelf2Toggle');
+  const visible = g2.style.display !== 'none';
+  g2.style.display = visible ? 'none' : 'grid';
+  tog.textContent = visible
+    ? (lang==='de'?'▼ Regal 2 anzeigen':'▼ Voir aussi l\'étagère 2')
+    : (lang==='de'?'▲ Regal 2 ausblenden':'▲ Masquer l\'étagère 2');
+}
+
 
 function renderShelves() {
   document.querySelector('.shelf-name').textContent = t('shelf1name');
@@ -792,6 +989,8 @@ function showEdit(b, idx) {
   const prev=document.getElementById('photoPreview'), img=document.getElementById('photoImg');
   if(curPhoto){img.src=curPhoto;prev.style.display='';}else{prev.style.display='none';img.src='';}
   hideAiBox();
+  // Masquer le sélecteur (visible seulement depuis "Ajouter depuis tableau")
+  document.getElementById('cellPickerWrap').style.display = 'none';
   const pasteBtn=document.getElementById('pasteBtn'), pasteName=document.getElementById('pasteName');
   if(pasteBtn){const show=!b&&clipboard;pasteBtn.style.display=show?'':'none';if(show&&pasteName)pasteName.textContent=clipboard.name||'bouteille copiée';}
 }
