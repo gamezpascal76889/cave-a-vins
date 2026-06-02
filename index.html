@@ -168,10 +168,10 @@ input[type=hidden] { display:none; }
 .cell.old-vintage { animation:blink-gold 2s ease-in-out infinite; }
 tr.old-vintage td { animation:blink-row 2s ease-in-out infinite; }
 
-/* ── UNDO TOAST ── */
-.undo-bar { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(20,10,5,.97); border:1px solid var(--gold); color:var(--cream); padding:9px 14px; border-radius:20px; font-size:.82rem; z-index:998; display:none; align-items:center; gap:10px; white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,.5); }
-.undo-bar.show { display:flex; }
-.undo-btn { background:var(--gold); color:#1a0d08; border:none; border-radius:10px; padding:3px 10px; font-family:Georgia,serif; font-size:.8rem; font-weight:bold; cursor:pointer; }
+/* ── UNDO BAR ── */
+.undo-bar { position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-80px); background:rgba(20,10,5,.98); border:2px solid var(--gold); color:var(--cream); padding:11px 16px; border-radius:14px; font-size:.85rem; z-index:1000; display:flex; align-items:center; gap:12px; white-space:nowrap; box-shadow:0 4px 24px rgba(0,0,0,.7); transition:transform .35s ease; }
+.undo-bar.show { transform:translateX(-50%) translateY(0); }
+.undo-btn { background:linear-gradient(135deg,var(--gold),#a07830); color:#1a0d08; border:none; border-radius:10px; padding:5px 14px; font-family:Georgia,serif; font-size:.82rem; font-weight:bold; cursor:pointer; white-space:nowrap; }
 
 .empty-state { text-align:center; padding:40px 20px; opacity:.4; }
 .empty-icon { font-size:2.5rem; margin-bottom:10px; }
@@ -405,12 +405,8 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
         <div class="form-group"><label id="label-shop">Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Cave Nicolas, Supermarché…"></div>
         <div class="form-group"><label id="label-region">Région / Appellation</label><input type="text" id="fRegion" placeholder="ex: Bordeaux, Bourgogne…"></div>
         <div class="form-group"><label id="label-date">Date d'achat</label><input type="date" id="fDate"></div>
-        <div class="form-group"><label id="label-aromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea>
-          <button type="button" onclick="translateField('fAromas')" style="margin-top:4px;background:none;border:1px solid rgba(201,168,76,.25);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🌐 Traduire</button>
-        </div>
-        <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea>
-          <button type="button" onclick="translateField('fPairing')" style="margin-top:4px;background:none;border:1px solid rgba(201,168,76,.25);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🌐 Traduire</button>
-        </div>
+        <div class="form-group"><label id="label-aromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
 
         <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
         <div id="cellPickerWrap" style="display:none">
@@ -1108,7 +1104,7 @@ function saveUndo(msg) {
   document.getElementById('undoMsg').textContent = msg;
   bar.classList.add('show');
   clearTimeout(undoTimer);
-  undoTimer = setTimeout(()=>{ bar.classList.remove('show'); undoStack=null; }, 8000);
+  undoTimer = setTimeout(()=>{ bar.classList.remove('show'); undoStack=null; }, 12000);
 }
 
 function undoLast() {
