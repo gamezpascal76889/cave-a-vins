@@ -993,7 +993,7 @@ function renderHistory() {
         <div class="hist-meta">${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
         ${h.aromas?`<div class="hist-meta">🌸 ${h.aromas}</div>`:''}
         ${h.price?`<div class="hist-meta">💶 ${parseFloat(h.price).toFixed(2).replace('.',',')} €</div>`:''}
-        <button onclick="restoreFromHistory(${i})" style="margin-top:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
+        <button onclick="event.stopPropagation();restoreFromHistory(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="margin-top:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
           🔄 ${lang==='de'?'Zurück ins Regal':'Remettre en cave'}
         </button>
       </div>
