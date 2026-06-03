@@ -855,6 +855,28 @@ function cancelMove() {
   document.getElementById('btnMoveConfirm').style.display = 'none';
   curMoveTarget = null;
 }
+// ══ RESTAURER DEPUIS CONSO ══
+function restoreFromHistory(idx) {
+  const h = history[idx];
+  if (!h) return;
+  const msg = lang==='de'
+    ? `Was möchten Sie tun?\n\nOK = Flasche zurücklegen (wird aus Konsum entfernt)\nAbbrechen = Gleiche Flasche nachgekauft (bleibt in Konsum)`
+    : `Que voulez-vous faire ?\n\nOK = Remettre cette bouteille en cave (supprime de Conso)\nAnnuler = J'ai racheté la même bouteille (reste en Conso)`;
+  const removeFromHistory = confirm(msg);
+  const origIdx = h.cell - 1;
+  const targetIdx = (origIdx >= 0 && origIdx < TOTAL && !cellar[origIdx]) ? origIdx : cellar.findIndex(b=>!b);
+  if (targetIdx < 0) { showToast(lang==='de'?'⚠️ Kein freies Fach!':'⚠️ Aucune alvéole libre !'); return; }
+  const bottle = {...h};
+  delete bottle.consumedAt; delete bottle.cell;
+  curIdx = targetIdx; curPhoto = bottle.photo || null;
+  showEdit(bottle, curIdx);
+  document.getElementById('cellPickerWrap').style.display = '';
+  buildCellPicker();
+  document.getElementById('modeEdit').dataset.historyIdx = removeFromHistory ? idx : '';
+  document.getElementById('modalOverlay').classList.add('open');
+  showToast(lang==='de'?'📍 Fach wählen und speichern':'📍 Choisissez l\'alvéole puis enregistrez');
+}
+
 function openAddFromTable() {
   // Trouver la première alvéole vide
   const firstEmpty = cellar.findIndex(b=>!b);
@@ -963,16 +985,19 @@ function renderHistory() {
   const list = document.getElementById('historyList');
   if (!history.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">📜</div><div>${t('histEmpty')}</div></div>`; return; }
   list.innerHTML = [...history].reverse().map((h,ri)=>{
-    const i = history.length-1-ri; // index réel dans history
-    return `<div class="hist-card" id="hcard-${i}" ontouchstart="startLongPress(${i},event)" ontouchend="cancelLongPress()" onmousedown="startLongPress(${i},event)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" title="${lang==='de'?'Lang drücken zum Löschen':'Appui long pour supprimer'}">
+    const i = history.length-1-ri;
+    return `<div class="hist-card" id="hcard-${i}" ontouchstart="startLongPress(${i},event)" ontouchend="cancelLongPress()" onmousedown="startLongPress(${i},event)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()">
       <div class="hist-icon">${TYPES[h.type]?.emoji||'🍾'}</div>
       <div style="flex:1;min-width:0">
         <div class="hist-name">${h.name||'Sans nom'}</div>
-        <div class="hist-meta">${t('cellLabel', h._shelf||1, h.cell)} · ${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
+        <div class="hist-meta">${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
         ${h.aromas?`<div class="hist-meta">🌸 ${h.aromas}</div>`:''}
         ${h.price?`<div class="hist-meta">💶 ${parseFloat(h.price).toFixed(2).replace('.',',')} €</div>`:''}
+        <button onclick="restoreFromHistory(${i})" style="margin-top:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
+          🔄 ${lang==='de'?'Zurück ins Regal':'Remettre en cave'}
+        </button>
       </div>
-      <div style="text-align:right">
+      <div style="text-align:right;flex-shrink:0">
         <div class="hist-date">${fmtDate(h.consumedAt)}</div>
         <div style="font-size:.6rem;opacity:.35;margin-top:4px">${lang==='de'?'⏱ lang drücken':'⏱ appui long'}</div>
       </div>
@@ -1089,7 +1114,13 @@ function saveBottle() {
     addedAt: cellar[curIdx]?.addedAt||new Date().toISOString()
   };
   if(cellar.length!==TOTAL) cellar=Array.from({length:TOTAL},(_,i)=>cellar[i]||null);
-  save(); renderShelves(); renderTable();
+  // Si restauration depuis historique, supprimer l'entrée
+  const hIdx = document.getElementById('modeEdit').dataset.historyIdx;
+  if (hIdx !== undefined && hIdx !== '') {
+    history.splice(parseInt(hIdx), 1);
+    delete document.getElementById('modeEdit').dataset.historyIdx;
+  }
+  save(); renderShelves(); renderTable(); renderHistory();
   showToast(t('toastSaved'));
   showView(cellar[curIdx], curIdx);
 }
@@ -1111,6 +1142,13 @@ function undoLast() {
   if (!undoStack) return;
   cellar  = undoStack.cellar;
   history = undoStack.history;
+  // Recharger les photos depuis localStorage
+  cellar.forEach((b,i) => {
+    if (b) {
+      const photo = localStorage.getItem('pascal_photo_'+i);
+      if (photo) b.photo = photo;
+    }
+  });
   save(); renderShelves(); renderTable(); renderHistory();
   document.getElementById('undoBar').classList.remove('show');
   undoStack = null;
