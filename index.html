@@ -1415,15 +1415,72 @@ function doSearch(q) {
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSearch(); });
 
 function exportForDanielle(){
-  const data = {version:2, exportDate:new Date().toISOString(), cellar, history, sharedBy:'Pascal'};
-  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const data = JSON.stringify({version:2, exportDate:new Date().toISOString(), cellar, history});
+  const bottleCount = cellar.filter(Boolean).length;
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Cave de Pascal 🍷</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;background:#2c1810;color:#f5ede0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.card{background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:28px 24px;max-width:400px;width:100%}
+h1{color:#c9a84c;font-size:1.4rem;margin-bottom:6px;font-style:italic}
+.sub{opacity:.6;font-size:.82rem;margin-bottom:20px}
+.info{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:8px;padding:12px;margin-bottom:20px;font-size:.9rem;color:#e8c97a}
+.btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#c9a84c,#a07830);color:#1a0d08;border:none;border-radius:10px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer;margin-bottom:10px;text-decoration:none}
+.btn2{display:block;width:100%;padding:12px;background:rgba(255,255,255,.06);color:#c9a84c;border:1px solid rgba(201,168,76,.3);border-radius:10px;font-family:Georgia,serif;font-size:.88rem;cursor:pointer;margin-bottom:10px}
+.steps{text-align:left;font-size:.8rem;opacity:.7;line-height:1.8;margin-top:16px}
+.steps b{color:#c9a84c}
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="font-size:2.5rem;margin-bottom:10px">🍷</div>
+  <h1>La Cave de Pascal</h1>
+  <div class="sub">Partagé le ${new Date().toLocaleDateString('fr-FR')}</div>
+  <div class="info">🍾 ${bottleCount} bouteille${bottleCount>1?'s':''} · 📜 ${history.length} consommée${history.length>1?'s':''}</div>
+  <button class="btn" onclick="importCave()">📲 Voir la cave de Pascal</button>
+  <div class="steps">
+    <b>Comment ça marche :</b><br>
+    1. Clique sur le bouton ci-dessus<br>
+    2. Tu seras redirigée vers la cave<br>
+    3. Toutes les bouteilles seront visibles !
+  </div>
+</div>
+<script>
+const CAVE_DATA = ${data};
+function importCave() {
+  try {
+    // Stocker les données dans localStorage
+    const cellarNoPhoto = CAVE_DATA.cellar.map(b => b ? {...b, photo:null} : null);
+    CAVE_DATA.cellar.forEach((b,i) => {
+      if(b && b.photo) { try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e){} }
+    });
+    localStorage.setItem('pascal_cellar', JSON.stringify(cellarNoPhoto));
+    localStorage.setItem('pascal_history', JSON.stringify(CAVE_DATA.history||[]));
+    localStorage.setItem('pascal_lang', 'fr');
+    alert('✅ Cave importée ! Tu vas être redirigée vers la cave de Pascal.');
+    window.location.href = 'https://gamezpascal76889.github.io/cave-a-vins/';
+  } catch(e) {
+    alert('❌ Erreur : ' + e.message);
+  }
+}
+</script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  a.download = `cave-pascal-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `cave-pascal-${new Date().toISOString().split('T')[0]}.html`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('📤 Fichier prêt — envoie-le à Danielle par WhatsApp !');
+  showToast('📤 Page HTML prête — envoie-la à Danielle par WhatsApp !');
 }
 
 function exportData(){
