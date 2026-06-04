@@ -1507,70 +1507,75 @@ async function ghFetch(method, body) {
   return r.json();
 }
 
-async function loadFromGitHub() {
+async function loadFromGitHub(force) {
+  force = force || false;
   if (!getToken()) { setSyncStatus('error', lang==='de'?'Kein Token':'Token manquant'); return; }
-  setSyncStatus('syncing', lang==='de'?'Laden…':'Chargement…');
+  setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
   try {
     const data = await ghFetch('GET');
     if (!data) return;
     ghFileSha = data.sha;
-    const json = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    const b64 = data.content.replace(/[\n\r\s]/g, '');
+    var json;
+    try { json = JSON.parse(decodeURIComponent(escape(atob(b64)))); }
+    catch(e2) { json = JSON.parse(atob(b64)); }
     if (!Array.isArray(json.cellar)) { setSyncStatus('ok','local'); return; }
-    // Comparer les dates — ne charger que si GitHub est plus récent
-    const ghDate  = json.updatedAt ? new Date(json.updatedAt) : new Date(0);
-    const locDate = localStorage.getItem('pascal_updated') ? new Date(localStorage.getItem('pascal_updated')) : new Date(0);
-    if (ghDate <= locDate) { setSyncStatus('ok', json.cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.')); return; }
-    // GitHub plus récent → charger
-    cellar  = Array.from({length:TOTAL}, (_,i) => {
-      const b = json.cellar[i];
+    var ghDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
+    var locStr  = localStorage.getItem('pascal_updated');
+    var locDate = locStr ? new Date(locStr).getTime() : 0;
+    if (!force && ghDate <= locDate) {
+      setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+      return;
+    }
+    cellar = Array.from({length:TOTAL}, function(_,i) {
+      var b = json.cellar[i];
       if (!b || !b.name) return null;
       if (!TYPES[b.type]) b.type = 'red';
+      var photo = localStorage.getItem('pascal_photo_'+i);
+      if (photo) b.photo = photo;
       return b;
     });
     history = json.history || [];
-    localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
+    localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
     localStorage.setItem('pascal_history', JSON.stringify(history));
-    localStorage.setItem('pascal_updated', json.updatedAt||new Date().toISOString());
+    localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
     renderShelves(); renderTable(); renderHistory(); updateStats();
     if (document.getElementById('view-stats').classList.contains('active')) renderStats();
-    setSyncStatus('ok', json.cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    if (force) showToast(lang==='de'?'Synchronisiert !':'Synchronise !');
   } catch(e) {
-    if (e.message.includes('404')) { await saveToGitHub(); }
-    else { setSyncStatus('error', lang==='de'?'Fehler':'Erreur'); }
+    if (e.message && e.message.includes('404')) { await saveToGitHub(); }
+    else { setSyncStatus('error', lang==='de'?'Fehler':'Erreur'); console.warn('GitHub load:', e); }
   }
 }
 
 async function saveToGitHub() {
-  setSyncStatus('syncing', lang==='de'?'Speichern…':'Sauvegarde…');
+  setSyncStatus('syncing', lang==='de'?'Speichern...':'Sauvegarde...');
   try {
-    const now = new Date().toISOString();
+    var now = new Date().toISOString();
     localStorage.setItem('pascal_updated', now);
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify({
+    var payload = JSON.stringify({
       version: 2,
       updatedAt: now,
-      cellar: cellar.map(b => b ? {...b, photo:null} : null),
-      history
-    }, null, 0))));
-    const body = {
-      message: 'Cave sync ' + new Date().toISOString().slice(0,16),
-      content,
-      ...(ghFileSha ? {sha: ghFileSha} : {})
-    };
-    const result = await ghFetch('PUT', body);
-    ghFileSha = result.content?.sha || ghFileSha;
-    setSyncStatus('ok', lang==='de'?'Gespeichert':'Sauvegardé');
+      cellar: cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;}),
+      history: history
+    });
+    var content = btoa(unescape(encodeURIComponent(payload)));
+    var body = { message: 'Cave sync ' + now.slice(0,16), content: content };
+    if (ghFileSha) body.sha = ghFileSha;
+    var result = await ghFetch('PUT', body);
+    if (result && result.content) ghFileSha = result.content.sha;
+    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
   } catch(e) {
     setSyncStatus('error', lang==='de'?'Sync-Fehler':'Erreur sync');
     console.warn('GitHub save error:', e);
   }
 }
 
-async function syncNow() {
-  await loadFromGitHub();
-}
+async function syncNow()      { await loadFromGitHub(false); }
+async function forceSyncNow() { await loadFromGitHub(true);  }
 
-// Sauvegarder sur GitHub après chaque save local — fusionné en une seule fonction
-let _ghSaveTimer = null;
+
 function save() {
   try {
     const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
