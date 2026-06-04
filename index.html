@@ -314,7 +314,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 <!-- ARCHIVES / CONSO -->
 <div class="view" id="view-history">
   <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-    <input type="text" id="histSearch" placeholder="🔍 Rechercher dans Conso…" oninput="renderHistory()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);border-radius:8px;color:var(--cream);font-family:Georgia,serif;font-size:.85rem;padding:8px 10px;outline:none">
+    <input type="text" id="histSearch" data-i18n-ph="histSearchPh" placeholder="🔍 Rechercher dans Conso…" oninput="renderHistory()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);border-radius:8px;color:var(--cream);font-family:Georgia,serif;font-size:.85rem;padding:8px 10px;outline:none">
   </div>
   <div id="historyList"></div>
 </div>
@@ -337,9 +337,9 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
   </div>
   <div class="bk-card">
-    <div class="bk-title">👩 Partager avec Danielle</div>
-    <div class="bk-text">Exporte ta cave et envoie le fichier à Danielle par <b style="color:#f5ede0">WhatsApp ou email</b>. Elle l'importe et voit toute ta cave en lecture.</div>
-    <button class="btn btn-primary" onclick="exportForDanielle()">📤 Exporter & partager</button>
+    <div class="bk-title" data-i18n="bkDanielleTitle">👩 Partager avec Danielle</div>
+    <div class="bk-text" data-i18n="bkDanielleText">Exporte ta cave et envoie le fichier à Danielle par <b style="color:#f5ede0">WhatsApp ou email</b>. Elle l'importe et voit toute ta cave en lecture.</div>
+    <button class="btn btn-primary" onclick="exportForDanielle()" data-i18n="bkDanielleBtn">📤 Exporter & partager</button>
   </div>
 
     <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
@@ -359,23 +359,23 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <div class="wine-title" id="noticeTitle">📝 Notice</div>
       <div class="wine-cell" id="noticeWineName" style="margin-bottom:12px"></div>
       <div class="form-group">
-        <label>👥 Avec qui ?</label>
+        <label data-i18n="noticeWith">👥 Avec qui ?</label>
         <input type="text" id="noticeWith" placeholder="ex: Danielle, famille, amis…">
       </div>
       <div class="form-group">
-        <label>🎉 Occasion / Raison</label>
+        <label data-i18n="noticeOccasion">🎉 Occasion / Raison</label>
         <input type="text" id="noticeOccasion" placeholder="ex: Anniversaire, dîner, fête…">
       </div>
       <div class="form-group">
-        <label>⭐ Avis / Dégustation</label>
+        <label data-i18n="noticeTaste">⭐ Avis / Dégustation</label>
         <textarea id="noticeTaste" placeholder="ex: Excellent, trop jeune, à point, accord parfait avec…" rows="3"></textarea>
       </div>
       <div class="form-group">
-        <label>📝 Notes libres</label>
+        <label data-i18n="noticeNotes">📝 Notes libres</label>
         <textarea id="noticeNotes" placeholder="Tout ce que vous voulez noter…" rows="2"></textarea>
       </div>
-      <button class="btn btn-primary" onclick="saveNotice()">💾 Enregistrer la notice</button>
-      <button class="btn btn-ghost" onclick="closeNotice()">Annuler</button>
+      <button class="btn btn-primary" id="noticeSaveBtn" onclick="saveNotice()" data-i18n="noticeSave">💾 Enregistrer la notice</button>
+      <button class="btn btn-ghost" onclick="closeNotice()" data-i18n="btnCancel">Annuler</button>
     </div>
   </div>
 </div>
@@ -534,7 +534,13 @@ const I18N = {
     anecMost:(n,p)=>`💰 La plus chère : <strong>${n}</strong> à <strong>${p} €</strong>`,
     anecConsumed:(c)=>`🍽️ Bouteilles consommées depuis l'ouverture : <strong>${c}</strong>`,
     anecSeries:(c,k,t)=>`🍾 <strong>${c} bouteilles</strong> de <strong>${k}</strong>${t?' ('+t+')':''}`,
-    vivinoBtn:'🍷 Voir sur Vivino', wsBtn:'🔍 Wine-Searcher',
+    histSearchPh:'🔍 Rechercher dans Conso…',
+    bkDanielleTitle:'👩 Partager avec Danielle', bkDanielleText:'Exporte ta cave et envoie le fichier à Danielle par <b style="color:#f5ede0">WhatsApp ou email</b>. Elle l\'importe et voit toute ta cave en lecture.', bkDanielleBtn:'📤 Exporter & partager',
+    noticeTitle:'📝 Notice', noticeWith:'👥 Avec qui ?', noticeOccasion:'🎉 Occasion / Raison', noticeTaste:'⭐ Avis / Dégustation', noticeNotes:'📝 Notes libres',
+    noticeWithPh:'ex: Danielle, famille, amis…', noticeOccasionPh:'ex: Anniversaire, dîner, fête…', noticeTastePh:'ex: Excellent, trop jeune, à point…', noticeNotesPh:'Tout ce que vous voulez noter…',
+    noticeSave:'💾 Enregistrer la notice', noticeBtnAdd:'Ajouter notice', noticeBtnEdit:'Notice',
+    histNoResult:(q)=>`Aucun résultat pour "${q}"`,
+    toastNoticeSaved:'✅ Notice enregistrée !',
     shelfLabel:(n)=>`Étagère ${n}`, cellLabel:(s,n)=>`Étagère ${s} · Alvéole n°${n}`,
     addFromTable:'➕ Ajouter une bouteille', cellPickerTitle:'📍 Choisir une alvéole', shelf2toggle:'▼ Voir aussi l\'étagère 2',
     emptyCell:(n)=>`Vide — Alvéole ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Alvéole ${n}`,
@@ -579,7 +585,13 @@ const I18N = {
     anecMost:(n,p)=>`💰 Teuerste Flasche: <strong>${n}</strong> für <strong>${p} €</strong>`,
     anecConsumed:(c)=>`🍽️ Seit Kellereröffnung getrunken: <strong>${c}</strong>`,
     anecSeries:(c,k,t)=>`🍾 <strong>${c} Flaschen</strong> von <strong>${k}</strong>${t?' ('+t+')':''}`,
-    vivinoBtn:'🍷 Auf Vivino ansehen', wsBtn:'🔍 Wine-Searcher',
+    histSearchPh:'🔍 In Konsum suchen…',
+    bkDanielleTitle:'👩 Mit Danielle teilen', bkDanielleText:'Exportiere deinen Keller und sende die Datei an Danielle per <b style="color:#f5ede0">WhatsApp oder E-Mail</b>. Sie importiert sie und sieht deinen Keller.', bkDanielleBtn:'📤 Exportieren & teilen',
+    noticeTitle:'📝 Notiz', noticeWith:'👥 Mit wem?', noticeOccasion:'🎉 Anlass / Grund', noticeTaste:'⭐ Bewertung / Verkostung', noticeNotes:'📝 Freie Notizen',
+    noticeWithPh:'z.B. Danielle, Familie, Freunde…', noticeOccasionPh:'z.B. Geburtstag, Abendessen, Fest…', noticeTastePh:'z.B. Ausgezeichnet, zu jung, auf dem Punkt…', noticeNotesPh:'Was auch immer Sie notieren möchten…',
+    noticeSave:'💾 Notiz speichern', noticeBtnAdd:'Notiz hinzufügen', noticeBtnEdit:'Notiz',
+    histNoResult:(q)=>`Keine Ergebnisse für "${q}"`,
+    toastNoticeSaved:'✅ Notiz gespeichert!',
     shelfLabel:(n)=>`Regal ${n}`, cellLabel:(s,n)=>`Regal ${s} · Fach Nr. ${n}`,
     addFromTable:'➕ Flasche hinzufügen', cellPickerTitle:'📍 Fach auswählen', shelf2toggle:'▼ Regal 2 anzeigen',
     emptyCell:(n)=>`Leer — Fach ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Fach ${n}`,
@@ -620,6 +632,8 @@ function setLang(l) {
   TYPES.rose.label      = t('typeRose');
   TYPES.petillant.label = t('typePet');
   TYPES.other.label     = t('typeOther');
+  const hs = document.getElementById('histSearch');
+  if (hs) hs.placeholder = t('histSearchPh');
   // Re-render tout
   updateStats(); renderShelves(); renderTable(); renderHistory();
   if(document.getElementById('view-stats').classList.contains('active')) renderStats();
@@ -1033,7 +1047,7 @@ function renderHistory() {
     [h.name,h.region,h.vintage,h.shop,h.notice_with,h.notice_occasion,h.notice_taste,h.notice_notes]
     .join(' ').toLowerCase().includes(q)
   );
-  if (!items.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div>Aucun résultat pour "<b>${q}</b>"</div></div>`; return; }
+  if (!items.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div>${t('histNoResult',q)}</div></div>`; return; }
 
   list.innerHTML = items.map(h=>{
     const i = h._i;
@@ -1053,7 +1067,7 @@ function renderHistory() {
         </div>`:''}
         <div style="display:flex;gap:6px;margin-top:6px">
           <button onclick="event.stopPropagation();openNotice(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:5px 6px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
-            📝 ${hasNotice?(lang==='de'?'Notiz':'Notice'):(lang==='de'?'Notiz hinzufügen':'Ajouter notice')}
+            📝 ${hasNotice?t('noticeBtnEdit'):t('noticeBtnAdd')}
           </button>
           <button onclick="event.stopPropagation();restoreFromHistory(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="flex:1;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:6px;padding:5px 6px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
             🔄 ${lang==='de'?'Zurück ins Regal':'Remettre en cave'}
@@ -1074,12 +1088,21 @@ let curNoticeIdx = null;
 function openNotice(idx) {
   const h = history[idx]; if(!h) return;
   curNoticeIdx = idx;
-  document.getElementById('noticeTitle').textContent = '📝 ' + (lang==='de'?'Notiz':'Notice');
+  document.getElementById('noticeTitle').textContent = t('noticeTitle');
   document.getElementById('noticeWineName').textContent = (h.name||'?') + (h.vintage?' '+h.vintage:'');
+  // Labels
+  document.querySelector('#noticeOverlay label[for-field="noticeWith"]') && null;
   document.getElementById('noticeWith').value      = h.notice_with      || '';
   document.getElementById('noticeOccasion').value  = h.notice_occasion  || '';
   document.getElementById('noticeTaste').value     = h.notice_taste     || '';
   document.getElementById('noticeNotes').value     = h.notice_notes     || '';
+  // Placeholders
+  document.getElementById('noticeWith').placeholder      = t('noticeWithPh');
+  document.getElementById('noticeOccasion').placeholder  = t('noticeOccasionPh');
+  document.getElementById('noticeTaste').placeholder     = t('noticeTastePh');
+  document.getElementById('noticeNotes').placeholder     = t('noticeNotesPh');
+  // Bouton save
+  document.getElementById('noticeSaveBtn').textContent = t('noticeSave');
   document.getElementById('noticeOverlay').classList.add('open');
 }
 
@@ -1095,7 +1118,7 @@ function saveNotice() {
   history[curNoticeIdx].notice_taste     = document.getElementById('noticeTaste').value.trim();
   history[curNoticeIdx].notice_notes     = document.getElementById('noticeNotes').value.trim();
   save(); renderHistory(); closeNotice();
-  showToast(lang==='de'?'✅ Notiz gespeichert !':'✅ Notice enregistrée !');
+  showToast(t('toastNoticeSaved'));
 }
 
 
