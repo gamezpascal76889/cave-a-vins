@@ -234,6 +234,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <span class="stat" id="sVal">0,00 €</span>
     <span class="stat" id="sE1">Ét.1 : 0/120</span>
     <span class="stat" id="sE2">Ét.2 : 0/56</span>
+    <span class="stat" id="sSyncStatus" style="cursor:pointer" onclick="syncNow()" title="Synchroniser">☁️ Sync</span>
   </div>
 </div>
 
@@ -341,10 +342,38 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <div class="bk-text" data-i18n="bkDanielleText">Exporte ta cave et envoie le fichier à Danielle par <b style="color:#f5ede0">WhatsApp ou email</b>. Elle l'importe et voit toute ta cave en lecture.</div>
     <button class="btn btn-primary" onclick="exportForDanielle()" data-i18n="bkDanielleBtn">📤 Exporter & partager</button>
   </div>
-
+  <div class="bk-card">
+    <div class="bk-title">☁️ Synchronisation GitHub</div>
+    <div class="bk-text">Synchronise la cave avec GitHub — toi et Danielle voyez toujours la même cave en temps réel.</div>
+    <div id="bkSyncInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px"></div>
+    <button class="btn btn-primary" onclick="openTokenSetup()">🔑 Configurer / Changer le token</button>
+    <button class="btn btn-ghost" onclick="syncNow()" style="margin-top:6px">🔄 Synchroniser maintenant</button>
+  </div>
+  <div class="bk-card danger">
     <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
     <div class="bk-text" data-i18n="bkResetText">Efface <b style="color:#ff8080">toutes</b> les bouteilles et l'historique. Irréversible.</div>
     <button class="btn btn-danger" onclick="resetAll()" data-i18n="bkResetBtn">⚠️ Tout effacer</button>
+  </div>
+</div>
+
+<!-- MODAL TOKEN GITHUB -->
+<div class="modal-overlay" id="tokenOverlay" onclick="if(event.target===this)closeTokenSetup()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
+      <div style="width:40px;height:4px;background:rgba(201,168,76,.3);border-radius:2px"></div>
+      <button onclick="closeTokenSetup()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div class="wine-title">🔑 Token GitHub</div>
+      <div class="wine-cell" style="margin-bottom:12px">Stocké uniquement sur ton téléphone — jamais dans le code</div>
+      <div class="form-group">
+        <label>Personal Access Token</label>
+        <input type="password" id="tokenInput" placeholder="ghp_..." style="font-family:monospace;font-size:.8rem">
+        <div style="margin-top:4px;font-size:.7rem;opacity:.5">GitHub → Settings → Developer settings → Tokens (classic)</div>
+      </div>
+      <button class="btn btn-primary" onclick="saveToken()">💾 Enregistrer & tester</button>
+      <button class="btn btn-ghost" onclick="closeTokenSetup()">Annuler</button>
+    </div>
   </div>
 </div>
 
@@ -492,6 +521,14 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 <script>
 // ══ CONFIG ══
 const PROXY_URL = 'https://cave-proxy.onrender.com/api/claude';
+
+// ══ GITHUB SYNC ══
+const GH_REPO   = 'gamezpascal76889/cave-a-vins';
+const GH_FILE   = 'cave-data.json';
+const GH_API    = `https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`;
+function getToken() { return localStorage.getItem('pascal_gh_token')||''; }
+let   ghFileSha  = null;
+let   syncStatus = 'idle';
 
 // ══ TRADUCTIONS ══
 const I18N = {
@@ -1462,7 +1499,103 @@ function renderStats() {
   `;
 }
 
-// ══ TRADUCTION GOOGLE ══
+// ══ GITHUB SYNC ══
+function setSyncStatus(status, msg) {
+  syncStatus = status;
+  const el = document.getElementById('sSyncStatus');
+  if (!el) return;
+  const icons = { idle:'☁️', syncing:'🔄', ok:'✅', error:'⚠️' };
+  el.textContent = (icons[status]||'☁️') + ' ' + (msg || 'Sync');
+  el.style.color = status==='ok' ? '#90ee90' : status==='error' ? '#ff9090' : status==='syncing' ? '#e8c97a' : '';
+}
+
+async function ghFetch(method, body) {
+  const token = getToken();
+  if (!token) { setSyncStatus('error', lang==='de'?'Kein Token':'Token manquant'); return null; }
+  const opts = {
+    method,
+    headers: {
+      'Authorization': 'token ' + token,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(GH_API, opts);
+  if (!r.ok) throw new Error('GitHub ' + r.status);
+  return r.json();
+}
+
+async function loadFromGitHub() {
+  setSyncStatus('syncing', lang==='de'?'Laden…':'Chargement…');
+  try {
+    const data = await ghFetch('GET');
+    ghFileSha = data.sha;
+    const json = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    if (Array.isArray(json.cellar)) {
+      cellar  = Array.from({length:TOTAL}, (_,i) => {
+        const b = json.cellar[i];
+        if (!b || !b.name) return null;
+        if (!TYPES[b.type]) b.type = 'red';
+        return b;
+      });
+      history = json.history || [];
+      // Sauvegarder localement aussi
+      localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
+      localStorage.setItem('pascal_history', JSON.stringify(history));
+      renderShelves(); renderTable(); renderHistory(); updateStats();
+      if (document.getElementById('view-stats').classList.contains('active')) renderStats();
+    }
+    setSyncStatus('ok', json.cellar?.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+  } catch(e) {
+    if (e.message.includes('404')) {
+      // Fichier n'existe pas encore — première utilisation
+      await saveToGitHub();
+    } else {
+      setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
+      console.warn('GitHub load error:', e);
+    }
+  }
+}
+
+async function saveToGitHub() {
+  setSyncStatus('syncing', lang==='de'?'Speichern…':'Sauvegarde…');
+  try {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify({
+      version: 2,
+      updatedAt: new Date().toISOString(),
+      cellar: cellar.map(b => b ? {...b, photo:null} : null),
+      history
+    }, null, 0))));
+    const body = {
+      message: 'Cave sync ' + new Date().toISOString().slice(0,16),
+      content,
+      ...(ghFileSha ? {sha: ghFileSha} : {})
+    };
+    const result = await ghFetch('PUT', body);
+    ghFileSha = result.content?.sha || ghFileSha;
+    setSyncStatus('ok', lang==='de'?'Gespeichert':'Sauvegardé');
+  } catch(e) {
+    setSyncStatus('error', lang==='de'?'Sync-Fehler':'Erreur sync');
+    console.warn('GitHub save error:', e);
+  }
+}
+
+async function syncNow() {
+  await loadFromGitHub();
+}
+
+// Sauvegarder sur GitHub après chaque save local
+const _origSave = save;
+function save() {
+  _origSave();
+  // Sync GitHub en arrière-plan (debounce 2s)
+  clearTimeout(save._ghTimer);
+  save._ghTimer = setTimeout(saveToGitHub, 2000);
+}
+save._ghTimer = null;
+
+
 function translateField(fieldId) {
   const text = document.getElementById(fieldId).value.trim();
   if (!text) { showToast(lang==='de'?'⚠️ Kein Text zum Übersetzen':'⚠️ Aucun texte à traduire'); return; }
@@ -1474,6 +1607,22 @@ function translateField(fieldId) {
   showToast(lang==='de'?'🌐 Google Übersetzer geöffnet — Text kopieren & einfügen':'🌐 Google Traduction ouvert — copiez-collez la traduction');
 }
 
+// ══ TOKEN SETUP ══
+function openTokenSetup() {
+  document.getElementById('tokenInput').value = getToken() ? '••••••••••••••••' : '';
+  document.getElementById('tokenOverlay').classList.add('open');
+}
+function closeTokenSetup() {
+  document.getElementById('tokenOverlay').classList.remove('open');
+}
+async function saveToken() {
+  const val = document.getElementById('tokenInput').value.trim();
+  if (!val || val.startsWith('•')) { closeTokenSetup(); return; }
+  localStorage.setItem('pascal_gh_token', val);
+  closeTokenSetup();
+  showToast('🔑 Token enregistré — test de connexion…');
+  await loadFromGitHub();
+}
 
 function openSearch() {
   document.getElementById('searchOverlay').classList.add('open');
@@ -1606,6 +1755,8 @@ function switchView(name,btn){
   if(name==='backup'){
     const f=cellar.filter(Boolean).length,v=cellar.reduce((a,b)=>a+(b?parseFloat(b.price)||0:0),0);
     document.getElementById('bkInfo').textContent=`${f} bouteilles · ${history.length} archives · ${v.toFixed(2).replace('.',',')} €`;
+    const hasToken = !!getToken();
+    document.getElementById('bkSyncInfo').textContent = hasToken ? '✅ Token configuré — sync active' : '⚠️ Token non configuré';
   }
 }
 
@@ -1623,18 +1774,22 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
     const json = decodeURIComponent(escape(atob(encoded)));
     const data = JSON.parse(json);
     if (!Array.isArray(data.cellar)) return;
-    // Importer silencieusement
     const cellarNoPhoto = data.cellar.map(b => b ? {...b, photo:null} : null);
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
     localStorage.setItem('pascal_history', JSON.stringify(data.history||[]));
-    // Recharger sans le hash pour ne pas reboucler
     window.location.replace(window.location.pathname);
   } catch(e) { console.warn('Share import error:', e); }
 })();
 
 renderShelves();
 updateStats();
-setLang(lang); // Applique la langue sauvegardée
+setLang(lang);
+// Si pas de token configuré, demander à l'utilisateur
+if (!getToken()) {
+  setTimeout(openTokenSetup, 1000);
+} else {
+  loadFromGitHub();
+}
 </script>
 </body>
 </html>
