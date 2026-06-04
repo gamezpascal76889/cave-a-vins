@@ -750,25 +750,6 @@ let curIdx  = null, curPhoto = null;
 let sortKey = 'id', sortAsc = true;
 let curShelf = 1; // onglet actif
 
-function save() {
-  try {
-    const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
-    cellar.forEach((b,i) => {
-      if (b?.photo) { try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {} }
-      else { localStorage.removeItem('pascal_photo_'+i); }
-    });
-    localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
-    localStorage.setItem('pascal_history', JSON.stringify(history));
-  } catch(e) {
-    try {
-      const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
-      localStorage.setItem('pascal_cellar', JSON.stringify(cellarNoPhoto));
-      localStorage.setItem('pascal_history', JSON.stringify(history));
-    } catch(e2) { showToast('⚠️ Erreur sauvegarde : stockage plein ?'); }
-  }
-  updateStats();
-}
-
 // ══ STATS ══
 function updateStats() {
   const f1 = cellar.slice(0, S1_TOTAL).filter(Boolean).length;
@@ -1527,43 +1508,46 @@ async function ghFetch(method, body) {
 }
 
 async function loadFromGitHub() {
+  if (!getToken()) { setSyncStatus('error', lang==='de'?'Kein Token':'Token manquant'); return; }
   setSyncStatus('syncing', lang==='de'?'Laden…':'Chargement…');
   try {
     const data = await ghFetch('GET');
+    if (!data) return;
     ghFileSha = data.sha;
     const json = JSON.parse(atob(data.content.replace(/\n/g,'')));
-    if (Array.isArray(json.cellar)) {
-      cellar  = Array.from({length:TOTAL}, (_,i) => {
-        const b = json.cellar[i];
-        if (!b || !b.name) return null;
-        if (!TYPES[b.type]) b.type = 'red';
-        return b;
-      });
-      history = json.history || [];
-      // Sauvegarder localement aussi
-      localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
-      localStorage.setItem('pascal_history', JSON.stringify(history));
-      renderShelves(); renderTable(); renderHistory(); updateStats();
-      if (document.getElementById('view-stats').classList.contains('active')) renderStats();
-    }
-    setSyncStatus('ok', json.cellar?.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    if (!Array.isArray(json.cellar)) { setSyncStatus('ok','local'); return; }
+    // Comparer les dates — ne charger que si GitHub est plus récent
+    const ghDate  = json.updatedAt ? new Date(json.updatedAt) : new Date(0);
+    const locDate = localStorage.getItem('pascal_updated') ? new Date(localStorage.getItem('pascal_updated')) : new Date(0);
+    if (ghDate <= locDate) { setSyncStatus('ok', json.cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.')); return; }
+    // GitHub plus récent → charger
+    cellar  = Array.from({length:TOTAL}, (_,i) => {
+      const b = json.cellar[i];
+      if (!b || !b.name) return null;
+      if (!TYPES[b.type]) b.type = 'red';
+      return b;
+    });
+    history = json.history || [];
+    localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
+    localStorage.setItem('pascal_history', JSON.stringify(history));
+    localStorage.setItem('pascal_updated', json.updatedAt||new Date().toISOString());
+    renderShelves(); renderTable(); renderHistory(); updateStats();
+    if (document.getElementById('view-stats').classList.contains('active')) renderStats();
+    setSyncStatus('ok', json.cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
   } catch(e) {
-    if (e.message.includes('404')) {
-      // Fichier n'existe pas encore — première utilisation
-      await saveToGitHub();
-    } else {
-      setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
-      console.warn('GitHub load error:', e);
-    }
+    if (e.message.includes('404')) { await saveToGitHub(); }
+    else { setSyncStatus('error', lang==='de'?'Fehler':'Erreur'); }
   }
 }
 
 async function saveToGitHub() {
   setSyncStatus('syncing', lang==='de'?'Speichern…':'Sauvegarde…');
   try {
+    const now = new Date().toISOString();
+    localStorage.setItem('pascal_updated', now);
     const content = btoa(unescape(encodeURIComponent(JSON.stringify({
       version: 2,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
       cellar: cellar.map(b => b ? {...b, photo:null} : null),
       history
     }, null, 0))));
@@ -1585,15 +1569,29 @@ async function syncNow() {
   await loadFromGitHub();
 }
 
-// Sauvegarder sur GitHub après chaque save local
-const _origSave = save;
+// Sauvegarder sur GitHub après chaque save local — fusionné en une seule fonction
+let _ghSaveTimer = null;
 function save() {
-  _origSave();
-  // Sync GitHub en arrière-plan (debounce 2s)
-  clearTimeout(save._ghTimer);
-  save._ghTimer = setTimeout(saveToGitHub, 2000);
+  try {
+    const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
+    cellar.forEach((b,i) => {
+      if (b?.photo) { try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {} }
+      else { localStorage.removeItem('pascal_photo_'+i); }
+    });
+    localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
+    localStorage.setItem('pascal_history', JSON.stringify(history));
+  } catch(e) {
+    try {
+      const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
+      localStorage.setItem('pascal_cellar', JSON.stringify(cellarNoPhoto));
+      localStorage.setItem('pascal_history', JSON.stringify(history));
+    } catch(e2) { showToast('⚠️ Erreur sauvegarde locale'); }
+  }
+  updateStats();
+  // Sync GitHub en arrière-plan (debounce 500ms)
+  clearTimeout(_ghSaveTimer);
+  _ghSaveTimer = setTimeout(saveToGitHub, 500);
 }
-save._ghTimer = null;
 
 
 function translateField(fieldId) {
