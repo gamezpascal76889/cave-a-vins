@@ -311,8 +311,11 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <div id="statsContent"></div>
 </div>
 
-<!-- ARCHIVES -->
+<!-- ARCHIVES / CONSO -->
 <div class="view" id="view-history">
+  <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+    <input type="text" id="histSearch" placeholder="🔍 Rechercher dans Conso…" oninput="renderHistory()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);border-radius:8px;color:var(--cream);font-family:Georgia,serif;font-size:.85rem;padding:8px 10px;outline:none">
+  </div>
   <div id="historyList"></div>
 </div>
 
@@ -345,7 +348,39 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL NOTICE CONSO -->
+<div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this)closeNotice()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
+      <div style="width:40px;height:4px;background:rgba(201,168,76,.3);border-radius:2px"></div>
+      <button onclick="closeNotice()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div class="wine-title" id="noticeTitle">📝 Notice</div>
+      <div class="wine-cell" id="noticeWineName" style="margin-bottom:12px"></div>
+      <div class="form-group">
+        <label>👥 Avec qui ?</label>
+        <input type="text" id="noticeWith" placeholder="ex: Danielle, famille, amis…">
+      </div>
+      <div class="form-group">
+        <label>🎉 Occasion / Raison</label>
+        <input type="text" id="noticeOccasion" placeholder="ex: Anniversaire, dîner, fête…">
+      </div>
+      <div class="form-group">
+        <label>⭐ Avis / Dégustation</label>
+        <textarea id="noticeTaste" placeholder="ex: Excellent, trop jeune, à point, accord parfait avec…" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>📝 Notes libres</label>
+        <textarea id="noticeNotes" placeholder="Tout ce que vous voulez noter…" rows="2"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveNotice()">💾 Enregistrer la notice</button>
+      <button class="btn btn-ghost" onclick="closeNotice()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAVE -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
@@ -990,9 +1025,19 @@ function sortBy(k) {
 // ══ HISTORY ══
 function renderHistory() {
   const list = document.getElementById('historyList');
+  const q = (document.getElementById('histSearch')?.value||'').toLowerCase().trim();
   if (!history.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">📜</div><div>${t('histEmpty')}</div></div>`; return; }
-  list.innerHTML = [...history].reverse().map((h,ri)=>{
-    const i = history.length-1-ri;
+
+  let items = [...history].map((h,i)=>({...h,_i:i})).reverse();
+  if (q) items = items.filter(h=>
+    [h.name,h.region,h.vintage,h.shop,h.notice_with,h.notice_occasion,h.notice_taste,h.notice_notes]
+    .join(' ').toLowerCase().includes(q)
+  );
+  if (!items.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div>Aucun résultat pour "<b>${q}</b>"</div></div>`; return; }
+
+  list.innerHTML = items.map(h=>{
+    const i = h._i;
+    const hasNotice = h.notice_with||h.notice_occasion||h.notice_taste||h.notice_notes;
     return `<div class="hist-card" id="hcard-${i}" ontouchstart="startLongPress(${i},event)" ontouchend="cancelLongPress()" onmousedown="startLongPress(${i},event)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()">
       <div class="hist-icon">${TYPES[h.type]?.emoji||'🍾'}</div>
       <div style="flex:1;min-width:0">
@@ -1000,19 +1045,60 @@ function renderHistory() {
         <div class="hist-meta">${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
         ${h.aromas?`<div class="hist-meta">🌸 ${h.aromas}</div>`:''}
         ${h.price?`<div class="hist-meta">💶 ${parseFloat(h.price).toFixed(2).replace('.',',')} €</div>`:''}
-        <button onclick="event.stopPropagation();restoreFromHistory(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="margin-top:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
-          🔄 ${lang==='de'?'Zurück ins Regal':'Remettre en cave'}
-        </button>
+        ${hasNotice?`<div style="margin-top:6px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:6px;padding:6px 8px;font-size:.73rem;color:var(--cream-d);line-height:1.6">
+          ${h.notice_with?`<div>👥 ${h.notice_with}</div>`:''}
+          ${h.notice_occasion?`<div>🎉 ${h.notice_occasion}</div>`:''}
+          ${h.notice_taste?`<div>⭐ ${h.notice_taste}</div>`:''}
+          ${h.notice_notes?`<div>📝 ${h.notice_notes}</div>`:''}
+        </div>`:''}
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button onclick="event.stopPropagation();openNotice(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:5px 6px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
+            📝 ${hasNotice?(lang==='de'?'Notiz':'Notice'):(lang==='de'?'Notiz hinzufügen':'Ajouter notice')}
+          </button>
+          <button onclick="event.stopPropagation();restoreFromHistory(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="flex:1;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:6px;padding:5px 6px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
+            🔄 ${lang==='de'?'Zurück ins Regal':'Remettre en cave'}
+          </button>
+        </div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div class="hist-date">${fmtDate(h.consumedAt)}</div>
-        <div style="font-size:.6rem;opacity:.35;margin-top:4px">${lang==='de'?'⏱ lang drücken':'⏱ appui long'}</div>
+        <div style="font-size:.6rem;opacity:.3;margin-top:4px">⏱ long</div>
       </div>
     </div>`;
   }).join('');
 }
 
-// Longpress pour supprimer dans Conso
+// ══ NOTICES CONSO ══
+let curNoticeIdx = null;
+
+function openNotice(idx) {
+  const h = history[idx]; if(!h) return;
+  curNoticeIdx = idx;
+  document.getElementById('noticeTitle').textContent = '📝 ' + (lang==='de'?'Notiz':'Notice');
+  document.getElementById('noticeWineName').textContent = (h.name||'?') + (h.vintage?' '+h.vintage:'');
+  document.getElementById('noticeWith').value      = h.notice_with      || '';
+  document.getElementById('noticeOccasion').value  = h.notice_occasion  || '';
+  document.getElementById('noticeTaste').value     = h.notice_taste     || '';
+  document.getElementById('noticeNotes').value     = h.notice_notes     || '';
+  document.getElementById('noticeOverlay').classList.add('open');
+}
+
+function closeNotice() {
+  document.getElementById('noticeOverlay').classList.remove('open');
+  curNoticeIdx = null;
+}
+
+function saveNotice() {
+  if (curNoticeIdx === null) return;
+  history[curNoticeIdx].notice_with      = document.getElementById('noticeWith').value.trim();
+  history[curNoticeIdx].notice_occasion  = document.getElementById('noticeOccasion').value.trim();
+  history[curNoticeIdx].notice_taste     = document.getElementById('noticeTaste').value.trim();
+  history[curNoticeIdx].notice_notes     = document.getElementById('noticeNotes').value.trim();
+  save(); renderHistory(); closeNotice();
+  showToast(lang==='de'?'✅ Notiz gespeichert !':'✅ Notice enregistrée !');
+}
+
+
 let longPressTimer = null;
 function startLongPress(idx, e) {
   e.preventDefault();
@@ -1433,7 +1519,7 @@ function exportForDanielle(){
     + '.steps b{color:#c9a84c}</style></head><body>'
     + '<div class="card">'
     + '<div style="font-size:2.5rem;margin-bottom:10px">\uD83C\uDF77</div>'
-    + '<h1>La Cave de Pascal</h1>'
+    + '<h1>La Cave de Danielle et Pascal</h1>'
     + '<div class="sub">Partagé le ' + date + '</div>'
     + '<div class="info">\uD83C\uDF7E ' + bottleCount + ' bouteille' + (bottleCount>1?'s':'') + ' &nbsp;·&nbsp; \uD83D\uDCDC ' + history.length + ' consommée' + (history.length>1?'s':'') + '</div>'
     + '<button class="btn" onclick="importCave()">\uD83D\uDCF2 Voir la cave de Pascal</button>'
