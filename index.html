@@ -219,8 +219,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <div class="header-top">
     <div class="header-icon">🍷</div>
     <div class="header-text">
-      <div class="header-title" id="hTitle" style="line-height:1.25">La Cave à Vins<br><span id="hTitleSub" style="font-size:.8rem;opacity:.85">de Danielle &amp; Pascal</span></div>
-      <div class="header-sub" id="hSub">Collection personnelle</div>
+      <div class="header-title" id="hTitle" style="line-height:1.2;font-size:1rem">La Cave à Vins<br><span id="hTitleSub" style="font-size:.8rem;opacity:.85">de Danielle &amp; Pascal</span></div>
     </div>
     <div style="display:flex;gap:6px;flex-shrink:0">
       <button onclick="openSearch()" style="background:none;border:2px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 8px;font-size:1.1rem;cursor:pointer;color:var(--gold)" title="Rechercher">🔍</button>
@@ -654,7 +653,6 @@ function setLang(l) {
   document.getElementById('hTitle').childNodes[0].textContent = t('hTitle');
   const sub = document.getElementById('hTitleSub');
   if (sub) sub.innerHTML = t('hTitleSub');
-  document.getElementById('hSub').textContent = t('hSub');
   const bkSync = document.getElementById('bkSyncTextEl');
   if (bkSync) bkSync.textContent = t('bkSyncText');
   // Formulaire labels dynamiques — on re-génère via updateFormLabels
