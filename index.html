@@ -1249,7 +1249,6 @@ function saveBottle() {
   save(); renderShelves(); renderTable(); renderHistory();
   showToast(t('toastSaved'));
   showView(cellar[curIdx], curIdx);
-  setTimeout(()=>renderShelves(), 200);
 }
 
 // ══ UNDO ══
@@ -1311,11 +1310,12 @@ function pasteBottle() {
   cellar[curIdx] = {...clipboard, addedAt: new Date().toISOString()};
   save(); renderShelves(); renderTable();
   showToast(t('toastPasted'));
-  closeModal(); // Ferme et retourne à l'étagère directement
-  // Basculer sur l'étagère correspondante
+  closeModal();
+  // Retourner à l'étagère correcte
   const shelf = curIdx < S1_TOTAL ? 1 : 2;
   switchShelf(shelf);
-  switchView('shelf', document.querySelector('.nav-btn'));
+  const navBtns = document.querySelectorAll('.nav-btn');
+  switchView('shelf', navBtns[0]);
 }
 
 // ══ PHOTO + IA ══
@@ -1486,6 +1486,11 @@ function setSyncStatus(status, msg) {
 
 async function jbLoad(force) {
   force = force || false;
+  // Ne pas charger si on vient de sauvegarder localement (évite l'écrasement)
+  if (!force && (Date.now() - _lastSaveTime) < 10000) {
+    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    return;
+  }
   setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
   try {
     const r = await fetch(JB_URL + '/latest', {
@@ -1554,7 +1559,10 @@ async function syncNow()      { await jbLoad(false); }
 async function forceSyncNow() { await jbLoad(true);  }
 
 
+let _lastSaveTime = 0; // timestamp du dernier save local
+
 function save() {
+  _lastSaveTime = Date.now(); // mémoriser quand on a sauvegardé
   try {
     const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
     cellar.forEach((b,i) => {
