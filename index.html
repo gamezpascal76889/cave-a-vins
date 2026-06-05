@@ -1248,7 +1248,11 @@ function saveBottle() {
   }
   save(); renderShelves(); renderTable(); renderHistory();
   showToast(t('toastSaved'));
-  showView(cellar[curIdx], curIdx);
+  // Fermer modal et aller sur l'étagère
+  closeModal();
+  const shelf = curIdx < S1_TOTAL ? 1 : 2;
+  switchShelf(shelf);
+  switchView('shelf', document.querySelectorAll('.nav-btn')[0]);
 }
 
 // ══ UNDO ══
@@ -1286,13 +1290,17 @@ function consume() {
   saveUndo(lang==='de'?`↩ "${b.name||'?'}" wiederherstellen`:`↩ Remettre "${b.name||'?'}" en cave`);
   history.push({...b, cell:curIdx+1, consumedAt:new Date().toISOString()});
   cellar[curIdx]=null; save(); renderShelves(); renderTable(); renderHistory();
-  showToast(t('toastConsumed')); closeModal();
+  showToast(t('toastConsumed'));
+  closeModal();
+  switchView('shelf', document.querySelectorAll('.nav-btn')[0]);
 }
 
 function clearCell() {
   if(!confirm(t('confirmClear')))return;
   cellar[curIdx]=null; save(); renderShelves(); renderTable();
-  showToast(t('toastCleared')); closeModal();
+  showToast(t('toastCleared'));
+  closeModal();
+  switchView('shelf', document.querySelectorAll('.nav-btn')[0]);
 }
 
 // ══ COPIER / COLLER ══
@@ -1773,8 +1781,15 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 renderShelves();
 updateStats();
 setLang(lang);
-// Charger depuis JSONBin au démarrage
-jbLoad(false);
+// Sync JSONBin uniquement si on n'a pas de données locales
+const _hasLocal = localStorage.getItem('pascal_cellar');
+if (!_hasLocal) {
+  jbLoad(true); // Première utilisation : charger depuis JSONBin
+} else {
+  setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+  // Sync en arrière-plan après 5s pour récupérer les modifs de Danielle
+  setTimeout(()=>jbLoad(false), 5000);
+}
 </script>
 </body>
 </html>
