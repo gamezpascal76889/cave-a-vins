@@ -219,13 +219,13 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <div class="header-top">
     <div class="header-icon">🍷</div>
     <div class="header-text">
-      <div class="header-title" id="hTitle" style="line-height:1.2;font-size:1rem">La Cave à Vins<br><span id="hTitleSub" style="font-size:.8rem;opacity:.85">de Danielle &amp; Pascal</span></div>
+      <div class="header-title" id="hTitle" style="line-height:1.2;font-size:.95rem;white-space:nowrap">La Cave à Vins<br><span id="hTitleSub" style="font-size:.75rem;opacity:.85">de Danielle &amp; Pascal</span></div>
     </div>
-    <div style="display:flex;gap:6px;flex-shrink:0">
-      <button onclick="openSearch()" style="background:none;border:2px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 8px;font-size:1.1rem;cursor:pointer;color:var(--gold)" title="Rechercher">🔍</button>
-      <button onclick="openAddFromTable()" style="background:none;border:2px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 8px;font-size:1.2rem;cursor:pointer;color:var(--gold);font-weight:bold;line-height:1" title="Ajouter une bouteille">＋</button>
-      <button onclick="setLang('fr')" id="btn-fr" style="background:none;border:2px solid var(--gold);border-radius:6px;padding:2px 6px;font-size:1.1rem;cursor:pointer;opacity:1" title="Français">🇫🇷</button>
-      <button onclick="setLang('de')" id="btn-de" style="background:none;border:2px solid transparent;border-radius:6px;padding:2px 6px;font-size:1.1rem;cursor:pointer;opacity:.5" title="Deutsch">🇩🇪</button>
+    <div style="display:flex;gap:4px;flex-shrink:0">
+      <button onclick="openSearch()" style="background:none;border:1.5px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 6px;font-size:1rem;cursor:pointer;color:var(--gold)" title="Rechercher">🔍</button>
+      <button onclick="openAddFromTable()" style="background:none;border:1.5px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 6px;font-size:1rem;cursor:pointer;color:var(--gold);font-weight:bold;line-height:1" title="Ajouter une bouteille">＋</button>
+      <button onclick="setLang('fr')" id="btn-fr" style="background:none;border:2px solid var(--gold);border-radius:6px;padding:1px 5px;font-size:1rem;cursor:pointer;opacity:1" title="Français">🇫🇷</button>
+      <button onclick="setLang('de')" id="btn-de" style="background:none;border:2px solid transparent;border-radius:6px;padding:1px 5px;font-size:1rem;cursor:pointer;opacity:.5" title="Deutsch">🇩🇪</button>
     </div>
   </div>
   <div class="header-stats">
@@ -295,12 +295,11 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   </div>
   <div class="table-wrap"><table>
     <thead><tr>
-      <th onclick="sortBy('id')"># <span id="s-id"></span></th>
-      <th onclick="sortBy('shelf')" data-i18n="thShelf">Ét. <span id="s-shelf"></span></th>
-      <th onclick="sortBy('type')" data-i18n="thType">Type <span id="s-type"></span></th>
+      <th onclick="sortBy('id')" style="width:28px"># <span id="s-id"></span></th>
+      <th onclick="sortBy('type')" data-i18n="thType" style="width:36px;font-size:.65rem"><span id="s-type"></span></th>
       <th onclick="sortBy('name')" data-i18n="thName">Nom <span id="s-name"></span></th>
-      <th onclick="sortBy('vintage')" data-i18n="thVintage">Mill. <span id="s-vintage"></span></th>
-      <th onclick="sortBy('price')" data-i18n="thPrice">Prix <span id="s-price"></span></th>
+      <th onclick="sortBy('vintage')" data-i18n="thVintage" style="width:38px;font-size:.65rem"><span id="s-vintage"></span></th>
+      <th onclick="sortBy('price')" data-i18n="thPrice" style="width:52px">Prix <span id="s-price"></span></th>
     </tr></thead>
     <tbody id="tableBody"></tbody>
   </table></div>
@@ -1027,16 +1026,15 @@ function renderTable() {
   });
   const thisYear = new Date().getFullYear();
   tb.innerHTML = rows.length===0
-    ? `<tr><td colspan="6" style="text-align:center;padding:20px;opacity:.35;font-style:italic">${t('tblEmpty')}</td></tr>`
+    ? `<tr><td colspan="5" style="text-align:center;padding:20px;opacity:.35;font-style:italic">${t('tblEmpty')}</td></tr>`
     : rows.map(r=>{
       const old = r.vintage && (thisYear - parseInt(r.vintage)) >= 9;
       return `<tr style="cursor:pointer" class="${old?'old-vintage':''}" onclick="openModal(${r._i});switchView('shelf',document.querySelector('.nav-btn'))">
-        <td>${r._id}</td>
-        <td><span style="opacity:.6;font-size:.7rem">${t('shelfLabel',r._shelf)}</span></td>
-        <td>${r.type?`<span class="type-dot-sm" style="background:${TYPES[r.type]?.bg}"></span>${TYPES[r.type]?.label}`:'—'}</td>
-        <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name||`<em style="opacity:.4">${t('tblVide')}</em>`}${old?' 🏆':''}</td>
-        <td>${r.vintage||'—'}</td>
-        <td>${r.price?parseFloat(r.price).toFixed(2).replace('.',',')+' €':'—'}</td>
+        <td style="font-size:.72rem">${r._id}</td>
+        <td style="font-size:.65rem">${r.type?`<span class="type-dot-sm" style="background:${TYPES[r.type]?.bg}"></span>`:'—'}</td>
+        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name||`<em style="opacity:.4">${t('tblVide')}</em>`}${old?' 🏆':''}</td>
+        <td style="font-size:.7rem;opacity:.7">${r.vintage||'—'}</td>
+        <td style="font-size:.75rem">${r.price?parseFloat(r.price).toFixed(2).replace('.',',')+' €':'—'}</td>
       </tr>`;
     }).join('');
 }
