@@ -1150,15 +1150,13 @@ function cancelLongPress() { clearTimeout(longPressTimer); }
 
 // ══ MODAL ══
 function goToShelf(idx) {
-  const targetShelf = (idx !== undefined && idx !== null && idx < S1_TOTAL) ? 1 : 2;
-  closeModal(); // remet curIdx à null - mais on a déjà sauvegardé targetShelf
-  // Afficher l'onglet étagères
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-shelf').classList.add('active');
+  closeModal();
+  const shelf = (idx !== undefined && idx < S1_TOTAL) ? 1 : 2;
+  switchShelf(shelf);
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.nav-btn')[0].classList.add('active');
-  // Basculer sur la bonne étagère
-  switchShelf(targetShelf);
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelector('.nav-btn').classList.add('active');
+  document.getElementById('view-shelf').classList.add('active');
 }
 
 function openModal(idx) {
@@ -1493,50 +1491,6 @@ function setSyncStatus(status, msg) {
   el.style.color = status==='ok' ? '#90ee90' : status==='error' ? '#ff9090' : status==='syncing' ? '#e8c97a' : '';
 }
 
-async function jbLoad(force) {
-  force = force || false;
-  // Ne pas charger si on vient de sauvegarder localement (évite l'écrasement)
-  if (!force && (Date.now() - _lastSaveTime) < 10000) {
-    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
-    return;
-  }
-  setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
-  try {
-    const r = await fetch(JB_URL + '/latest', {
-      headers: { 'X-Master-Key': JB_API_KEY, 'X-Bin-Meta': 'false' }
-    });
-    if (!r.ok) throw new Error('JSONBin ' + r.status);
-    const json = await r.json();
-    if (!Array.isArray(json.cellar)) { setSyncStatus('ok','local'); return; }
-    var jbDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
-    var locStr  = localStorage.getItem('pascal_updated');
-    var locDate = locStr ? new Date(locStr).getTime() : 0;
-    if (!force && jbDate <= locDate) {
-      setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
-      return;
-    }
-    cellar = Array.from({length:TOTAL}, function(_,i) {
-      var b = json.cellar[i];
-      if (!b || !b.name) return null;
-      if (!TYPES[b.type]) b.type = 'red';
-      var photo = localStorage.getItem('pascal_photo_'+i);
-      if (photo) b.photo = photo;
-      return b;
-    });
-    history = json.history || [];
-    localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
-    localStorage.setItem('pascal_history', JSON.stringify(history));
-    localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
-    renderShelves(); renderTable(); renderHistory(); updateStats();
-    if (document.getElementById('view-stats').classList.contains('active')) renderStats();
-    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
-    if (force) showToast(lang==='de'?'Synchronisiert !':'Synchronise !');
-  } catch(e) {
-    setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
-    console.warn('JSONBin load:', e);
-  }
-}
-
 async function jbSave() {
   setSyncStatus('syncing', lang==='de'?'Speichern...':'Sauvegarde...');
   try {
@@ -1550,28 +1504,81 @@ async function jbSave() {
     };
     const r = await fetch(JB_URL, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JB_API_KEY
-      },
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JB_API_KEY },
       body: JSON.stringify(payload)
     });
     if (!r.ok) throw new Error('JSONBin save ' + r.status);
-    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    const n = cellar.filter(Boolean).length;
+    setSyncStatus('ok', n + (lang==='de'?' Fl.':' btl.'));
   } catch(e) {
-    setSyncStatus('error', lang==='de'?'Sync-Fehler':'Erreur sync');
+    setSyncStatus('error', 'Erreur sync');
     console.warn('JSONBin save error:', e);
+  }
+}
+
+async function jbLoad(force) {
+  force = force || false;
+  setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
+  try {
+    const r = await fetch(JB_URL + '/latest', {
+      headers: { 'X-Master-Key': JB_API_KEY, 'X-Bin-Meta': 'false' }
+    });
+    if (!r.ok) throw new Error('JSONBin ' + r.status);
+    const json = await r.json();
+    // Vérifier que c'est bien des données de cave (pas {"test":"ok"} ou autre)
+    if (!json || !Array.isArray(json.cellar) || !json.version) {
+      // Bin vide ou invalide — on y pousse nos données locales
+      setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+      await jbSave();
+      return;
+    }
+    // Comparer dates sauf si force=true
+    var jbDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
+    var locStr  = localStorage.getItem('pascal_updated');
+    var locDate = locStr ? new Date(locStr).getTime() : 0;
+    if (!force && jbDate <= locDate) {
+      setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+      return;
+    }
+    // Charger depuis JSONBin
+    var newCellar = Array.from({length:TOTAL}, function(_,i) {
+      var b = json.cellar[i];
+      if (!b || !b.name) return null;
+      if (!TYPES[b.type]) b.type = 'red';
+      var photo = localStorage.getItem('pascal_photo_'+i);
+      if (photo) b.photo = photo;
+      return b;
+    });
+    var nbJb = newCellar.filter(Boolean).length;
+    var nbLoc = cellar.filter(Boolean).length;
+    // Sécurité : ne pas écraser des données locales plus riches par un bin vide
+    if (!force && nbJb < nbLoc) {
+      setSyncStatus('ok', nbLoc + (lang==='de'?' Fl.':' btl.'));
+      return;
+    }
+    cellar  = newCellar;
+    history = json.history || [];
+    localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
+    localStorage.setItem('pascal_history', JSON.stringify(history));
+    localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
+    renderShelves(); renderTable(); renderHistory(); updateStats();
+    if (document.getElementById('view-stats').classList.contains('active')) renderStats();
+    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    if (force) showToast(lang==='de'?'✅ Synchronisiert!':'✅ Synchronisé !');
+  } catch(e) {
+    setSyncStatus('error', 'Erreur');
+    console.warn('JSONBin load:', e);
   }
 }
 
 async function syncNow()      { await jbLoad(false); }
 async function forceSyncNow() { await jbLoad(true);  }
 
-
-let _lastSaveTime = 0; // timestamp du dernier save local
+let _ghSaveTimer = null;
+let _lastSaveTime = 0;
 
 function save() {
-  _lastSaveTime = Date.now(); // mémoriser quand on a sauvegardé
+  _lastSaveTime = Date.now();
   try {
     const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
     cellar.forEach((b,i) => {
@@ -1582,16 +1589,15 @@ function save() {
     localStorage.setItem('pascal_history', JSON.stringify(history));
   } catch(e) {
     try {
-      const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
-      localStorage.setItem('pascal_cellar', JSON.stringify(cellarNoPhoto));
+      localStorage.setItem('pascal_cellar', JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
       localStorage.setItem('pascal_history', JSON.stringify(history));
     } catch(e2) { showToast('⚠️ Erreur sauvegarde locale'); }
   }
   updateStats();
-  // Sync JSONBin en arrière-plan (debounce 1s)
   clearTimeout(_ghSaveTimer);
-  _ghSaveTimer = setTimeout(jbSave, 1000);
+  _ghSaveTimer = setTimeout(jbSave, 800);
 }
+
 
 
 function translateField(fieldId) {
@@ -1782,12 +1788,15 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 renderShelves();
 updateStats();
 setLang(lang);
-// Sync JSONBin uniquement si on n'a pas de données locales
+// Au démarrage : si données locales → les pousser vers JSONBin
+// Si pas de données locales → charger depuis JSONBin
 const _hasLocal = localStorage.getItem('pascal_cellar');
-if (!_hasLocal) {
-  jbLoad(true); // Première utilisation seulement
-} else {
+if (_hasLocal) {
   setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+  // Pousser les données locales vers JSONBin pour Danielle
+  setTimeout(jbSave, 2000);
+} else {
+  jbLoad(true);
 }
 </script>
 </body>
