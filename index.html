@@ -343,11 +343,10 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <button class="btn btn-primary" onclick="exportForDanielle()" data-i18n="bkDanielleBtn">📤 Exporter & partager</button>
   </div>
   <div class="bk-card">
-    <div class="bk-title">☁️ Synchronisation GitHub</div>
-    <div class="bk-text">Synchronise la cave avec GitHub — toi et Danielle voyez toujours la même cave en temps réel.</div>
-    <div id="bkSyncInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px"></div>
-    <button class="btn btn-primary" onclick="openTokenSetup()">🔑 Configurer / Changer le token</button>
-    <button class="btn btn-ghost" onclick="syncNow()" style="margin-top:6px">🔄 Synchroniser maintenant</button>
+    <div class="bk-title">☁️ Synchronisation</div>
+    <div class="bk-text">Synchronise automatiquement avec Danielle en temps réel.</div>
+    <div id="bkSyncInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px">✅ JSONBin configuré</div>
+    <button class="btn btn-ghost" onclick="forceSyncNow()">🔄 Forcer la synchronisation</button>
   </div>
   <div class="bk-card danger">
     <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
@@ -522,12 +521,10 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 // ══ CONFIG ══
 const PROXY_URL = 'https://cave-proxy.onrender.com/api/claude';
 
-// ══ GITHUB SYNC ══
-const GH_REPO   = 'gamezpascal76889/cave-a-vins';
-const GH_FILE   = 'cave-data.json';
-const GH_API    = `https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`;
-function getToken() { return localStorage.getItem('pascal_gh_token')||''; }
-let   ghFileSha  = null;
+// ══ JSONBIN SYNC ══
+const JB_BIN_ID  = '6a22564cda38895dfe8a72d7';
+const JB_API_KEY = '$2a$10$SLWc/RCGRjGx1PQD/XYrJex0jKg4pTrboja6d0/jizIQL/SzthM6S';
+const JB_URL     = 'https://api.jsonbin.io/v3/b/' + JB_BIN_ID;
 let   syncStatus = 'idle';
 
 // ══ TRADUCTIONS ══
@@ -1490,40 +1487,20 @@ function setSyncStatus(status, msg) {
   el.style.color = status==='ok' ? '#90ee90' : status==='error' ? '#ff9090' : status==='syncing' ? '#e8c97a' : '';
 }
 
-async function ghFetch(method, body) {
-  const token = getToken();
-  if (!token) { setSyncStatus('error', lang==='de'?'Kein Token':'Token manquant'); return null; }
-  const opts = {
-    method,
-    headers: {
-      'Authorization': 'token ' + token,
-      'Content-Type': 'application/json',
-      'Accept': 'application/vnd.github.v3+json'
-    }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(GH_API, opts);
-  if (!r.ok) throw new Error('GitHub ' + r.status);
-  return r.json();
-}
-
-async function loadFromGitHub(force) {
+async function jbLoad(force) {
   force = force || false;
-  if (!getToken()) { setSyncStatus('error', lang==='de'?'Kein Token':'Token manquant'); return; }
   setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
   try {
-    const data = await ghFetch('GET');
-    if (!data) return;
-    ghFileSha = data.sha;
-    const b64 = data.content.replace(/[\n\r\s]/g, '');
-    var json;
-    try { json = JSON.parse(decodeURIComponent(escape(atob(b64)))); }
-    catch(e2) { json = JSON.parse(atob(b64)); }
+    const r = await fetch(JB_URL + '/latest', {
+      headers: { 'X-Master-Key': JB_API_KEY, 'X-Bin-Meta': 'false' }
+    });
+    if (!r.ok) throw new Error('JSONBin ' + r.status);
+    const json = await r.json();
     if (!Array.isArray(json.cellar)) { setSyncStatus('ok','local'); return; }
-    var ghDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
+    var jbDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
     var locStr  = localStorage.getItem('pascal_updated');
     var locDate = locStr ? new Date(locStr).getTime() : 0;
-    if (!force && ghDate <= locDate) {
+    if (!force && jbDate <= locDate) {
       setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
       return;
     }
@@ -1544,36 +1521,40 @@ async function loadFromGitHub(force) {
     setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
     if (force) showToast(lang==='de'?'Synchronisiert !':'Synchronise !');
   } catch(e) {
-    if (e.message && e.message.includes('404')) { await saveToGitHub(); }
-    else { setSyncStatus('error', lang==='de'?'Fehler':'Erreur'); console.warn('GitHub load:', e); }
+    setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
+    console.warn('JSONBin load:', e);
   }
 }
 
-async function saveToGitHub() {
+async function jbSave() {
   setSyncStatus('syncing', lang==='de'?'Speichern...':'Sauvegarde...');
   try {
     var now = new Date().toISOString();
     localStorage.setItem('pascal_updated', now);
-    var payload = JSON.stringify({
+    var payload = {
       version: 2,
       updatedAt: now,
       cellar: cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;}),
       history: history
+    };
+    const r = await fetch(JB_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JB_API_KEY
+      },
+      body: JSON.stringify(payload)
     });
-    var content = btoa(unescape(encodeURIComponent(payload)));
-    var body = { message: 'Cave sync ' + now.slice(0,16), content: content };
-    if (ghFileSha) body.sha = ghFileSha;
-    var result = await ghFetch('PUT', body);
-    if (result && result.content) ghFileSha = result.content.sha;
+    if (!r.ok) throw new Error('JSONBin save ' + r.status);
     setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
   } catch(e) {
     setSyncStatus('error', lang==='de'?'Sync-Fehler':'Erreur sync');
-    console.warn('GitHub save error:', e);
+    console.warn('JSONBin save error:', e);
   }
 }
 
-async function syncNow()      { await loadFromGitHub(false); }
-async function forceSyncNow() { await loadFromGitHub(true);  }
+async function syncNow()      { await jbLoad(false); }
+async function forceSyncNow() { await jbLoad(true);  }
 
 
 function save() {
@@ -1593,9 +1574,9 @@ function save() {
     } catch(e2) { showToast('⚠️ Erreur sauvegarde locale'); }
   }
   updateStats();
-  // Sync GitHub en arrière-plan (debounce 500ms)
+  // Sync JSONBin en arrière-plan (debounce 1s)
   clearTimeout(_ghSaveTimer);
-  _ghSaveTimer = setTimeout(saveToGitHub, 500);
+  _ghSaveTimer = setTimeout(jbSave, 1000);
 }
 
 
@@ -1787,12 +1768,8 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 renderShelves();
 updateStats();
 setLang(lang);
-// Si pas de token configuré, demander à l'utilisateur
-if (!getToken()) {
-  setTimeout(openTokenSetup, 1000);
-} else {
-  loadFromGitHub();
-}
+// Charger depuis JSONBin au démarrage
+jbLoad(false);
 </script>
 </body>
 </html>
