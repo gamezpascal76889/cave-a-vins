@@ -1032,9 +1032,9 @@ function renderTable() {
       return `<tr style="cursor:pointer" class="${old?'old-vintage':''}" onclick="openModal(${r._i});switchView('shelf',document.querySelector('.nav-btn'))">
         <td style="font-size:.72rem">${r._id}</td>
         <td style="font-size:.65rem">${r.type?`<span class="type-dot-sm" style="background:${TYPES[r.type]?.bg}"></span>`:'—'}</td>
-        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name||`<em style="opacity:.4">${t('tblVide')}</em>`}${old?' 🏆':''}</td>
+        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px">${r.name||`<em style="opacity:.4">${t('tblVide')}</em>`}${old?' 🏆':''}</td>
         <td style="font-size:.7rem;opacity:.7">${r.vintage||'—'}</td>
-        <td style="font-size:.75rem">${r.price?parseFloat(r.price).toFixed(2).replace('.',',')+' €':'—'}</td>
+        <td style="font-size:.7rem;white-space:nowrap">${r.price?parseFloat(r.price).toFixed(2).replace('.',',')+' €':'—'}</td>
       </tr>`;
     }).join('');
 }
@@ -1249,6 +1249,7 @@ function saveBottle() {
   save(); renderShelves(); renderTable(); renderHistory();
   showToast(t('toastSaved'));
   showView(cellar[curIdx], curIdx);
+  setTimeout(()=>renderShelves(), 200);
 }
 
 // ══ UNDO ══
@@ -1291,8 +1292,6 @@ function consume() {
 
 function clearCell() {
   if(!confirm(t('confirmClear')))return;
-  const b=cellar[curIdx];
-  saveUndo(lang==='de'?`↩ Fach ${curIdx+1} wiederherstellen`:`↩ Restaurer alvéole ${curIdx+1}`);
   cellar[curIdx]=null; save(); renderShelves(); renderTable();
   showToast(t('toastCleared')); closeModal();
 }
@@ -1301,7 +1300,6 @@ function clearCell() {
 let clipboard = null;
 function copyBottle() {
   const b=cellar[curIdx]; if(!b)return;
-  // Récupérer la photo depuis localStorage si elle n'est pas dans l'objet mémoire
   const photo = b.photo || localStorage.getItem('pascal_photo_'+curIdx) || null;
   clipboard = {...b, photo};
   showToast(t('toastCopied'));
@@ -1313,7 +1311,11 @@ function pasteBottle() {
   cellar[curIdx] = {...clipboard, addedAt: new Date().toISOString()};
   save(); renderShelves(); renderTable();
   showToast(t('toastPasted'));
-  showView(cellar[curIdx], curIdx);
+  closeModal(); // Ferme et retourne à l'étagère directement
+  // Basculer sur l'étagère correspondante
+  const shelf = curIdx < S1_TOTAL ? 1 : 2;
+  switchShelf(shelf);
+  switchView('shelf', document.querySelector('.nav-btn'));
 }
 
 // ══ PHOTO + IA ══
