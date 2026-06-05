@@ -1150,13 +1150,15 @@ function cancelLongPress() { clearTimeout(longPressTimer); }
 
 // ══ MODAL ══
 function goToShelf(idx) {
-  closeModal();
-  const shelf = (idx !== undefined && idx < S1_TOTAL) ? 1 : 2;
-  switchShelf(shelf);
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const targetShelf = (idx !== undefined && idx !== null && idx < S1_TOTAL) ? 1 : 2;
+  closeModal(); // remet curIdx à null - mais on a déjà sauvegardé targetShelf
+  // Afficher l'onglet étagères
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelector('.nav-btn').classList.add('active');
   document.getElementById('view-shelf').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn')[0].classList.add('active');
+  // Basculer sur la bonne étagère
+  switchShelf(targetShelf);
 }
 
 function openModal(idx) {
