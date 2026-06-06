@@ -250,14 +250,14 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 <div class="view active" id="view-shelf">
   <div class="shelf-tabs">
     <button class="shelf-tab active" id="stab1" onclick="switchShelf(1)" data-i18n="shelf1tab">🗄️ Étagère 1 · 120 alvéoles</button>
-    <button class="shelf-tab" id="stab2" onclick="switchShelf(2)" data-i18n="shelf2tab">🗄️ Étagère 2 · 56 alvéoles</button>
+    <button class="shelf-tab" id="stab2" onclick="switchShelf(2)" data-i18n="shelf2tab">🗄️ Étagère 2 + 3</button>
   </div>
 
   <!-- Étagère 1 -->
   <div id="shelf-panel-1">
     <div class="shelf-wrap">
       <div class="shelf-header">
-        <div class="shelf-name">🏛️ Étagère 1</div>
+        <div class="shelf-name" id="shelfName1">🏛️ Étagère 1</div>
         <div class="shelf-badge" id="badge1">— bouteilles</div>
       </div>
       <div id="shelfGrid1"></div>
@@ -265,16 +265,25 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <div class="legend" id="legend1"></div>
   </div>
 
-  <!-- Étagère 2 -->
+  <!-- Étagère 2 + 3 -->
   <div id="shelf-panel-2" style="display:none">
     <div class="shelf-wrap">
       <div class="shelf-header">
-        <div class="shelf-name">🏛️ Étagère 2</div>
+        <div class="shelf-name" id="shelfName2">🏛️ Étagère 2</div>
         <div class="shelf-badge" id="badge2">— bouteilles</div>
       </div>
       <div id="shelfGrid2"></div>
     </div>
     <div class="legend" id="legend2"></div>
+    <div style="margin-top:14px"></div>
+    <div class="shelf-wrap" style="border-color:#4a9ec4">
+      <div class="shelf-header">
+        <div class="shelf-name" id="shelfName3" style="color:#a8d8f0">🍽️ Garde-manger / Frigo</div>
+        <div class="shelf-badge" id="badge3">— bouteilles</div>
+      </div>
+      <div id="shelfGrid3"></div>
+    </div>
+    <div class="legend" id="legend3"></div>
   </div>
 </div>
 
@@ -433,7 +442,11 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
         <div class="wine-title" id="eTitle">Ajouter une bouteille</div>
         <div class="wine-cell"  id="eCell"></div>
 
-        <div id="photoZone" style="margin-bottom:12px">
+        <div id="photoZone" style="margin-bottom:8px">
+          <!-- Bouton Google IA toujours visible -->
+          <div id="quickGoogleAI" style="margin-bottom:8px;text-align:center">
+            <a id="googleAILink" href="#" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:7px 16px;border-radius:8px;font-size:.82rem;text-decoration:none;pointer-events:none;opacity:.4">🤖 Google IA — saisissez d'abord le nom</a>
+          </div>
           <div id="photoPreview" style="display:none;margin-bottom:8px">
             <img id="photoImg" src="" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover;display:block">
           </div>
@@ -470,6 +483,8 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
         <div class="form-group"><label id="label-date">Date d'achat</label><input type="date" id="fDate"></div>
         <div class="form-group"><label id="label-aromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
         <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-conservation">🕰️ Conservation / Garde</label><textarea id="fConservation" placeholder="ex: À boire entre 2025-2030, optimum 2027…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-noteslib">📝 Notes</label><textarea id="fNotesLib" placeholder="Notes personnelles, occasions, remarques…" rows="2"></textarea></div>
 
         <div id="eSearchBtns" style="margin-bottom:10px"></div>
 
@@ -703,7 +718,8 @@ function updateFormLabels() {
 // Étagère 2 :  8 rangées ×  7 colonnes =  56 (alvéoles 121-176)
 const S1_ROWS=10, S1_COLS=12, S1_TOTAL=120;
 const S2_ROWS=8,  S2_COLS=7,  S2_TOTAL=56;
-const TOTAL = S1_TOTAL + S2_TOTAL; // 176
+const S3_ROWS=3,  S3_COLS=5,  S3_TOTAL=15;
+const TOTAL = S1_TOTAL + S2_TOTAL + S3_TOTAL; // 191
 
 const TYPES = {
   red:       { bg:'radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18)', border:'#8a1a2a', label:'Rouge',     emoji:'🍷', badge:'rgba(122,31,53,.3)', bc:'#ff9090' },
@@ -749,15 +765,18 @@ let curShelf = 1; // onglet actif
 // ══ STATS ══
 function updateStats() {
   const f1 = cellar.slice(0, S1_TOTAL).filter(Boolean).length;
-  const f2 = cellar.slice(S1_TOTAL).filter(Boolean).length;
-  const fT = f1 + f2;
+  const f2 = cellar.slice(S1_TOTAL, S1_TOTAL+S2_TOTAL).filter(Boolean).length;
+  const f3 = cellar.slice(S1_TOTAL+S2_TOTAL).filter(Boolean).length;
+  const fT = f1 + f2 + f3;
   const v  = cellar.reduce((a,b) => a+(b?parseFloat(b.price)||0:0), 0);
   document.getElementById('sTotal').textContent = t('statTotal', fT);
   document.getElementById('sVal').textContent   = v.toFixed(2).replace('.',',') + ' €';
   document.getElementById('sE1').textContent    = t('statE1', f1);
-  document.getElementById('sE2').textContent    = t('statE2', f2);
+  document.getElementById('sE2').textContent    = t('statE2', f2+f3);
   document.getElementById('badge1').textContent = t('bottleCount', f1, S1_TOTAL);
   document.getElementById('badge2').textContent = t('bottleCount', f2, S2_TOTAL);
+  const b3 = document.getElementById('badge3');
+  if(b3) b3.textContent = t('bottleCount', f3, S3_TOTAL);
 }
 
 // ══ SHELF ══
@@ -993,10 +1012,12 @@ function togglePickerShelf() {
 
 
 function renderShelves() {
-  document.querySelector('.shelf-name').textContent = t('shelf1name');
-  document.querySelectorAll('.shelf-name')[1] && (document.querySelectorAll('.shelf-name')[1].textContent = t('shelf2name'));
-  buildShelfGrid('shelfGrid1','legend1', 0,         S1_ROWS, S1_COLS);
-  buildShelfGrid('shelfGrid2','legend2', S1_TOTAL,  S2_ROWS, S2_COLS);
+  document.querySelector('#shelfName1') && (document.querySelector('#shelfName1').textContent = t('shelf1name'));
+  document.querySelector('#shelfName2') && (document.querySelector('#shelfName2').textContent = t('shelf2name'));
+  document.querySelector('#shelfName3') && (document.querySelector('#shelfName3').textContent = lang==='de'?'🍽️ Speisekammer / Kühl':'🍽️ Garde-manger / Frigo');
+  buildShelfGrid('shelfGrid1','legend1', 0,                    S1_ROWS, S1_COLS);
+  buildShelfGrid('shelfGrid2','legend2', S1_TOTAL,             S2_ROWS, S2_COLS);
+  buildShelfGrid('shelfGrid3','legend3', S1_TOTAL+S2_TOTAL,    S3_ROWS, S3_COLS);
 }
 
 function switchShelf(n) {
@@ -1153,13 +1174,14 @@ function cancelLongPress() { clearTimeout(longPressTimer); }
 
 // ══ MODAL ══
 function goToShelf(idx) {
+  const savedIdx = idx !== undefined ? idx : curIdx;
   closeModal();
-  const shelf = (idx !== undefined && idx < S1_TOTAL) ? 1 : 2;
-  switchShelf(shelf);
+  const shelf = (savedIdx !== null && savedIdx < S1_TOTAL) ? 1 : 2;
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelector('.nav-btn').classList.add('active');
   document.getElementById('view-shelf').classList.add('active');
+  switchShelf(shelf);
 }
 
 function openModal(idx) {
@@ -1176,12 +1198,25 @@ function closeModal() {
 function buildSearchBtns(name, vintage) {
   if (!name) return '';
   const searchTerm = [name, vintage].filter(Boolean).join(' ');
-  const qG   = encodeURIComponent('site:vivino.com ' + searchTerm);
-  const qws  = encodeURIComponent(searchTerm).replace(/%20/g,'+');
-  const qGAI = encodeURIComponent(searchTerm + ' vin arômes accords mets prix');
-  return `<a href="https://www.google.com/search?q=${qG}" target="_blank" style="display:inline-block;background:rgba(180,30,50,.5);border:1px solid rgba(220,80,80,.4);color:#ffaaaa;padding:6px 10px;border-radius:6px;font-size:.78rem;text-decoration:none;margin-right:5px;margin-bottom:6px">${t('vivinoBtn')}</a>`
-       + `<a href="https://www.wine-searcher.com/find/${qws}/1/france" target="_blank" style="display:inline-block;background:rgba(40,80,140,.5);border:1px solid rgba(80,140,220,.3);color:#aaccff;padding:6px 10px;border-radius:6px;font-size:.78rem;text-decoration:none;margin-right:5px;margin-bottom:6px">${t('wsBtn')}</a>`
-       + `<a href="https://www.google.com/search?q=${qGAI}&udm=50" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:6px 10px;border-radius:6px;font-size:.78rem;text-decoration:none;margin-bottom:6px">🤖 Google IA</a>`;
+  const qGAI = encodeURIComponent(searchTerm + ' vin arômes accords mets prix conservation');
+  return `<a href="https://www.google.com/search?q=${qGAI}&udm=50" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:7px 12px;border-radius:6px;font-size:.82rem;text-decoration:none;margin-right:5px;margin-bottom:6px">🤖 Google IA</a>`;
+}
+
+function updateGoogleAILink(name, vintage) {
+  const link = document.getElementById('googleAILink');
+  if (!link) return;
+  if (name) {
+    const q = encodeURIComponent([name, vintage].filter(Boolean).join(' ') + ' vin arômes accords mets prix conservation');
+    link.href = 'https://www.google.com/search?q=' + q + '&udm=50';
+    link.style.pointerEvents = '';
+    link.style.opacity = '1';
+    link.textContent = '🤖 Google IA — ' + name;
+  } else {
+    link.href = '#';
+    link.style.pointerEvents = 'none';
+    link.style.opacity = '.4';
+    link.textContent = '🤖 Google IA — saisissez d\'abord le nom';
+  }
 }
 
 function showView(b, idx) {
@@ -1200,8 +1235,10 @@ function showView(b, idx) {
     [t('infoShop'),    b.shop||'—'],
     [t('infoRegion'),  b.region||'—'],
     [t('infoDate'),    b.date?fmtDate(b.date):'—'],
-    [t('infoAromas'),  b.aromas||'—'],
-    [t('infoPairing'), b.pairing||'—']
+    [t('infoAromas'),       b.aromas||'—'],
+    [t('infoPairing'),      b.pairing||'—'],
+    ['🕰️ Conservation',    b.conservation||'—'],
+    ['📝 Notes',            b.noteslib||'—']
   ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
   // Boutons recherche
   document.getElementById('vSearchBtns').innerHTML = buildSearchBtns(b.name, b.vintage);
@@ -1225,8 +1262,12 @@ function showEdit(b, idx) {
   document.getElementById('fShop').value    = b?.shop    || '';
   document.getElementById('fRegion').value  = b?.region  || '';
   document.getElementById('fDate').value    = b?.date    || '';
-  document.getElementById('fAromas').value  = b?.aromas  || '';
-  document.getElementById('fPairing').value = b?.pairing || '';
+  document.getElementById('fAromas').value       = b?.aromas       || '';
+  document.getElementById('fPairing').value      = b?.pairing      || '';
+  document.getElementById('fConservation').value = b?.conservation || '';
+  document.getElementById('fNotesLib').value     = b?.noteslib     || '';
+  // Mettre à jour le lien Google IA si nom disponible
+  updateGoogleAILink(b?.name, b?.vintage);
   curPhoto = b?.photo||null;
   const prev=document.getElementById('photoPreview'), img=document.getElementById('photoImg');
   if(curPhoto){img.src=curPhoto;prev.style.display='';}else{prev.style.display='none';img.src='';}
@@ -1254,8 +1295,10 @@ function saveBottle() {
     shop:    document.getElementById('fShop').value,
     region:  document.getElementById('fRegion').value,
     date:    document.getElementById('fDate').value,
-    aromas:  document.getElementById('fAromas').value,
-    pairing: document.getElementById('fPairing').value,
+    aromas:        document.getElementById('fAromas').value,
+    pairing:       document.getElementById('fPairing').value,
+    conservation:  document.getElementById('fConservation').value,
+    noteslib:      document.getElementById('fNotesLib').value,
     photo:   curPhoto,
     addedAt: cellar[curIdx]?.addedAt||new Date().toISOString()
   };
@@ -1772,6 +1815,9 @@ function fmtDate(d){try{return new Date(d).toLocaleDateString('fr-FR',{day:'2-di
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
 // ══ INIT ══
+document.getElementById('fName').addEventListener('input', function() {
+  updateGoogleAILink(this.value.trim(), document.getElementById('fVintage').value);
+});
 // Détecter si données partagées via URL hash
 (function detectShare() {
   const hash = window.location.hash;
