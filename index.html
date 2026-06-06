@@ -471,6 +471,8 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
         <div class="form-group"><label id="label-aromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
         <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
 
+        <div id="eSearchBtns" style="margin-bottom:10px"></div>
+
         <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
         <div id="cellPickerWrap" style="display:none">
           <div class="cell-picker-wrap">
@@ -1171,6 +1173,17 @@ function closeModal() {
   curIdx=null; curPhoto=null; hideAiBox();
 }
 
+function buildSearchBtns(name, vintage) {
+  if (!name) return '';
+  const searchTerm = [name, vintage].filter(Boolean).join(' ');
+  const qG   = encodeURIComponent('site:vivino.com ' + searchTerm);
+  const qws  = encodeURIComponent(searchTerm).replace(/%20/g,'+');
+  const qGAI = encodeURIComponent(searchTerm + ' vin arômes accords mets prix');
+  return `<a href="https://www.google.com/search?q=${qG}" target="_blank" style="display:inline-block;background:rgba(180,30,50,.5);border:1px solid rgba(220,80,80,.4);color:#ffaaaa;padding:6px 10px;border-radius:6px;font-size:.78rem;text-decoration:none;margin-right:5px;margin-bottom:6px">${t('vivinoBtn')}</a>`
+       + `<a href="https://www.wine-searcher.com/find/${qws}/1/france" target="_blank" style="display:inline-block;background:rgba(40,80,140,.5);border:1px solid rgba(80,140,220,.3);color:#aaccff;padding:6px 10px;border-radius:6px;font-size:.78rem;text-decoration:none;margin-right:5px;margin-bottom:6px">${t('wsBtn')}</a>`
+       + `<a href="https://www.google.com/search?q=${qGAI}&udm=50" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:6px 10px;border-radius:6px;font-size:.78rem;text-decoration:none;margin-bottom:6px">🤖 Google IA</a>`;
+}
+
 function showView(b, idx) {
   document.getElementById('modeView').style.display=''; document.getElementById('modeEdit').style.display='none';
   const tc=TYPES[b.type]||{};
@@ -1190,14 +1203,8 @@ function showView(b, idx) {
     [t('infoAromas'),  b.aromas||'—'],
     [t('infoPairing'), b.pairing||'—']
   ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
-  // Boutons Vivino & Wine-Searcher
-  const name = b.name||'';
-  const vintage = b.vintage||'';
-  const qG  = encodeURIComponent(`site:vivino.com ${name} ${vintage}`.trim());
-  const qws = encodeURIComponent(`${name} ${vintage}`.trim()).replace(/%20/g,'+');
-  document.getElementById('vSearchBtns').innerHTML=`
-    <a href="https://www.google.com/search?q=${qG}" target="_blank" style="display:inline-block;background:rgba(180,30,50,.5);border:1px solid rgba(220,80,80,.4);color:#ffaaaa;padding:7px 12px;border-radius:6px;font-size:.8rem;text-decoration:none;margin-right:6px;margin-bottom:8px">${t('vivinoBtn')}</a>
-    <a href="https://www.wine-searcher.com/find/${qws}/1/france" target="_blank" style="display:inline-block;background:rgba(40,80,140,.5);border:1px solid rgba(80,140,220,.3);color:#aaccff;padding:7px 12px;border-radius:6px;font-size:.8rem;text-decoration:none;margin-bottom:8px">${t('wsBtn')}</a>`;
+  // Boutons recherche
+  document.getElementById('vSearchBtns').innerHTML = buildSearchBtns(b.name, b.vintage);
 }
 
 function selectType(t) {
@@ -1228,6 +1235,8 @@ function showEdit(b, idx) {
   document.getElementById('cellPickerWrap').style.display = 'none';
   const pasteBtn=document.getElementById('pasteBtn'), pasteName=document.getElementById('pasteName');
   if(pasteBtn){const show=!b&&clipboard;pasteBtn.style.display=show?'':'none';if(show&&pasteName)pasteName.textContent=clipboard.name||'bouteille copiée';}
+  // Boutons recherche si on a un nom
+  document.getElementById('eSearchBtns').innerHTML = buildSearchBtns(b?.name, b?.vintage);
 }
 
 function switchEdit() { showEdit(cellar[curIdx], curIdx); }
@@ -1388,16 +1397,9 @@ async function analyzeLabel(dataUrl){
     if(wine.vintage) document.getElementById('fVintage').value=wine.vintage;
     if(wine.region)  document.getElementById('fRegion').value=wine.region;
     if(!wine.name){showAiBox(t('aiUnreadable'));return;}
-    const searchTerm = [wine.name, wine.vintage].filter(Boolean).join(' ');
-    const qGoogle = encodeURIComponent(`site:vivino.com ${searchTerm}`);
-    const qws     = encodeURIComponent(searchTerm).replace(/%20/g,'+');
-    const vivinoUrl = `https://www.google.com/search?q=${qGoogle}`;
-    const wsUrl     = `https://www.wine-searcher.com/find/${qws}/1/france`;
-    document.getElementById('fName').dataset.vivinoUrl = vivinoUrl;
-    document.getElementById('fName').dataset.wsUrl     = wsUrl;
-    showAiBox(`<b style="color:#e8c97a">${wine.name}</b>${wine.vintage?' '+wine.vintage:''}${wine.region?'<br>'+wine.region:''}<br><br>
-<a href="${vivinoUrl}" target="_blank" style="display:inline-block;background:rgba(180,30,50,.5);border:1px solid rgba(220,80,80,.4);color:#ffaaaa;padding:6px 12px;border-radius:6px;font-size:.8rem;text-decoration:none;margin-right:8px">${t('vivinoBtn')}</a>
-<a href="${wsUrl}" target="_blank" style="display:inline-block;background:rgba(40,80,140,.5);border:1px solid rgba(80,140,220,.3);color:#aaccff;padding:6px 12px;border-radius:6px;font-size:.8rem;text-decoration:none">${t('wsBtn')}</a>`);
+    // Mettre à jour les boutons recherche
+    document.getElementById('eSearchBtns').innerHTML = buildSearchBtns(wine.name, wine.vintage);
+    showAiBox(`<b style="color:#e8c97a">${wine.name}</b>${wine.vintage?' '+wine.vintage:''}${wine.region?'<br>'+wine.region:''}<br><br>${buildSearchBtns(wine.name, wine.vintage)}`);
     showToast(t('aiDone'));
   }catch(err){showAiBox(t('aiError')+(err.message||''));}
 }
