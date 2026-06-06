@@ -484,6 +484,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
         </div>
         <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px" data-i18n="btnSave">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="cancelEdit()" data-i18n="btnCancel">Annuler</button>
+        <button class="btn btn-ghost" onclick="goToShelf(curIdx)" style="margin-top:4px;opacity:.6" data-i18n="btnBack">← Retour à l'étagère</button>
       </div>
 
     </div>
@@ -706,7 +707,7 @@ const TYPES = {
   red:       { bg:'radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18)', border:'#8a1a2a', label:'Rouge',     emoji:'🍷', badge:'rgba(122,31,53,.3)', bc:'#ff9090' },
   white:     { bg:'radial-gradient(circle at 35% 30%,#f0e080,#d4b84a 50%,#8a7010)', border:'#a07820', label:'Blanc',     emoji:'🥂', badge:'rgba(180,160,50,.3)', bc:'#f0d060' },
   rose:      { bg:'radial-gradient(circle at 35% 30%,#f0a0b0,#d4768a 50%,#8a3050)', border:'#9a4060', label:'Rosé',      emoji:'🌸', badge:'rgba(180,80,120,.3)', bc:'#ffb0c8' },
-  petillant: { bg:'radial-gradient(circle at 35% 30%,#f8e8a0,#c8a84a 50%,#7a6010)', border:'#b09020', label:'Pétillant', emoji:'✨', badge:'rgba(160,130,40,.3)', bc:'#f0d080' },
+  petillant: { bg:'radial-gradient(circle at 35% 30%,#a8d8f0,#4a9ec4 50%,#1a5a80)', border:'#2a7aaa', label:'Pétillant', emoji:'✨', badge:'rgba(74,158,196,.3)', bc:'#a0d8f0' },
   other:     { bg:'radial-gradient(circle at 35% 30%,#80b080,#5a7a4a 50%,#2a4a20)', border:'#3a6030', label:'Autre',     emoji:'🍾', badge:'rgba(80,120,60,.3)',  bc:'#a0d090' },
 };
 const EMPTY_BG = 'radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830)';
@@ -716,7 +717,7 @@ const CELL_COLORS = {
   red:       'background:#7a1f35;background:radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18);border-color:#8a1a2a',
   white:     'background:#d4b84a;background:radial-gradient(circle at 35% 30%,#f0e080,#d4b84a 50%,#8a7010);border-color:#a07820',
   rose:      'background:#d4768a;background:radial-gradient(circle at 35% 30%,#f0a0b0,#d4768a 50%,#8a3050);border-color:#9a4060',
-  petillant: 'background:#c8a84a;background:radial-gradient(circle at 35% 30%,#f8e8a0,#c8a84a 50%,#7a6010);border-color:#b09020',
+  petillant: 'background:#1a5a80;background:radial-gradient(circle at 35% 30%,#a8d8f0,#4a9ec4 50%,#1a5a80);border-color:#2a7aaa',
   other:     'background:#5a7a4a;background:radial-gradient(circle at 35% 30%,#80b080,#5a7a4a 50%,#2a4a20);border-color:#3a6030',
 };
 
