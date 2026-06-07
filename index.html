@@ -267,7 +267,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 
     <!-- Étagère 2 + 3 -->
   <div id="shelf-panel-2" style="display:none">
-    <div class="shelf-wrap" style="max-width:420px">
+    <div class="shelf-wrap" style="max-width:360px">
       <div class="shelf-header">
         <div class="shelf-name" id="shelfName2">🏛️ Étagère 2</div>
         <div class="shelf-badge" id="badge2">— bouteilles</div>
@@ -275,15 +275,16 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <div id="shelfGrid2"></div>
     </div>
     <div class="legend" id="legend2"></div>
-    <div style="margin-top:14px"></div>
-    <div class="shelf-wrap" style="border-color:#4a9ec4;max-width:225px">
-      <div class="shelf-header">
-        <div class="shelf-name" id="shelfName3" style="color:#a8d8f0">🍽️ Garde-manger / Frigo</div>
-        <div class="shelf-badge" id="badge3">— bouteilles</div>
+    <div style="margin-top:14px;display:flex;justify-content:center">
+      <div class="shelf-wrap" style="border-color:#4a9ec4;max-width:200px;width:100%">
+        <div class="shelf-header">
+          <div class="shelf-name" id="shelfName3" style="color:#a8d8f0">🍽️ Garde-manger / Frigo</div>
+          <div class="shelf-badge" id="badge3">— bouteilles</div>
+        </div>
+        <div id="shelfGrid3"></div>
       </div>
-      <div id="shelfGrid3"></div>
     </div>
-    <div class="legend" id="legend3"></div>
+    <div class="legend" id="legend3" style="justify-content:center"></div>
   </div>
 </div>
 
@@ -302,12 +303,18 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <option value="empty" data-i18n="filterEmpty">Vides</option>
     </select>
   </div>
+  <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+    <button onclick="sortBy('vintage');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">📅 Ancien → Récent</button>
+    <button onclick="sortBy('vintage');sortAsc=false;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">📅 Récent → Ancien</button>
+    <button onclick="sortBy('type');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🍷 Par type</button>
+    <button onclick="sortBy('name');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🔤 A→Z</button>
+  </div>
   <div class="table-wrap"><table>
     <thead><tr>
       <th onclick="sortBy('id')" style="width:28px"># <span id="s-id"></span></th>
-      <th onclick="sortBy('type')" data-i18n="thType" style="width:36px;font-size:.65rem"><span id="s-type"></span></th>
+      <th onclick="sortBy('type')" data-i18n="thType" style="width:36px;font-size:.65rem">🍷<span id="s-type"></span></th>
       <th onclick="sortBy('name')" data-i18n="thName">Nom <span id="s-name"></span></th>
-      <th onclick="sortBy('vintage')" data-i18n="thVintage" style="width:38px;font-size:.65rem"><span id="s-vintage"></span></th>
+      <th onclick="sortBy('vintage')" style="width:38px;font-size:.65rem">📅<span id="s-vintage"></span></th>
       <th onclick="sortBy('price')" data-i18n="thPrice" style="width:52px">Prix <span id="s-price"></span></th>
     </tr></thead>
     <tbody id="tableBody"></tbody>
@@ -1699,34 +1706,76 @@ function doSearch(q) {
   const res = document.getElementById('searchResults');
   q = q.trim();
   if (q.length < 2) { res.innerHTML = ''; return; }
+  const ql = q.toLowerCase();
+  const tc = tp => ({red:'#c0304a',white:'#d4b84a',rose:'#d4768a',petillant:'#4a9ec4',other:'#5a7a4a'}[tp]||'#888');
+
+  // Recherche dans les bouteilles en cave
   const bottles = cellar.map((b,i)=>b?{...b,_i:i}:null).filter(Boolean);
-  const matches = bottles.filter(b =>
+  const matchBottles = bottles.filter(b =>
     [b.name, b.region, b.vintage, b.shop, b.aromas, b.pairing, b.conservation, b.noteslib, b.producer, b.country]
-    .join(' ').toLowerCase().includes(q.toLowerCase())
+    .join(' ').toLowerCase().includes(ql)
   );
-  if (!matches.length) {
+
+  // Recherche dans les notices de la conso
+  const matchHistory = history.map((h,i)=>({...h,_hi:i})).filter(h =>
+    [h.name, h.region, h.vintage, h.shop, h.aromas, h.notice_with, h.notice_occasion, h.notice_taste, h.notice_notes]
+    .join(' ').toLowerCase().includes(ql)
+  );
+
+  if (!matchBottles.length && !matchHistory.length) {
     res.innerHTML = `<div class="search-empty">${lang==='de'?'Keine Ergebnisse für':'Aucun résultat pour'} "<b>${q}</b>"</div>`;
     return;
   }
-  const tc = tp => ({red:'#c0304a',white:'#d4b84a',rose:'#d4768a',petillant:'#c8a84a',other:'#5a7a4a'}[tp]||'#888');
-  res.innerHTML = matches.map(b => {
-    const shelf = b._i < S1_TOTAL ? 1 : 2;
-    const metas = [
-      b.vintage && highlight(b.vintage, q),
-      b.region  && highlight(b.region, q),
-      b.shop    && highlight(b.shop, q),
-      b.price   && parseFloat(b.price).toFixed(2).replace('.',',') + ' €',
-      b.aromas  && `🌸 ${highlight(b.aromas, q)}`,
-      b.pairing && `🍽️ ${highlight(b.pairing, q)}`,
-    ].filter(Boolean).join(' · ');
-    return `<div class="search-result" onclick="closeSearch();openModal(${b._i})">
-      <div class="search-result-name">
-        <span class="search-result-badge" style="background:${tc(b.type)}22;color:${tc(b.type)};border:1px solid ${tc(b.type)}44">${TYPES[b.type]?.emoji||'🍾'} ${TYPES[b.type]?.label||''}</span>
-        ${highlight(b.name||'?', q)}
-      </div>
-      <div class="search-result-meta">${lang==='de'?'Regal':'Étagère'} ${shelf} · ${lang==='de'?'Fach':'Alvéole'} ${b._i+1}${metas?' · '+metas:''}</div>
-    </div>`;
-  }).join('');
+
+  let html = '';
+
+  // Résultats cave
+  if (matchBottles.length) {
+    html += `<div style="font-size:.7rem;color:var(--gold);opacity:.6;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">🗄️ ${lang==='de'?'Im Keller':'En cave'} (${matchBottles.length})</div>`;
+    html += matchBottles.map(b => {
+      const shelf = b._i < S1_TOTAL ? 1 : b._i < S1_TOTAL+S2_TOTAL ? 2 : 3;
+      const metas = [
+        b.vintage && highlight(b.vintage, q),
+        b.region  && highlight(b.region, q),
+        b.shop    && highlight(b.shop, q),
+        b.price   && parseFloat(b.price).toFixed(2).replace('.',',') + ' €',
+        b.aromas  && `🌸 ${highlight(b.aromas, q)}`,
+        b.conservation && `🕰️ ${highlight(b.conservation, q)}`,
+        b.noteslib && `📝 ${highlight(b.noteslib, q)}`,
+      ].filter(Boolean).join(' · ');
+      return `<div class="search-result" onclick="closeSearch();openModal(${b._i})">
+        <div class="search-result-name">
+          <span class="search-result-badge" style="background:${tc(b.type)}22;color:${tc(b.type)};border:1px solid ${tc(b.type)}44">${TYPES[b.type]?.emoji||'🍾'} ${TYPES[b.type]?.label||''}</span>
+          ${highlight(b.name||'?', q)}
+        </div>
+        <div class="search-result-meta">${lang==='de'?'Regal':'Étagère'} ${shelf} · ${lang==='de'?'Fach':'Alvéole'} ${b._i+1}${metas?' · '+metas:''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Résultats conso (notices)
+  if (matchHistory.length) {
+    html += `<div style="font-size:.7rem;color:var(--gold);opacity:.6;margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em">📜 ${lang==='de'?'Konsumiert':'Consommées'} (${matchHistory.length})</div>`;
+    html += matchHistory.map(h => {
+      const noticeMetas = [
+        h.notice_with     && `👥 ${highlight(h.notice_with, q)}`,
+        h.notice_occasion && `🎉 ${highlight(h.notice_occasion, q)}`,
+        h.notice_taste    && `⭐ ${highlight(h.notice_taste, q)}`,
+        h.notice_notes    && `📝 ${highlight(h.notice_notes, q)}`,
+        h.vintage         && highlight(h.vintage, q),
+        h.region          && highlight(h.region, q),
+      ].filter(Boolean).join(' · ');
+      return `<div class="search-result" onclick="closeSearch();switchView('history',document.querySelectorAll('.nav-btn')[3])">
+        <div class="search-result-name">
+          <span class="search-result-badge" style="background:${tc(h.type)}22;color:${tc(h.type)};border:1px solid ${tc(h.type)}44">${TYPES[h.type]?.emoji||'🍾'} ${TYPES[h.type]?.label||''}</span>
+          ${highlight(h.name||'?', q)} <span style="opacity:.5;font-size:.72rem">(${fmtDate(h.consumedAt)})</span>
+        </div>
+        <div class="search-result-meta">${noticeMetas||'—'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  res.innerHTML = html;
 }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSearch(); });
 
