@@ -157,11 +157,11 @@ input[type=hidden] { display:none; }
 /* ── SÉLECTEUR ALVÉOLE ── */
 .cell-picker-wrap { background:rgba(0,0,0,.25); border:1px solid rgba(201,168,76,.2); border-radius:8px; padding:10px; margin-bottom:10px; }
 .cell-picker-title { font-size:.75rem; color:var(--gold); margin-bottom:8px; }
-.cell-picker { display:grid; gap:3px; background:rgba(0,0,0,.2); border-radius:6px; padding:6px; }
-.cell-pick { aspect-ratio:1; border-radius:50%; border:1.5px solid #6a5640; background:radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.42rem; color:rgba(255,255,255,.35); transition:transform .1s,box-shadow .1s; }
-.cell-pick:hover:not(.occupied) { transform:scale(1.25); z-index:5; }
+.cell-picker { display:grid; gap:2px; background:rgba(0,0,0,.2); border-radius:6px; padding:4px; }
+.cell-pick { aspect-ratio:1; border-radius:50%; border:1.5px solid #6a5640; background:radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.38rem; color:rgba(255,255,255,.35); transition:transform .1s,box-shadow .1s; }
+.cell-pick:hover:not(.occupied) { transform:scale(1.2); z-index:5; }
 .cell-pick.occupied { opacity:.25; cursor:not-allowed; }
-.cell-pick.selected { box-shadow:0 0 0 2.5px var(--gold); transform:scale(1.2); }
+.cell-pick.selected { box-shadow:0 0 0 2.5px var(--gold); transform:scale(1.15); }
 
 
 /* ── CLIGNOTEMENT VIEUX MILLÉSIME ── */
@@ -265,9 +265,9 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <div class="legend" id="legend1"></div>
   </div>
 
-  <!-- Étagère 2 + 3 -->
+    <!-- Étagère 2 + 3 -->
   <div id="shelf-panel-2" style="display:none">
-    <div class="shelf-wrap">
+    <div class="shelf-wrap" style="max-width:420px">
       <div class="shelf-header">
         <div class="shelf-name" id="shelfName2">🏛️ Étagère 2</div>
         <div class="shelf-badge" id="badge2">— bouteilles</div>
@@ -276,7 +276,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     </div>
     <div class="legend" id="legend2"></div>
     <div style="margin-top:14px"></div>
-    <div class="shelf-wrap" style="border-color:#4a9ec4">
+    <div class="shelf-wrap" style="border-color:#4a9ec4;max-width:225px">
       <div class="shelf-header">
         <div class="shelf-name" id="shelfName3" style="color:#a8d8f0">🍽️ Garde-manger / Frigo</div>
         <div class="shelf-badge" id="badge3">— bouteilles</div>
@@ -493,8 +493,13 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
           <div class="cell-picker-wrap">
             <div class="cell-picker-title" id="cellPickerTitle">📍 Choisir une alvéole</div>
             <div class="cell-picker" id="cellPickerGrid1" style="grid-template-columns:repeat(12,1fr)"></div>
-            <div style="margin-top:6px;font-size:.72rem;color:var(--gold);opacity:.6;cursor:pointer" id="cellPickerShelf2Toggle" onclick="togglePickerShelf()">▼ Voir aussi l'étagère 2</div>
-            <div class="cell-picker" id="cellPickerGrid2" style="grid-template-columns:repeat(7,1fr);display:none;margin-top:6px"></div>
+            <div onclick="togglePickerShelf()" id="cellPickerShelf2Toggle" style="margin-top:8px;font-size:.85rem;color:#ffffff;font-weight:bold;cursor:pointer;padding:6px;text-align:center;background:rgba(255,255,255,.08);border-radius:6px">▼ Voir aussi Étagères 2 + 3</div>
+            <div id="cellPickerGrid2Wrap" style="display:none;margin-top:8px">
+              <div style="font-size:.72rem;color:var(--gold);margin-bottom:4px;opacity:.7">— Étagère 2 —</div>
+              <div class="cell-picker" id="cellPickerGrid2" style="grid-template-columns:repeat(7,1fr)"></div>
+              <div style="font-size:.72rem;color:#a8d8f0;margin:6px 0 4px;opacity:.8">— Garde-manger / Frigo —</div>
+              <div class="cell-picker" id="cellPickerGrid3" style="grid-template-columns:repeat(5,1fr)"></div>
+            </div>
           </div>
           <button class="btn btn-primary" id="btnMoveConfirm" onclick="confirmMove()" style="display:none;margin-bottom:6px">✅ Confirmer le déplacement</button>
           <button class="btn btn-ghost" id="btnMoveCancel" onclick="cancelMove();cancelEdit()" style="display:none">Annuler</button>
@@ -543,7 +548,7 @@ const I18N = {
   fr: {
     hTitle:'La Cave à Vins', hTitleSub:'de Danielle &amp; Pascal', hSub:'Collection personnelle',
     navShelves:'🗄️ Étagères', navTable:'📋 Tableau', navStats:'📊 Stats', navHistory:'📜 Conso', navBackup:'💾 Backup',
-    shelf1tab:'🗄️ Étagère 1 · 120 alvéoles', shelf2tab:'🗄️ Étagère 2 · 56 alvéoles',
+    shelf1tab:'🗄️ Étagère 1 · 120 alvéoles', shelf2tab:'🗄️ Étagères 2 + 3',
     shelf1name:'🏛️ Étagère 1', shelf2name:'🏛️ Étagère 2',
     bottleCount:(f,t)=>`${f} bouteille${f!==1?'s':''} · ${t-f} vide${t-f!==1?'s':''}`,
     statTotal:(n)=>`${n} / 176 bouteilles`, statE1:(f)=>`Ét.1 : ${f}/120`, statE2:(f)=>`Ét.2 : ${f}/56`,
@@ -594,7 +599,7 @@ const I18N = {
   de: {
     hTitle:'Der Weinkeller', hTitleSub:'von Danielle &amp; Pascal', hSub:'Persönliche Sammlung',
     navShelves:'🗄️ Regale', navTable:'📋 Tabelle', navStats:'📊 Statistik', navHistory:'📜 Konsum', navBackup:'💾 Backup',
-    shelf1tab:'🗄️ Regal 1 · 120 Fächer', shelf2tab:'🗄️ Regal 2 · 56 Fächer',
+    shelf1tab:'🗄️ Regal 1 · 120 Fächer', shelf2tab:'🗄️ Regale 2 + 3',
     shelf1name:'🏛️ Regal 1', shelf2name:'🏛️ Regal 2',
     bottleCount:(f,t)=>`${f} Flasche${f!==1?'n':''} · ${t-f} leer${t-f!==1?'e':''}`,
     statTotal:(n)=>`${n} / 176 Flaschen`, statE1:(f)=>`R.1 : ${f}/120`, statE2:(f)=>`R.2 : ${f}/56`,
@@ -906,13 +911,14 @@ function moveBottle() {
 function buildCellPickerForMove() {
   const g1 = document.getElementById('cellPickerGrid1');
   const g2 = document.getElementById('cellPickerGrid2');
-  g1.innerHTML = ''; g2.innerHTML = '';
+  const g3 = document.getElementById('cellPickerGrid3');
+  g1.innerHTML = ''; g2.innerHTML = ''; if(g3) g3.innerHTML = '';
   for (let i=0; i<TOTAL; i++) {
     const b = cellar[i];
-    const grid = i < S1_TOTAL ? g1 : g2;
-    const pick = document.createElement('div');
-    // Source = grisée, occupées = grisées, vides = cliquables
+    const grid = i < S1_TOTAL ? g1 : i < S1_TOTAL+S2_TOTAL ? g2 : g3;
+    if (!grid) continue;
     const isSrc = i === curIdx;
+    const pick = document.createElement('div');
     pick.className = 'cell-pick' + (b && !isSrc ? ' occupied' : '') + (isSrc ? ' selected' : '');
     if (b && b.type && CELL_COLORS[b.type]) pick.setAttribute('style', CELL_COLORS[b.type]);
     pick.textContent = i+1;
@@ -981,10 +987,12 @@ function openAddFromTable() {
 function buildCellPicker() {
   const g1 = document.getElementById('cellPickerGrid1');
   const g2 = document.getElementById('cellPickerGrid2');
-  g1.innerHTML = ''; g2.innerHTML = '';
+  const g3 = document.getElementById('cellPickerGrid3');
+  g1.innerHTML = ''; g2.innerHTML = ''; if(g3) g3.innerHTML = '';
   for (let i=0; i<TOTAL; i++) {
     const b = cellar[i];
-    const grid = i < S1_TOTAL ? g1 : g2;
+    const grid = i < S1_TOTAL ? g1 : i < S1_TOTAL+S2_TOTAL ? g2 : g3;
+    if (!grid) continue;
     const pick = document.createElement('div');
     pick.className = 'cell-pick' + (b?' occupied':'') + (i===curIdx?' selected':'');
     if (b && b.type && CELL_COLORS[b.type]) pick.setAttribute('style', CELL_COLORS[b.type]);
@@ -1001,13 +1009,13 @@ function selectPickerCell(idx) {
 }
 
 function togglePickerShelf() {
-  const g2 = document.getElementById('cellPickerGrid2');
-  const tog = document.getElementById('cellPickerShelf2Toggle');
-  const visible = g2.style.display !== 'none';
-  g2.style.display = visible ? 'none' : 'grid';
+  const wrap = document.getElementById('cellPickerGrid2Wrap');
+  const tog  = document.getElementById('cellPickerShelf2Toggle');
+  const visible = wrap.style.display !== 'none';
+  wrap.style.display = visible ? 'none' : 'block';
   tog.textContent = visible
-    ? (lang==='de'?'▼ Regal 2 anzeigen':'▼ Voir aussi l\'étagère 2')
-    : (lang==='de'?'▲ Regal 2 ausblenden':'▲ Masquer l\'étagère 2');
+    ? (lang==='de'?'▼ Regale 2 + 3 anzeigen':'▼ Voir aussi Étagères 2 + 3')
+    : (lang==='de'?'▲ Regale 2 + 3 ausblenden':'▲ Masquer Étagères 2 + 3');
 }
 
 
@@ -1693,7 +1701,7 @@ function doSearch(q) {
   if (q.length < 2) { res.innerHTML = ''; return; }
   const bottles = cellar.map((b,i)=>b?{...b,_i:i}:null).filter(Boolean);
   const matches = bottles.filter(b =>
-    [b.name,b.region,b.vintage,b.shop,b.aromas,b.pairing,b.producer,b.country]
+    [b.name, b.region, b.vintage, b.shop, b.aromas, b.pairing, b.conservation, b.noteslib, b.producer, b.country]
     .join(' ').toLowerCase().includes(q.toLowerCase())
   );
   if (!matches.length) {
