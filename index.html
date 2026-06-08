@@ -158,7 +158,7 @@ input[type=hidden] { display:none; }
 .cell-picker-wrap { background:rgba(0,0,0,.25); border:1px solid rgba(201,168,76,.2); border-radius:8px; padding:10px; margin-bottom:10px; }
 .cell-picker-title { font-size:.75rem; color:var(--gold); margin-bottom:8px; }
 .cell-picker { display:grid; gap:2px; background:rgba(0,0,0,.2); border-radius:6px; padding:4px; }
-.cell-pick { width:23px; height:23px; border-radius:50%; border:1.5px solid #6a5640; background:radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.38rem; color:rgba(255,255,255,.35); transition:transform .1s,box-shadow .1s; flex-shrink:0; }
+.cell-pick { width:24px; height:24px; border-radius:50%; border:1.5px solid #6a5640; background:radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.38rem; color:rgba(255,255,255,.35); transition:transform .1s,box-shadow .1s; flex-shrink:0; }
 .cell-pick:hover:not(.occupied) { transform:scale(1.2); z-index:5; }
 .cell-pick.occupied { opacity:.25; cursor:not-allowed; }
 .cell-pick.selected { box-shadow:0 0 0 2px var(--gold); transform:scale(1.1); }
@@ -305,8 +305,6 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <button onclick="sortKey='id';sortAsc=true;renderTable()" style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🔢 N° alvéole</button>
     <button onclick="sortBy('vintage');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">📅 Ancien → Récent</button>
     <button onclick="sortBy('vintage');sortAsc=false;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">📅 Récent → Ancien</button>
-    <button onclick="sortBy('type');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🍷 Par type</button>
-    <button onclick="sortBy('name');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🔤 A→Z</button>
   </div>
   <div class="table-wrap"><table>
     <thead><tr>
@@ -498,20 +496,19 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
         <div id="cellPickerWrap" style="display:none">
           <div class="cell-picker-wrap">
             <div class="cell-picker-title" id="cellPickerTitle">📍 Choisir une alvéole</div>
-            <div class="cell-picker" id="cellPickerGrid1" style="grid-template-columns:repeat(12,23px)"></div>
+            <div class="cell-picker" id="cellPickerGrid1" style="grid-template-columns:repeat(12,24px);justify-content:center"></div>
             <div onclick="togglePickerShelf()" id="cellPickerShelf2Toggle" style="margin-top:8px;font-size:.85rem;color:#ffffff;font-weight:bold;cursor:pointer;padding:6px;text-align:center;background:rgba(255,255,255,.08);border-radius:6px">▼ Voir aussi Étagères 2 + 3</div>
             <div id="cellPickerGrid2Wrap" style="display:none;margin-top:8px">
-              <div style="font-size:.72rem;color:var(--gold);margin-bottom:4px;opacity:.7">— Étagère 2 —</div>
-              <div class="cell-picker" id="cellPickerGrid2" style="grid-template-columns:repeat(7,23px)"></div>
-              <div style="font-size:.72rem;color:#a8d8f0;margin:6px 0 4px;opacity:.8">— Garde-manger / Frigo —</div>
-              <div class="cell-picker" id="cellPickerGrid3" style="grid-template-columns:repeat(5,23px)"></div>
+              <div style="font-size:.72rem;color:var(--gold);margin-bottom:4px;opacity:.7;text-align:center">— Étagère 2 —</div>
+              <div class="cell-picker" id="cellPickerGrid2" style="grid-template-columns:repeat(7,24px);justify-content:center"></div>
+              <div style="font-size:.72rem;color:#a8d8f0;margin:6px 0 4px;opacity:.8;text-align:center">— Garde-manger / Frigo —</div>
+              <div class="cell-picker" id="cellPickerGrid3" style="grid-template-columns:repeat(5,24px);justify-content:center"></div>
             </div>
           </div>
           <button class="btn btn-primary" id="btnMoveConfirm" onclick="confirmMove()" style="display:none;margin-bottom:6px">✅ Confirmer le déplacement</button>
           <button class="btn btn-ghost" id="btnMoveCancel" onclick="cancelMove();cancelEdit()" style="display:none">Annuler</button>
         </div>
         <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px" data-i18n="btnSave">💾 Enregistrer</button>
-        <button class="btn btn-ghost" onclick="cancelEdit()" data-i18n="btnCancel">Annuler</button>
         <button class="btn btn-ghost" onclick="goToShelf(curIdx)" style="margin-top:4px;opacity:.6" data-i18n="btnBack">← Retour à l'étagère</button>
       </div>
 
