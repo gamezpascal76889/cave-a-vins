@@ -301,10 +301,10 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <option value="empty" data-i18n="filterEmpty">Vides</option>
     </select>
   </div>
-  <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-    <button onclick="sortKey='id';sortAsc=true;renderTable()" style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">🔢 N° alvéole</button>
-    <button onclick="sortBy('vintage');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">📅 Ancien → Récent</button>
-    <button onclick="sortBy('vintage');sortAsc=false;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">📅 Récent → Ancien</button>
+  <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap" id="sortBtns">
+    <button onclick="sortKey='id';sortAsc=true;renderTable()" style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif" data-i18n="sortByNum">🔢 N° alvéole</button>
+    <button onclick="sortBy('vintage');sortAsc=true;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif" data-i18n="sortOldNew">📅 Ancien → Récent</button>
+    <button onclick="sortBy('vintage');sortAsc=false;renderTable()" style="background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif" data-i18n="sortNewOld">📅 Récent → Ancien</button>
   </div>
   <div class="table-wrap"><table>
     <thead><tr>
@@ -591,7 +591,7 @@ const I18N = {
     histNoResult:(q)=>`Aucun résultat pour "${q}"`,
     toastNoticeSaved:'✅ Notice enregistrée !',
     shelfLabel:(n)=>`Étagère ${n}`, cellLabel:(s,n)=>`Étagère ${s} · Alvéole n°${n}`,
-    addFromTable:'➕ Ajouter une bouteille', cellPickerTitle:'📍 Choisir une alvéole', shelf2toggle:'▼ Voir aussi l\'étagère 2',
+    sortByNum:'🔢 N° alvéole', sortOldNew:'📅 Ancien → Récent', sortNewOld:'📅 Récent → Ancien',
     emptyCell:(n)=>`Vide — Alvéole ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Alvéole ${n}`,
     aiPhotoHint:'✨ Analyse IA automatique de l\'étiquette',
   },
@@ -642,7 +642,7 @@ const I18N = {
     histNoResult:(q)=>`Keine Ergebnisse für "${q}"`,
     toastNoticeSaved:'✅ Notiz gespeichert!',
     shelfLabel:(n)=>`Regal ${n}`, cellLabel:(s,n)=>`Regal ${s} · Fach Nr. ${n}`,
-    addFromTable:'➕ Flasche hinzufügen', cellPickerTitle:'📍 Fach auswählen', shelf2toggle:'▼ Regal 2 anzeigen',
+    sortByNum:'🔢 Nr. Fach', sortOldNew:'📅 Alt → Neu', sortNewOld:'📅 Neu → Alt',
     emptyCell:(n)=>`Leer — Fach ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Fach ${n}`,
     aiPhotoHint:'✨ Automatische KI-Etikettenanalyse',
   }
@@ -894,6 +894,7 @@ function moveBottle() {
   document.getElementById('aiBox').style.display        = 'none';
   document.querySelector('.type-btns').parentElement.style.display = 'none';
   document.querySelectorAll('#modeEdit .form-group').forEach(el=>el.style.display='none');
+  document.querySelectorAll('#modeEdit .form-row').forEach(el=>el.style.display='none');
   document.querySelector('[data-i18n="btnSave"]').style.display   = 'none';
   document.getElementById('pasteBtn').style.display     = 'none';
   // Montrer le sélecteur
@@ -942,6 +943,7 @@ function cancelMove() {
   document.getElementById('photoZone').style.display    = '';
   document.querySelector('.type-btns').parentElement.style.display = '';
   document.querySelectorAll('#modeEdit .form-group').forEach(el=>el.style.display='');
+  document.querySelectorAll('#modeEdit .form-row').forEach(el=>el.style.display='');
   document.querySelector('[data-i18n="btnSave"]').style.display   = '';
   document.getElementById('cellPickerWrap').style.display = 'none';
   document.getElementById('btnMoveConfirm').style.display = 'none';
