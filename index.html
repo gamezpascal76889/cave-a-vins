@@ -335,9 +335,9 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 <div class="view" id="view-backup">
   <div class="bk-card">
     <div class="bk-title" data-i18n="bkExportTitle">📤 Exporter</div>
-    <div class="bk-text" data-i18n="bkExportText">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, photos et archives.</div>
+    <div class="bk-text">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, <b style="color:#e8c97a">photos incluses</b> et archives. Conserve ce fichier précieusement !</div>
     <div id="bkInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px"></div>
-    <button class="btn btn-primary" onclick="exportData()" data-i18n="bkExportBtn">📥 Télécharger la sauvegarde</button>
+    <button class="btn btn-primary" onclick="exportData()" data-i18n="bkExportBtn">📥 Télécharger la sauvegarde complète</button>
   </div>
   <div class="bk-card">
     <div class="bk-title" data-i18n="bkImportTitle">📂 Importer</div>
@@ -1787,24 +1787,48 @@ function exportForDanielle(){
 }
 
 function exportData(){
-  const blob=new Blob([JSON.stringify({version:2,exportDate:new Date().toISOString(),cellar,history})],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download=`cave-pascal-${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(url);
-  showToast(t('toastExported', cellar.filter(Boolean).length));
+  // Inclure les photos depuis localStorage
+  const cellarWithPhotos = cellar.map((b,i) => {
+    if (!b) return null;
+    const photo = b.photo || localStorage.getItem('pascal_photo_'+i) || null;
+    return photo ? {...b, photo} : {...b};
+  });
+  const data = {version:3, exportDate:new Date().toISOString(), cellar:cellarWithPhotos, history};
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`cave-pascal-${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  const n = cellarWithPhotos.filter(Boolean).length;
+  const nPhotos = cellarWithPhotos.filter(b=>b&&b.photo).length;
+  showToast(`✅ ${n} bouteilles exportées dont ${nPhotos} avec photo`);
 }
+
 function importData(evt){
-  const f=evt.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=e=>{
+  const f=evt.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
     try{
       const d=JSON.parse(e.target.result);
       if(!Array.isArray(d.cellar))throw new Error('Format invalide');
       if(!confirm(t('confirmImport', fmtDate(d.exportDate))))return;
-      // Compatibilité : ancienne cave 120, nouvelle 176
+      // Restaurer les bouteilles
       cellar = Array.from({length:TOTAL},(_,i)=>d.cellar[i]||null);
-      history=d.history||[];save();renderShelves();renderTable();renderHistory();
-      showToast(t('toastImported'));
+      // Restaurer les photos dans localStorage
+      let nPhotos = 0;
+      cellar.forEach((b,i) => {
+        if (b && b.photo) {
+          try { localStorage.setItem('pascal_photo_'+i, b.photo); nPhotos++; } catch(e){}
+        } else {
+          localStorage.removeItem('pascal_photo_'+i);
+        }
+      });
+      history=d.history||[];
+      save(); renderShelves(); renderTable(); renderHistory();
+      showToast(`✅ Cave importée — ${cellar.filter(Boolean).length} bouteilles, ${nPhotos} photos restaurées`);
     }catch(err){showToast('❌ '+err.message);}
-  };rd.readAsText(f);evt.target.value='';
+  };
+  rd.readAsText(f); evt.target.value='';
 }
 function resetAll(){
   if(!confirm(t('confirmReset')))return;
