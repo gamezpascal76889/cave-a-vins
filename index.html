@@ -212,6 +212,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
   <div class="header-top">
     <div class="header-icon">🍷</div>
@@ -234,6 +235,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   </div>
 </div>
 
+<!-- NAV -->
 <nav class="nav">
   <button class="nav-btn active" onclick="switchView('shelf',this)" data-i18n="navShelves">🗄️ Étagères</button>
   <button class="nav-btn" onclick="switchView('table',this)" data-i18n="navTable">📋 Tableau</button>
@@ -242,12 +244,14 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <button class="nav-btn" onclick="switchView('backup',this)" data-i18n="navBackup">💾 Backup</button>
 </nav>
 
+<!-- ÉTAGÈRES -->
 <div class="view active" id="view-shelf">
   <div class="shelf-tabs">
     <button class="shelf-tab active" id="stab1" onclick="switchShelf(1)" data-i18n="shelf1tab">🗄️ Étagère 1 · 120 alvéoles</button>
     <button class="shelf-tab" id="stab2" onclick="switchShelf(2)" data-i18n="shelf2tab">🗄️ Étagère 2 + 3</button>
   </div>
 
+  <!-- Étagère 1 -->
   <div id="shelf-panel-1">
     <div class="shelf-wrap">
       <div class="shelf-header">
@@ -259,6 +263,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <div class="legend" id="legend1"></div>
   </div>
 
+    <!-- Étagère 2 + 3 -->
   <div id="shelf-panel-2" style="display:none">
     <div class="shelf-wrap" style="max-width:360px">
       <div class="shelf-header">
@@ -281,6 +286,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   </div>
 </div>
 
+<!-- TABLEAU -->
 <div class="view" id="view-table">
   <button class="add-btn" onclick="openAddFromTable()" id="addFromTableBtn">➕ Ajouter une bouteille</button>
   <div class="table-controls">
@@ -312,1052 +318,1578 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   </table></div>
 </div>
 
-<div class="view" id="view-stats" id="statsContainer">
-  <div class="stat-kpi-grid">
-    <div class="stat-kpi">
-      <div class="stat-kpi-num" id="kpiCount">0</div>
-      <div class="stat-kpi-lbl" data-i18n="kpiBouteilles">Bouteilles</div>
-    </div>
-    <div class="stat-kpi">
-      <div class="stat-kpi-num" id="kpiValue">0,00 €</div>
-      <div class="stat-kpi-lbl" data-i18n="kpiValeur">Valeur Totale</div>
-    </div>
-  </div>
-  
-  <div class="stats-section">
-    <div class="stats-title">📊 <span data-i18n="statsCouleurs">Répartition par Couleur</span></div>
-    <div id="statsColors"></div>
-  </div>
-
-  <div class="stats-section">
-    <div class="stats-title">🌍 <span data-i18n="statsRegions">Principales Régions / Pays</span></div>
-    <div id="statsRegions"></div>
-  </div>
-
-  <div class="stats-section">
-    <div class="stats-title">💡 <span data-i18n="statsAnecdotes">Le Saviez-vous ?</span></div>
-    <div id="statsAnecdotes"></div>
-  </div>
+<!-- STATS -->
+<div class="view" id="view-stats">
+  <div id="statsContent"></div>
 </div>
 
+<!-- ARCHIVES / CONSO -->
 <div class="view" id="view-history">
+  <div style="margin-bottom:10px">
+    <button onclick="goToShelf(0)" style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:8px;padding:8px 14px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer">← Retour à l'étagère</button>
+  </div>
   <div id="historyList"></div>
 </div>
 
+<!-- BACKUP -->
 <div class="view" id="view-backup">
   <div class="bk-card">
-    <div class="bk-title" data-i18n="bkExportTitle">📤 Sauvegarder les données</div>
-    <div class="bk-text" data-i18n="bkExportText">Téléchargez un fichier contenant toutes vos bouteilles et l'historique pour le conserver précieusement.</div>
-    <button class="btn btn-primary" onclick="exportBackup()" data-i18n="btnExport">Télécharger la sauvegarde (.json)</button>
+    <div class="bk-title" data-i18n="bkExportTitle">📤 Exporter</div>
+    <div class="bk-text">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, <b style="color:#e8c97a">photos incluses</b> et archives. Conserve ce fichier précieusement !</div>
+    <div id="bkInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px"></div>
+    <button class="btn btn-primary" onclick="exportData()" data-i18n="bkExportBtn">📥 Télécharger la sauvegarde complète</button>
   </div>
-  
   <div class="bk-card">
-    <div class="bk-title" data-i18n="bkImportTitle">📥 Importer une sauvegarde</div>
-    <div class="bk-text" data-i18n="bkImportText">Attention, l'importation d'un fichier écrasera votre cave actuelle.</div>
-    <div class="drop-zone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
-      <div class="drop-zone-icon">📄</div>
-      <div class="drop-zone-text" data-i18n="bkDropText">Cliquez ou glissez le fichier .json ici</div>
-      <input type="file" id="fileInput" style="display:none" accept=".json" onchange="handleFileSelect(event)">
+    <div class="bk-title" data-i18n="bkImportTitle">📂 Importer</div>
+    <div class="bk-text" data-i18n="bkImportText">⚠️ L'import <b style="color:#ffb060">remplace</b> toutes les données actuelles. Faites d'abord un export !</div>
+    <div class="drop-zone" onclick="document.getElementById('importFile').click()">
+      <div class="drop-zone-icon">📁</div>
+      <div class="drop-zone-text" data-i18n="bkImportDrop">Choisir un fichier .json</div>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="bk-card">
+    <div class="bk-title">☁️ Synchronisation</div>
+    <div class="bk-text" id="bkSyncTextEl">Synchronise automatiquement en temps réel.</div>
+    <div id="bkSyncInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px">✅ JSONBin configuré</div>
+    <button class="btn btn-ghost" onclick="forceSyncNow()">🔄 Forcer la synchronisation</button>
+  </div>
+  <div class="bk-card danger">
+    <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
+    <div class="bk-text" data-i18n="bkResetText">Efface <b style="color:#ff8080">toutes</b> les bouteilles et l'historique. Irréversible.</div>
+    <button class="btn btn-danger" onclick="resetAll()" data-i18n="bkResetBtn">⚠️ Tout effacer</button>
+  </div>
+</div>
+
+<!-- MODAL TOKEN GITHUB -->
+<div class="modal-overlay" id="tokenOverlay" onclick="if(event.target===this)closeTokenSetup()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
+      <div style="width:40px;height:4px;background:rgba(201,168,76,.3);border-radius:2px"></div>
+      <button onclick="closeTokenSetup()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div class="wine-title">🔑 Token GitHub</div>
+      <div class="wine-cell" style="margin-bottom:12px">Stocké uniquement sur ton téléphone — jamais dans le code</div>
+      <div class="form-group">
+        <label>Personal Access Token</label>
+        <input type="password" id="tokenInput" placeholder="ghp_..." style="font-family:monospace;font-size:.8rem">
+        <div style="margin-top:4px;font-size:.7rem;opacity:.5">GitHub → Settings → Developer settings → Tokens (classic)</div>
+      </div>
+      <button class="btn btn-primary" onclick="saveToken()">💾 Enregistrer & tester</button>
+      <button class="btn btn-ghost" onclick="closeTokenSetup()">Annuler</button>
     </div>
   </div>
-
-  <div class="bk-card danger">
-    <div class="bk-title danger" data-i18n="bkResetTitle">⚠️ Zone de danger</div>
-    <div class="bk-text" data-i18n="bkResetText">Cette action videra définitivement toutes les étagères de la cave et l'historique.</div>
-    <button class="btn btn-danger" onclick="resetCellarData()" data-i18n="btnReset">Vider toute la cave</button>
-  </div>
 </div>
 
-<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+<!-- MODAL NOTICE CONSO -->
+<div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this)closeNotice()">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-inner" id="modalContent"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
+      <div style="width:40px;height:4px;background:rgba(201,168,76,.3);border-radius:2px"></div>
+      <button onclick="closeNotice()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div class="wine-title" id="noticeTitle">📝 Notice</div>
+      <div class="wine-cell" id="noticeWineName" style="margin-bottom:12px"></div>
+      <div class="form-group">
+        <label data-i18n="noticeWith">👥 Avec qui ?</label>
+        <input type="text" id="noticeWith" placeholder="ex: Danielle, famille, amis…">
+      </div>
+      <div class="form-group">
+        <label data-i18n="noticeOccasion">🎉 Occasion / Raison</label>
+        <input type="text" id="noticeOccasion" placeholder="ex: Anniversaire, dîner, fête…">
+      </div>
+      <div class="form-group">
+        <label data-i18n="noticeTaste">⭐ Avis / Dégustation</label>
+        <textarea id="noticeTaste" placeholder="ex: Excellent, trop jeune, à point, accord parfait avec…" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label data-i18n="noticeNotes">📝 Notes libres</label>
+        <textarea id="noticeNotes" placeholder="Tout ce que vous voulez noter…" rows="2"></textarea>
+      </div>
+      <button class="btn btn-primary" id="noticeSaveBtn" onclick="saveNotice()" data-i18n="noticeSave">💾 Enregistrer la notice</button>
+      <button class="btn btn-ghost" onclick="closeNotice()" data-i18n="btnCancel">Annuler</button>
+    </div>
   </div>
 </div>
 
-<div class="search-overlay" id="searchOverlay">
+<!-- MODAL CAVE -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
+      <div class="modal-handle" style="margin:0"></div>
+      <button onclick="closeModal()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px" title="Fermer">✕</button>
+    </div>
+    <div class="modal-inner">
+
+      <!-- MODE VUE -->
+      <div id="modeView">
+        <div class="wine-badge" id="vBadge"></div>
+        <div class="wine-title" id="vName"></div>
+        <div class="wine-cell" id="vCell"></div>
+        <div id="vPhotoWrap" style="display:none;margin-bottom:12px">
+          <img id="vPhoto" src="" style="width:100%;max-height:260px;object-fit:contain;border-radius:8px;border:1px solid rgba(201,168,76,.2);background:rgba(0,0,0,.3)">
+        </div>
+        <div id="vInfoCard" style="margin-bottom:12px"></div>
+        <div id="vSearchBtns" style="margin-bottom:12px"></div>
+        <button class="btn btn-primary" onclick="switchEdit()" data-i18n="btnEdit">✏️ Modifier</button>
+        <button class="btn btn-ghost"   onclick="copyBottle()" data-i18n="btnCopy">📋 Copier cette bouteille</button>
+        <button class="btn btn-ghost"   onclick="moveBottle()" data-i18n="btnMove">↕️ Déplacer vers autre alvéole</button>
+        <button class="btn btn-danger"  onclick="consume()" data-i18n="btnConsume">🍽️ Consommer / Sortir</button>
+        <button class="btn btn-warn"    onclick="clearCell()" data-i18n="btnClear">🗑️ Vider l'alvéole</button>
+        <button class="btn btn-ghost"   onclick="closeModal()" style="margin-top:4px;opacity:.6" data-i18n="btnBack">← Retour à l'étagère</button>
+      </div>
+
+      <!-- MODE ÉDITION -->
+      <div id="modeEdit" style="display:none">
+        <div class="wine-title" id="eTitle">Ajouter une bouteille</div>
+        <div class="wine-cell"  id="eCell"></div>
+
+        <div id="photoZone" style="margin-bottom:8px">
+          <!-- Bouton Google IA toujours visible -->
+          <div id="quickGoogleAI" style="margin-bottom:8px;text-align:center">
+            <a id="googleAILink" href="#" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:7px 16px;border-radius:8px;font-size:.82rem;text-decoration:none;pointer-events:none;opacity:.4">🤖 Google IA — saisissez d'abord le nom</a>
+          </div>
+          <div id="photoPreview" style="display:none;margin-bottom:8px">
+            <img id="photoImg" src="" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover;display:block">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="button" onclick="document.getElementById('photoCam').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer" data-i18n="btnCamera">📷 Prendre une photo</button>
+            <button type="button" onclick="document.getElementById('photoGal').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer" data-i18n="btnGallery">🖼️ Galerie photos</button>
+          </div>
+          <div style="text-align:center;margin-top:5px;font-size:.7rem;color:#c9a84c;opacity:.7">✨ Analyse IA automatique de l'étiquette</div>
+        </div>
+        <input type="file" id="photoCam" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+        <input type="file" id="photoGal" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+
+        <div class="ai-box" id="aiBox"></div>
+
+        <div class="form-group">
+          <label id="label-type">Type de vin <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(détecté auto depuis la photo)</span></label>
+          <input type="hidden" id="fType" value="red">
+          <div class="type-btns">
+            <button type="button" onclick="selectType('red')"       id="tb-red"       class="type-btn">🍷 Rouge</button>
+            <button type="button" onclick="selectType('white')"     id="tb-white"     class="type-btn">🥂 Blanc</button>
+            <button type="button" onclick="selectType('rose')"      id="tb-rose"      class="type-btn">🌸 Rosé</button>
+            <button type="button" onclick="selectType('petillant')" id="tb-petillant" class="type-btn">✨ Pétillant</button>
+            <button type="button" onclick="selectType('other')"     id="tb-other"     class="type-btn">🍾 Autre</button>
+          </div>
+        </div>
+
+        <div class="form-group"><label id="label-name">Nom / Appellation *</label><input type="text" id="fName" placeholder="ex: Château Margaux, Sancerre…"></div>
+        <div class="form-row">
+          <div><label id="label-vintage">Millésime</label><input type="number" id="fVintage" placeholder="2020" min="1900" max="2099"></div>
+          <div><label id="label-price">Prix (€)</label><input type="number" id="fPrice" placeholder="0.00" step="0.01"></div>
+        </div>
+        <div class="form-group"><label id="label-shop">Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Cave Nicolas, Supermarché…"></div>
+        <div class="form-group"><label id="label-region">Région / Appellation</label><input type="text" id="fRegion" placeholder="ex: Bordeaux, Bourgogne…"></div>
+        <div class="form-group"><label id="label-date">Date d'achat</label><input type="date" id="fDate"></div>
+        <div class="form-group"><label id="label-aromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-conservation">🕰️ Conservation / Garde</label><textarea id="fConservation" placeholder="ex: À boire entre 2025-2030, optimum 2027…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-noteslib">📝 Notes</label><textarea id="fNotesLib" placeholder="Notes personnelles, occasions, remarques…" rows="2"></textarea></div>
+
+        <div id="eSearchBtns" style="margin-bottom:10px"></div>
+
+        <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
+        <div id="cellPickerWrap" style="display:none">
+          <div class="cell-picker-wrap">
+            <div class="cell-picker-title" id="cellPickerTitle">📍 Choisir une alvéole</div>
+            <div class="cell-picker" id="cellPickerGrid1" style="grid-template-columns:repeat(12,24px);justify-content:center"></div>
+            <div onclick="togglePickerShelf()" id="cellPickerShelf2Toggle" style="margin-top:8px;font-size:.85rem;color:#ffffff;font-weight:bold;cursor:pointer;padding:6px;text-align:center;background:rgba(255,255,255,.08);border-radius:6px">▼ Voir aussi Étagères 2 + 3</div>
+            <div id="cellPickerGrid2Wrap" style="display:none;margin-top:8px">
+              <div style="font-size:.72rem;color:var(--gold);margin-bottom:4px;opacity:.7;text-align:center">— Étagère 2 —</div>
+              <div class="cell-picker" id="cellPickerGrid2" style="grid-template-columns:repeat(7,24px);justify-content:center"></div>
+              <div style="font-size:.72rem;color:#a8d8f0;margin:6px 0 4px;opacity:.8;text-align:center">— Garde-manger / Frigo —</div>
+              <div class="cell-picker" id="cellPickerGrid3" style="grid-template-columns:repeat(5,24px);justify-content:center"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btnMoveConfirm" onclick="confirmMove()" style="display:none;margin-bottom:6px">✅ Confirmer le déplacement</button>
+          <button class="btn btn-ghost" id="btnMoveCancel" onclick="cancelMove();cancelEdit()" style="display:none">Annuler</button>
+        </div>
+        <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px" data-i18n="btnSave">💾 Enregistrer</button>
+        <button class="btn btn-ghost" onclick="goToShelf(curIdx)" style="margin-top:4px;opacity:.6" data-i18n="btnBack">← Retour à l'étagère</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- RECHERCHE GLOBALE -->
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Rechercher un vin, une année, une couleur..." oninput="doGlobalSearch()" data-i18n-ph="globalSearchPh">
+    <span style="font-size:1.1rem;opacity:.6">🔍</span>
+    <input type="text" id="searchInput" placeholder="Nom, région, millésime, lieu d'achat…" oninput="doSearch(this.value)" autocomplete="off">
     <button class="search-close" onclick="closeSearch()">✕</button>
   </div>
-  <div class="search-results" id="searchResults"></div>
+  <div class="search-results" id="searchResults">
+    <div class="search-empty" id="searchEmpty" style="display:none"></div>
+  </div>
 </div>
+
+<!-- UNDO BAR supprimé -->
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ DONNÉES / CONFIG ══
-const BIN_ID = "677d24eee41b4d34e4726cd5";
-const API_KEY = "$2a$10$wE4I7xAn8hTjKjYf00b9UOTbM6bM7g/Y6Z9K8B9Z9Z9Z9Z9Z9Z9Z."; // Clé masquée/factice basée sur l'original
+// ══ CONFIG ══
+const PROXY_URL = 'https://cave-proxy.onrender.com/api/claude';
 
-let lang = localStorage.getItem('pascal_lang') || 'fr';
+// ══ JSONBIN SYNC ══
+const JB_BIN_ID  = '6a22564cda38895dfe8a72d7';
+const JB_API_KEY = '$2a$10$SLWc/RCGRjGx1PQD/XYrJex0jKg4pTrboja6d0/jizIQL/SzthM6S';
+const JB_URL     = 'https://api.jsonbin.io/v3/b/' + JB_BIN_ID;
+let   syncStatus = 'idle';
 
+// ══ TRADUCTIONS ══
 const I18N = {
   fr: {
-    navShelves: "🗄️ Étagères", navTable: "📋 Tableau", navStats: "📊 Stats", navHistory: "📜 Archives", navBackup: "💾 Backup",
-    shelf1tab: "🗄️ Étagère 1 · 120 alvéoles", shelf2tab: "🗄️ Étagère 2 + 3",
-    shelfTitle1: "La Cave à Vins de Danielle & Pascal", shelfTitle2: "Weinkeller von Danielle & Pascal",
-    shelfName1: "🏛️ Étagère 1", shelfName2: "🏛️ Étagère 2", shelfName3: "🍽️ Garde-manger / Frigo",
-    searchPh: "🔍 Rechercher…", globalSearchPh: "Rechercher un vin, une année, une couleur...",
-    filterAll: "Tous les vins", typeRed: "Rouge", typeWhite: "Blanc", typeRose: "Rosé", typePet: "Pétillant", typeOther: "Autre", filterEmpty: "Alvéoles vides",
-    sortByNum: "🔢 N° alvéole", sortOldNew: "📅 Ancien → Récent", sortNewOld: "📅 Récent → Ancien",
-    thType: "🍷", thName: "Nom", thPrice: "Prix",
-    kpiBouteilles: "Bouteilles", kpiValeur: "Valeur Totale", statsCouleurs: "Répartition par Couleur", statsRegions: "Principales Régions / Pays", statsAnecdotes: "Le Saviez-vous ?",
-    bkExportTitle: "📤 Sauvegarder les données", bkExportText: "Téléchargez un fichier contenant toutes vos bouteilles et l'historique pour le conserver précieusement.", btnExport: "Télécharger la sauvegarde (.json)",
-    bkImportTitle: "📥 Importer une sauvegarde", bkImportText: "Attention, l'importation d'un fichier écrasera votre cave actuelle.", bkDropText: "Cliquez ou glissez le fichier .json ici",
-    bkResetTitle: "⚠️ Zone de danger", bkResetText: "Cette action videra définitivement toutes les étagères de la cave et l'historique.", btnReset: "Vider toute la cave",
-    btnAddWine: "➕ Ajouter une bouteille", btnEdit: "📝 Modifier", btnDrink: "🍷 Boire la bouteille", btnDelete: "🗑️ Supprimer sans boire", btnCancel: "Annuler", btnSave: "Enregistrer",
-    lblChooseCell: "Choisir une alvéole libre :", lblName: "Nom du vin / Domaine", lblVintage: "Année (Millésime)", lblRegion: "Région / Pays", lblPrice: "Prix d'achat (€)", lblComment: "Commentaires / Notes", lblType: "Type de vin",
-    msgEmptyCell: "Alvéole vide", msgNoWine: "Aucun vin ne correspond.", msgDrunk: "Santé ! Bouteille ajoutée aux archives.", msgSaved: "Modifications enregistrées.", msgAdded: "Bouteille ajoutée !", msgDeleted: "Bouteille supprimée.", msgResetOk: "La cave a été réinitialisée.", msgImportOk: "Importation réussie !", msgImportErr: "Fichier invalide.",
-    emptyHistory: "📜 Aucune bouteille dans les archives pour le moment.", searchNoResult: "Aucun résultat trouvé.",
-    anecdoteEmpty: "Ajoutez des bouteilles pour voir des analyses personnalisées !",
-    searchGoogleAI: "🔍 Analyse et accords mets-vins (IA)"
+    hTitle:'La Cave à Vins', hTitleSub:'de Danielle &amp; Pascal', hSub:'Collection personnelle',
+    navShelves:'🗄️ Étagères', navTable:'📋 Tableau', navStats:'📊 Stats', navHistory:'📜 Conso', navBackup:'💾 Backup',
+    shelf1tab:'🗄️ Étagère 1 · 120 alvéoles', shelf2tab:'🗄️ Étagères 2 + 3',
+    shelf1name:'🏛️ Étagère 1', shelf2name:'🏛️ Étagère 2',
+    bottleCount:(f,t)=>`${f} bouteille${f!==1?'s':''} · ${t-f} vide${t-f!==1?'s':''}`,
+    statTotal:(n)=>`${n} / 176 bouteilles`, statE1:(f)=>`Ét.1 : ${f}/120`, statE2:(f)=>`Ét.2 : ${f}/56`,
+    searchPh:'🔍 Rechercher…',
+    filterAll:'Tous', typeRed:'Rouge', typeWhite:'Blanc', typeRose:'Rosé', typePet:'Pétillant', typeOther:'Autre', filterEmpty:'Vides',
+    thShelf:'Ét.', thType:'Type', thName:'Nom', thVintage:'Mill.', thPrice:'Prix',
+    tblEmpty:'Aucun résultat', tblVide:'Vide', tblSee:'Voir',
+    bkExportTitle:'📤 Exporter', bkExportText:'Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, photos et archives.', bkExportBtn:'📥 Télécharger la sauvegarde',
+    bkImportTitle:'📂 Importer', bkImportText:'⚠️ L\'import <b style="color:#ffb060">remplace</b> toutes les données actuelles. Faites d\'abord un export !', bkImportDrop:'Choisir un fichier .json',
+    bkResetTitle:'🗑️ Réinitialiser', bkResetText:'Efface <b style="color:#ff8080">toutes</b> les bouteilles et l\'historique. Irréversible.', bkResetBtn:'⚠️ Tout effacer',
+    btnEdit:'✏️ Modifier', btnCopy:'📋 Copier cette bouteille', btnMove:'↕️ Déplacer vers autre alvéole', btnConsume:'🍽️ Consommer / Sortir', btnClear:'🗑️ Vider l\'alvéole', btnBack:'← Retour à l\'étagère',
+    btnCamera:'📷 Prendre une photo', btnGallery:'🖼️ Galerie photos',
+    btnSave:'💾 Enregistrer', btnCancel:'Annuler',
+    labelType:'Type de vin', labelTypeHint:'(détecté auto depuis la photo)',
+    labelName:'Nom / Appellation *', labelVintage:'Millésime', labelPrice:'Prix (€)',
+    labelShop:'Lieu d\'achat', labelRegion:'Région / Appellation', labelDate:'Date d\'achat',
+    labelAromas:'🌸 Arômes', labelAromasHint:'(rempli auto par IA)', labelAromasPh:'ex: Fruits rouges, vanille, épices…',
+    labelPairing:'🍽️ Accords mets-vins', labelPairingHint:'(rempli auto par IA)', labelPairingPh:'ex: Viandes rouges, fromages affinés…',
+    labelNamePh:'ex: Château Margaux, Sancerre…', labelShopPh:'ex: Cave Nicolas, Supermarché…', labelRegionPh:'ex: Bordeaux, Bourgogne…',
+    aiAnalyzing:'🔍 Lecture de l\'étiquette…', aiSearching:'🌐 Recherche arômes & accords…', aiUnreadable:'⚠️ Étiquette illisible. Remplissez manuellement.', aiDone:'✅ Étiquette lue ! Consultez Vivino pour le prix.', aiError:'⚠️ Erreur : ',
+    infoVintage:'Millésime', infoPrice:'Prix', infoShop:'Acheté chez', infoRegion:'Région', infoDate:'Date d\'achat', infoAromas:'🌸 Arômes', infoPairing:'🍽️ Accords mets-vins',
+    toastSaved:'✅ Bouteille enregistrée !', toastConsumed:'🍽️ Bouteille consommée — archivée !', toastCleared:'🗑️ Alvéole vidée', toastCopied:'📋 Bouteille copiée — cliquez sur une alvéole vide pour coller', toastPasted:'✅ Bouteille collée dans l\'alvéole !',
+    toastExported:(n)=>`✅ Sauvegarde exportée (${n} bouteilles)`, toastImported:'✅ Cave importée avec succès !', toastReset:'🗑️ Cave réinitialisée', toastInvalidName:'⚠️ Saisissez un nom ou une appellation',
+    confirmClear:'Vider cette alvéole sans archiver ?', confirmReset:'⚠️ Effacer TOUTES les bouteilles et l\'historique ?\nAction irréversible !', confirmImport:(d)=>`Importer la sauvegarde du ${d} ?\nCela remplacera toutes vos données.`,
+    histEmpty:'Aucune consommation enregistrée', statEmpty:'🍾 Aucune bouteille en cave pour le moment.',
+    kpiBottles:'Bouteilles en cave', kpiFree:'Alvéoles libres', kpiValue:'Valeur totale', kpiAvg:'Prix moyen',
+    statsShelf:'🗄️ Par étagère', statsType:'🍷 Par type de vin', statsRegion:'🗺️ Par région / appellation',
+    statsRegionType:'🔍 Par appellation & type', statsVintage:'📅 Par millésime', statsSeries:'🔢 Séries identiques (≥ 2 bouteilles)',
+    statsTop5:'💎 Les 5 plus belles bouteilles', statsShop:'🛒 Par lieu d\'achat', statsAnecdotes:'✨ Le saviez-vous ?',
+    statNoData:'Aucune donnée',
+    anecOldest:(n,v,r)=>`📜 La plus ancienne : <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecNewest:(n,v,r)=>`🆕 La plus récente : <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecMost:(n,p)=>`💰 La plus chère : <strong>${n}</strong> à <strong>${p} €</strong>`,
+    anecConsumed:(c)=>`🍽️ Bouteilles consommées depuis l'ouverture : <strong>${c}</strong>`,
+    anecSeries:(c,k,t)=>`🍾 <strong>${c} bouteilles</strong> de <strong>${k}</strong>${t?' ('+t+')':''}`,
+    histSearchPh:'🔍 Rechercher dans Conso…',
+    bkSyncText:'Synchronise automatiquement en temps réel.',
+    noticeTitle:'📝 Notice', noticeWith:'👥 Avec qui ?', noticeOccasion:'🎉 Occasion / Raison', noticeTaste:'⭐ Avis / Dégustation', noticeNotes:'📝 Notes libres',
+    noticeWithPh:'ex: Danielle, famille, amis…', noticeOccasionPh:'ex: Anniversaire, dîner, fête…', noticeTastePh:'ex: Excellent, trop jeune, à point…', noticeNotesPh:'Tout ce que vous voulez noter…',
+    noticeSave:'💾 Enregistrer la notice', noticeBtnAdd:'Ajouter notice', noticeBtnEdit:'Notice',
+    histNoResult:(q)=>`Aucun résultat pour "${q}"`,
+    toastNoticeSaved:'✅ Notice enregistrée !',
+    shelfLabel:(n)=>`Étagère ${n}`, cellLabel:(s,n)=>`Étagère ${s} · Alvéole n°${n}`,
+    sortByNum:'🔢 N° alvéole', sortOldNew:'📅 Ancien → Récent', sortNewOld:'📅 Récent → Ancien',
+    emptyCell:(n)=>`Vide — Alvéole ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Alvéole ${n}`,
+    aiPhotoHint:'✨ Analyse IA automatique de l\'étiquette',
   },
   de: {
-    navShelves: "🗄️ Regale", navTable: "📋 Tabelle", navStats: "📊 Statistiken", navHistory: "📜 Archiv", navBackup: "💾 Backup",
-    shelf1tab: "🗄️ Regal 1 · 120 Fächer", shelf2tab: "🗄️ Regal 2 + 3",
-    shelfTitle1: "La Cave à Vins de Danielle & Pascal", shelfTitle2: "Weinkeller von Danielle & Pascal",
-    shelfName1: "🏛️ Regal 1", shelfName2: "🏛️ Regal 2", shelfName3: "🍽️ Speisekammer / Kühlschrank",
-    searchPh: "🔍 Suchen…", globalSearchPh: "Wein, Jahrgang, Farbe suchen...",
-    filterAll: "Alle Weine", typeRed: "Rotwein", typeWhite: "Weißwein", typeRose: "Rosé", typePet: "Schaumwein", typeOther: "Anderer", filterEmpty: "Leere Fächer",
-    sortByNum: "🔢 Fach-Nr.", sortOldNew: "📅 Alt → Neu", sortNewOld: "📅 Neu → Alt",
-    thType: "🍷", thName: "Name", thPrice: "Preis",
-    kpiBouteilles: "Flaschen", kpiValeur: "Gesamtwert", statsCouleurs: "Verteilung nach Farbe", statsRegions: "Wichtigste Regionen / Länder", statsAnecdotes: "Wussten Sie schon?",
-    bkExportTitle: "📤 Daten sichern", bkExportText: "Laden Sie eine Datei mit all Ihren Flaschen und dem Verlauf herunter, um sie sicher aufzubewahren.", btnExport: "Backup herunterladen (.json)",
-    bkImportTitle: "📥 Backup importieren", bkImportText: "Achtung, das Importieren einer Datei überschreibt Ihren aktuellen Keller.", bkDropText: "Klicken oder ziehen Sie die .json-Datei hierher",
-    bkResetTitle: "⚠️ Gefahrenzone", bkResetText: "Diese Aktion wird alle Regale des Kellers und das Archiv dauerhaft löschen.", btnReset: "Ganzen Keller leeren",
-    btnAddWine: "➕ Flasche hinzufügen", btnEdit: "📝 Bearbeiten", btnDrink: "🍷 Flasche trinken", btnDelete: "🗑️ Löschen ohne Trinken", btnCancel: "Abbrechen", btnSave: "Speichern",
-    lblChooseCell: "Freies Fach wählen:", lblName: "Weinname / Weingut", lblVintage: "Jahrgang (Millésime)", lblRegion: "Region / Land", lblPrice: "Kaufpreis (€)", lblComment: "Kommentare / Notizen", lblType: "Weinsorte",
-    msgEmptyCell: "Leeres Fach", msgNoWine: "Kein Wein entspricht der Suche.", msgDrunk: "Zum Wohl! Die Flasche wurde im Archiv gespeichert.", msgSaved: "Änderungen gespeichert.", msgAdded: "Flasche hinzugefügt!", msgDeleted: "Flasche gelöscht.", msgResetOk: "Der Keller wurde zurückgesetzt.", msgImportOk: "Import erfolgreich!", msgImportErr: "Ungültige Datei.",
-    emptyHistory: "📜 Im Moment befinden sich keine Flaschen im Archiv.", searchNoResult: "Keine Ergebnisse gefunden.",
-    anecdoteEmpty: "Fügen Sie Flaschen hinzu, um personalisierte Analysen zu sehen!",
-    searchGoogleAI: "🔍 Wein-Analyse & passende Gerichte (KI)"
+    hTitle:'Der Weinkeller', hTitleSub:'von Danielle &amp; Pascal', hSub:'Persönliche Sammlung',
+    navShelves:'🗄️ Regale', navTable:'📋 Tabelle', navStats:'📊 Statistik', navHistory:'📜 Konsum', navBackup:'💾 Backup',
+    shelf1tab:'🗄️ Regal 1 · 120 Fächer', shelf2tab:'🗄️ Regale 2 + 3',
+    shelf1name:'🏛️ Regal 1', shelf2name:'🏛️ Regal 2',
+    bottleCount:(f,t)=>`${f} Flasche${f!==1?'n':''} · ${t-f} leer${t-f!==1?'e':''}`,
+    statTotal:(n)=>`${n} / 176 Flaschen`, statE1:(f)=>`R.1 : ${f}/120`, statE2:(f)=>`R.2 : ${f}/56`,
+    searchPh:'🔍 Suchen…',
+    filterAll:'Alle', typeRed:'Rotwein', typeWhite:'Weißwein', typeRose:'Roséwein', typePet:'Perlwein', typeOther:'Andere', filterEmpty:'Leer',
+    thShelf:'Reg.', thType:'Typ', thName:'Name', thVintage:'Jahr.', thPrice:'Preis',
+    tblEmpty:'Keine Ergebnisse', tblVide:'Leer', tblSee:'Ansehen',
+    bkExportTitle:'📤 Exportieren', bkExportText:'Lädt eine Datei <b style="color:#f5ede0">cave-pascal.json</b> mit allen Flaschen, Fotos und Archiven herunter.', bkExportBtn:'📥 Sicherung herunterladen',
+    bkImportTitle:'📂 Importieren', bkImportText:'⚠️ Import <b style="color:#ffb060">ersetzt</b> alle aktuellen Daten. Zuerst exportieren!', bkImportDrop:'.json-Datei auswählen',
+    bkResetTitle:'🗑️ Zurücksetzen', bkResetText:'Löscht <b style="color:#ff8080">alle</b> Flaschen und den Verlauf. Unwiderruflich.', bkResetBtn:'⚠️ Alles löschen',
+    btnEdit:'✏️ Bearbeiten', btnCopy:'📋 Flasche kopieren', btnMove:'↕️ In anderes Fach verschieben', btnConsume:'🍽️ Trinken / Entfernen', btnClear:'🗑️ Fach leeren', btnBack:'← Zurück zum Regal',
+    btnCamera:'📷 Foto aufnehmen', btnGallery:'🖼️ Galerie',
+    btnSave:'💾 Speichern', btnCancel:'Abbrechen',
+    labelType:'Weintyp', labelTypeHint:'(automatisch erkannt)',
+    labelName:'Name / Appellation *', labelVintage:'Jahrgang', labelPrice:'Preis (€)',
+    labelShop:'Kaufort', labelRegion:'Region / Appellation', labelDate:'Kaufdatum',
+    labelAromas:'🌸 Aromen', labelAromasHint:'(automatisch durch KI)', labelAromasPh:'z.B. Rote Früchte, Vanille, Gewürze…',
+    labelPairing:'🍽️ Speiseempfehlungen', labelPairingHint:'(automatisch durch KI)', labelPairingPh:'z.B. Rotes Fleisch, gereifter Käse…',
+    labelNamePh:'z.B. Château Margaux, Riesling…', labelShopPh:'z.B. Weinhandlung, Supermarkt…', labelRegionPh:'z.B. Bordeaux, Burgund…',
+    aiAnalyzing:'🔍 Etikett wird gelesen…', aiSearching:'🌐 Suche nach Aromen & Empfehlungen…', aiUnreadable:'⚠️ Etikett unleserlich. Bitte manuell ausfüllen.', aiDone:'✅ Etikett gelesen! Vivino für den Preis prüfen.', aiError:'⚠️ Fehler: ',
+    infoVintage:'Jahrgang', infoPrice:'Preis', infoShop:'Gekauft bei', infoRegion:'Region', infoDate:'Kaufdatum', infoAromas:'🌸 Aromen', infoPairing:'🍽️ Speiseempfehlungen',
+    toastSaved:'✅ Flasche gespeichert!', toastConsumed:'🍽️ Flasche getrunken — archiviert!', toastCleared:'🗑️ Fach geleert', toastCopied:'📋 Flasche kopiert — leeres Fach anklicken zum Einfügen', toastPasted:'✅ Flasche eingefügt!',
+    toastExported:(n)=>`✅ Sicherung exportiert (${n} Flaschen)`, toastImported:'✅ Keller erfolgreich importiert!', toastReset:'🗑️ Keller zurückgesetzt', toastInvalidName:'⚠️ Bitte einen Namen eingeben',
+    confirmClear:'Dieses Fach ohne Archivierung leeren?', confirmReset:'⚠️ ALLE Flaschen und den Verlauf löschen?\nUnwiderruflich!', confirmImport:(d)=>`Sicherung vom ${d} importieren?\nAlle aktuellen Daten werden ersetzt.`,
+    histEmpty:'Keine Konsumeinträge vorhanden', statEmpty:'🍾 Noch keine Flaschen im Keller.',
+    kpiBottles:'Flaschen im Keller', kpiFree:'Freie Fächer', kpiValue:'Gesamtwert', kpiAvg:'Durchschnittspreis',
+    statsShelf:'🗄️ Nach Regal', statsType:'🍷 Nach Weintyp', statsRegion:'🗺️ Nach Region / Appellation',
+    statsRegionType:'🔍 Nach Appellation & Typ', statsVintage:'📅 Nach Jahrgang', statsSeries:'🔢 Identische Serien (≥ 2 Flaschen)',
+    statsTop5:'💎 Die 5 wertvollsten Flaschen', statsShop:'🛒 Nach Kaufort', statsAnecdotes:'✨ Wussten Sie?',
+    statNoData:'Keine Daten',
+    anecOldest:(n,v,r)=>`📜 Älteste Flasche: <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecNewest:(n,v,r)=>`🆕 Neueste Flasche: <strong>${n} ${v}</strong>${r?' · '+r:''}`,
+    anecMost:(n,p)=>`💰 Teuerste Flasche: <strong>${n}</strong> für <strong>${p} €</strong>`,
+    anecConsumed:(c)=>`🍽️ Seit Kellereröffnung getrunken: <strong>${c}</strong>`,
+    anecSeries:(c,k,t)=>`🍾 <strong>${c} Flaschen</strong> von <strong>${k}</strong>${t?' ('+t+')':''}`,
+    histSearchPh:'🔍 In Konsum suchen…',
+    bkSyncText:'Synchronisiert automatisch in Echtzeit.',
+    noticeTitle:'📝 Notiz', noticeWith:'👥 Mit wem?', noticeOccasion:'🎉 Anlass / Grund', noticeTaste:'⭐ Bewertung / Verkostung', noticeNotes:'📝 Freie Notizen',
+    noticeWithPh:'z.B. Danielle, Familie, Freunde…', noticeOccasionPh:'z.B. Geburtstag, Abendessen, Fest…', noticeTastePh:'z.B. Ausgezeichnet, zu jung, auf dem Punkt…', noticeNotesPh:'Was auch immer Sie notieren möchten…',
+    noticeSave:'💾 Notiz speichern', noticeBtnAdd:'Notiz hinzufügen', noticeBtnEdit:'Notiz',
+    histNoResult:(q)=>`Keine Ergebnisse für "${q}"`,
+    toastNoticeSaved:'✅ Notiz gespeichert!',
+    shelfLabel:(n)=>`Regal ${n}`, cellLabel:(s,n)=>`Regal ${s} · Fach Nr. ${n}`,
+    sortByNum:'🔢 Nr. Fach', sortOldNew:'📅 Alt → Neu', sortNewOld:'📅 Neu → Alt',
+    emptyCell:(n)=>`Leer — Fach ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Fach ${n}`,
+    aiPhotoHint:'✨ Automatische KI-Etikettenanalyse',
   }
 };
-
-const CELL_COLORS = {
-  red: 'radial-gradient(circle at 35% 35%, #b52436, #6b0d18 50%, #300309)',
-  white: 'radial-gradient(circle at 35% 35%, #faf0b4, #d1bd60 50%, #736423)',
-  rose: 'radial-gradient(circle at 35% 35%, #fca2b8, #db6b84 50%, #7d2a3b)',
-  petillant: 'radial-gradient(circle at 35% 35%, #f5e4ab, #c7ad58 50%, #115c52)',
-  other: 'radial-gradient(circle at 35% 35%, #a67bc2, #65407d 50%, #291138)'
-};
-
-const LEGEND_LABELS = {
-  fr: { red:"Rouge", white:"Blanc", rose:"Rosé", petillant:"Pétillant", other:"Autre" },
-  de: { red:"Rotwein", white:"Weißwein", rose:"Rosé", petillant:"Schaumwein", other:"Anderer" }
-};
-
-// Structures de cave fixes
-const SHELVES = {
-  1: { start: 1, end: 120, rows: 10, cols: 12, reverseRows: true },
-  2: { start: 121, end: 176, rows: 7, cols: 8, reverseRows: true },
-  3: { start: 501, end: 512, rows: 4, cols: 3, reverseRows: false }
-};
-
-let cellar = JSON.parse(localStorage.getItem('pascal_cellar')) || Array(600).fill(null);
-let history = JSON.parse(localStorage.getItem('pascal_history')) || [];
-let currentShelf = 1;
-let sortKey = 'id';
-let sortAsc = true;
-
-// ══ FONCTIONS TRADUCTION (i18n) ══
+let lang = localStorage.getItem('pascal_lang') || 'fr';
+function t(key, ...args) {
+  const val = I18N[lang][key];
+  if(typeof val === 'function') return val(...args);
+  return val || I18N['fr'][key] || key;
+}
 function setLang(l) {
   lang = l;
   localStorage.setItem('pascal_lang', l);
-  
-  // Mettre à jour les boutons de langue
-  document.getElementById('btn-fr').style.borderColor = lang==='fr' ? 'var(--gold)' : 'transparent';
-  document.getElementById('btn-fr').style.opacity = lang==='fr' ? '1' : '.5';
-  document.getElementById('btn-de').style.borderColor = lang==='de' ? 'var(--gold)' : 'transparent';
-  document.getElementById('btn-de').style.opacity = lang==='de' ? '1' : '.5';
-
-  // Titres du Header alternés selon la langue
-  if(lang === 'de') {
-    document.getElementById('hTitle').innerHTML = 'Weinkeller<br><span id="hTitleSub" style="font-size:.75rem;opacity:.85">von Danielle &amp; Pascal</span>';
-  } else {
-    document.getElementById('hTitle').innerHTML = 'La Cave à Vins<br><span id="hTitleSub" style="font-size:.75rem;opacity:.85">de Danielle &amp; Pascal</span>';
-  }
-
-  // Éléments basiques avec data-i18n
+  // Drapeaux
+  document.getElementById('btn-fr').style.borderColor = l==='fr' ? 'var(--gold)' : 'transparent';
+  document.getElementById('btn-fr').style.opacity     = l==='fr' ? '1' : '.5';
+  document.getElementById('btn-de').style.borderColor = l==='de' ? 'var(--gold)' : 'transparent';
+  document.getElementById('btn-de').style.opacity     = l==='de' ? '1' : '.5';
+  // Éléments statiques data-i18n
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if(I18N[lang][key]) el.textContent = I18N[lang][key];
+    const key = el.dataset.i18n;
+    if(I18N[lang][key] && typeof I18N[lang][key] === 'string') el.innerHTML = I18N[lang][key];
   });
-
-  // Les placeholders
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-    const key = el.getAttribute('data-i18n-ph');
-    if(I18N[lang][key]) el.setAttribute('placeholder', I18N[lang][key]);
+    const key = el.dataset.i18nPh;
+    if(I18N[lang][key]) el.placeholder = I18N[lang][key];
   });
-
-  // Noms fixes des étagères
-  document.getElementById('shelfName1').textContent = I18N[lang].shelfName1;
-  document.getElementById('shelfName2').textContent = I18N[lang].shelfName2;
-  document.getElementById('shelfName3').textContent = I18N[lang].shelfName3;
-  document.getElementById('addFromTableBtn').textContent = I18N[lang].btnAddWine;
-
-  renderShelves();
-  renderTable();
-  updateStats();
-  renderHistory();
+  // Titres header
+  document.getElementById('hTitle').childNodes[0].textContent = t('hTitle');
+  const sub = document.getElementById('hTitleSub');
+  if (sub) sub.innerHTML = t('hTitleSub');
+  const bkSync = document.getElementById('bkSyncTextEl');
+  if (bkSync) bkSync.textContent = t('bkSyncText');
+  // Formulaire labels dynamiques — on re-génère via updateFormLabels
+  updateFormLabels();
+  // TYPES labels
+  TYPES.red.label       = t('typeRed');
+  TYPES.white.label     = t('typeWhite');
+  TYPES.rose.label      = t('typeRose');
+  TYPES.petillant.label = t('typePet');
+  TYPES.other.label     = t('typeOther');
+  const hs = document.getElementById('histSearch');
+  if (hs) hs.placeholder = t('histSearchPh');
+  // Re-render tout
+  updateStats(); renderShelves(); renderTable(); renderHistory();
+  if(document.getElementById('view-stats').classList.contains('active')) renderStats();
+}
+function updateFormLabels() {
+  const labels = {
+    'label-type':    [t('labelType'),    t('labelTypeHint')],
+    'label-name':    [t('labelName'),    ''],
+    'label-vintage': [t('labelVintage'), ''],
+    'label-price':   [t('labelPrice'),   ''],
+    'label-shop':    [t('labelShop'),    ''],
+    'label-region':  [t('labelRegion'),  ''],
+    'label-date':    [t('labelDate'),    ''],
+    'label-aromas':  [t('labelAromas'),  t('labelAromasHint')],
+    'label-pairing': [t('labelPairing'), t('labelPairingHint')],
+  };
+  Object.entries(labels).forEach(([id,[main,hint]])=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.innerHTML = main + (hint?` <span style="font-size:.7rem;color:#c9a84c;opacity:.7">${hint}</span>`:'');
+  });
+  // Placeholders
+  const phs = { fName:t('labelNamePh'), fShop:t('labelShopPh'), fRegion:t('labelRegionPh'), fAromas:t('labelAromasPh'), fPairing:t('labelPairingPh') };
+  Object.entries(phs).forEach(([id,ph])=>{ const el=document.getElementById(id); if(el) el.placeholder=ph; });
+  // Bouton sauvegarder / annuler
+  const btnS=document.querySelector('[data-i18n="btnSave"]'); if(btnS) btnS.innerHTML=t('btnSave');
+  const btnC=document.querySelector('[data-i18n="btnCancel"]'); if(btnC) btnC.innerHTML=t('btnCancel');
+  // Photo hint
+  const ph=document.getElementById('photoHint'); if(ph) ph.textContent=t('aiPhotoHint');
 }
 
-function t(key) {
-  return I18N[lang][key] || key;
-}
 
-// ══ SYNCHRONISATION JSONBIN ══
-function setSyncStatus(type, msg='') {
-  const el = document.getElementById('sSyncStatus');
-  if(!el) return;
-  if(type === 'loading') { el.innerHTML = '🔄 Sync...'; el.style.color = '#6af'; }
-  else if(type === 'ok') { el.innerHTML = '☁️ Sync OK'; el.style.color = '#6cfb6c'; }
-  else { el.innerHTML = '⚠️ Sync Err'; el.style.color = '#ff6b6b'; }
-}
+// ══ CONSTANTES ══
+// Étagère 1 : 10 rangées × 12 colonnes = 120 (alvéoles 1-120)
+// Étagère 2 :  8 rangées ×  7 colonnes =  56 (alvéoles 121-176)
+const S1_ROWS=10, S1_COLS=12, S1_TOTAL=120;
+const S2_ROWS=8,  S2_COLS=7,  S2_TOTAL=56;
+const S3_ROWS=3,  S3_COLS=5,  S3_TOTAL=15;
+const TOTAL = S1_TOTAL + S2_TOTAL + S3_TOTAL; // 191
 
-async function syncNow() {
-  setSyncStatus('loading');
-  // Épuration des photos lourdes en localstorage pour la synchro cloud si besoin
-  const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
+const TYPES = {
+  red:       { bg:'radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18)', border:'#8a1a2a', label:'Rouge',     emoji:'🍷', badge:'rgba(122,31,53,.3)', bc:'#ff9090' },
+  white:     { bg:'radial-gradient(circle at 35% 30%,#f0e080,#d4b84a 50%,#8a7010)', border:'#a07820', label:'Blanc',     emoji:'🥂', badge:'rgba(180,160,50,.3)', bc:'#f0d060' },
+  rose:      { bg:'radial-gradient(circle at 35% 30%,#f0a0b0,#d4768a 50%,#8a3050)', border:'#9a4060', label:'Rosé',      emoji:'🌸', badge:'rgba(180,80,120,.3)', bc:'#ffb0c8' },
+  petillant: { bg:'radial-gradient(circle at 35% 30%,#a8d8f0,#4a9ec4 50%,#1a5a80)', border:'#2a7aaa', label:'Pétillant', emoji:'✨', badge:'rgba(74,158,196,.3)', bc:'#a0d8f0' },
+  other:     { bg:'radial-gradient(circle at 35% 30%,#80b080,#5a7a4a 50%,#2a4a20)', border:'#3a6030', label:'Autre',     emoji:'🍾', badge:'rgba(80,120,60,.3)',  bc:'#a0d090' },
+};
+const EMPTY_BG = 'radial-gradient(circle at 35% 35%,#c0b09a,#8a7460 40%,#5a4830)';
+
+// Couleurs inline pour renderShelf (ultra-compatibles)
+const CELL_COLORS = {
+  red:       'background:#7a1f35;background:radial-gradient(circle at 35% 30%,#c0304a,#7a1f35 50%,#3a0a18);border-color:#8a1a2a',
+  white:     'background:#d4b84a;background:radial-gradient(circle at 35% 30%,#f0e080,#d4b84a 50%,#8a7010);border-color:#a07820',
+  rose:      'background:#d4768a;background:radial-gradient(circle at 35% 30%,#f0a0b0,#d4768a 50%,#8a3050);border-color:#9a4060',
+  petillant: 'background:#1a5a80;background:radial-gradient(circle at 35% 30%,#a8d8f0,#4a9ec4 50%,#1a5a80);border-color:#2a7aaa',
+  other:     'background:#5a7a4a;background:radial-gradient(circle at 35% 30%,#80b080,#5a7a4a 50%,#2a4a20);border-color:#3a6030',
+};
+
+// ══ STATE ══
+function loadCellar() {
   try {
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
-      body: JSON.stringify({ cellar: cellarNoPhoto, history })
+    const raw = localStorage.getItem('pascal_cellar');
+    if (!raw) return Array(TOTAL).fill(null);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return Array(TOTAL).fill(null);
+    return Array.from({length: TOTAL}, (_, i) => {
+      const b = parsed[i];
+      if (!b || typeof b !== 'object' || !b.name) return null;
+      if (!TYPES[b.type]) b.type = 'red';
+      const photo = localStorage.getItem('pascal_photo_'+i);
+      if (photo) b.photo = photo;
+      return b;
     });
-    if(res.ok) setSyncStatus('ok');
-    else setSyncStatus('err');
-  } catch(e) { setSyncStatus('err'); }
+  } catch(e) { return Array(TOTAL).fill(null); }
+}
+let cellar  = loadCellar();
+let history = JSON.parse(localStorage.getItem('pascal_history') || '[]');
+let curIdx  = null, curPhoto = null;
+let sortKey = 'id', sortAsc = true;
+let curShelf = 1; // onglet actif
+
+// ══ STATS ══
+function updateStats() {
+  const f1 = cellar.slice(0, S1_TOTAL).filter(Boolean).length;
+  const f2 = cellar.slice(S1_TOTAL, S1_TOTAL+S2_TOTAL).filter(Boolean).length;
+  const f3 = cellar.slice(S1_TOTAL+S2_TOTAL).filter(Boolean).length;
+  const fT = f1 + f2 + f3;
+  const v  = cellar.reduce((a,b) => a+(b?parseFloat(b.price)||0:0), 0);
+  document.getElementById('sTotal').textContent = t('statTotal', fT);
+  document.getElementById('sVal').textContent   = v.toFixed(2).replace('.',',') + ' €';
+  document.getElementById('sE1').textContent    = t('statE1', f1);
+  document.getElementById('sE2').textContent    = t('statE2', f2+f3);
+  document.getElementById('badge1').textContent = t('bottleCount', f1, S1_TOTAL);
+  document.getElementById('badge2').textContent = t('bottleCount', f2, S2_TOTAL);
+  const b3 = document.getElementById('badge3');
+  if(b3) b3.textContent = t('bottleCount', f3, S3_TOTAL);
 }
 
-// ══ INTERFACE VUES / ONGLETS ══
-function switchView(viewId, btn) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`view-${viewId}`).classList.add('active');
-  if(btn) btn.classList.add('active');
-  if(viewId === 'stats') updateStats();
-}
+// ══ SHELF ══
+let dragSrcIdx = null;
 
-function switchShelf(num) {
-  currentShelf = num;
-  document.getElementById('stab1').classList.remove('active');
-  document.getElementById('stab2').classList.remove('active');
-  document.getElementById(`stab${num}`).classList.add('active');
-
-  if(num === 1) {
-    document.getElementById('shelf-panel-1').style.display = 'block';
-    document.getElementById('shelf-panel-2').style.display = 'none';
-  } else {
-    document.getElementById('shelf-panel-1').style.display = 'none';
-    document.getElementById('shelf-panel-2').style.display = 'block';
-  }
-}
-
-// ══ RENDU DES ÉTAGÈRES VISUELLES ══
-function renderShelves() {
-  // Rendre les 3 sous-grilles
-  drawGrid(1, 'shelfGrid1', 'legend1');
-  drawGrid(2, 'shelfGrid2', 'legend2');
-  drawGrid(3, 'shelfGrid3', 'legend3');
-
-  // Mise à jour des badges numériques du nombre de bouteilles
-  let c1 = 0, c2 = 0, c3 = 0;
-  for(let i=1; i<=120; i++) if(cellar[i]) c1++;
-  for(let i=121; i<=176; i++) if(cellar[i]) c2++;
-  for(let i=501; i<=512; i++) if(cellar[i]) c3++;
-
-  document.getElementById('badge1').textContent = `${c1} / 120 Flaschen`;
-  document.getElementById('badge2').textContent = `${c2} / 56 Flaschen`;
-  document.getElementById('badge3').textContent = `${c3} / 12 Flaschen`;
-
-  // Total global en haut
-  const totalInCellar = cellar.filter(Boolean).length;
-  document.getElementById('sTotal').textContent = `${totalInCellar} / 188 Flaschen`;
-  document.getElementById('sE1').textContent = `Reg.1: ${c1}/120`;
-  document.getElementById('sE2').textContent = `Reg.2+3: ${c2+c3}/${56+12}`;
-}
-
-function drawGrid(shelfNum, containerId, legendId) {
-  const conf = SHELVES[shelfNum];
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  container.innerHTML = '';
-
-  const usedTypes = new Set();
-
-  // Création des lignes graphiques de l'étagère
-  for(let r=0; r<conf.rows; r++) {
-    const rowIdx = conf.reverseRows ? (conf.rows - 1 - r) : r;
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'shelf-row';
-
-    // Numéro de la ligne à gauche
-    const label = document.createElement('div');
-    label.className = 'row-num';
-    label.textContent = rowIdx + 1;
-    rowDiv.appendChild(label);
-
-    // Planche en bois accueillant les alvéoles
+function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  for (let r=0; r<rows; r++) {
+    if (r > 0) {
+      const sp = document.createElement('div');
+      sp.className = 'shelf-spacer';
+      grid.appendChild(sp);
+    }
+    const row = document.createElement('div');
+    row.className = 'shelf-row';
+    const num = document.createElement('div');
+    num.className = 'row-num'; num.textContent = r+1;
+    row.appendChild(num);
     const plank = document.createElement('div');
     plank.className = 'shelf-plank';
-
-    for(let c=0; c<conf.cols; c++) {
-      const cellId = conf.start + (rowIdx * conf.cols) + c;
-      if(cellId > conf.end && shelfNum!==3) continue; // Sécurité index
-
+    for (let c=0; c<cols; c++) {
+      const idx = startIdx + r*cols + c;
+      const b = cellar[idx];
       const cell = document.createElement('div');
       cell.className = 'cell';
-      cell.setAttribute('draggable', 'true');
-      cell.dataset.id = cellId;
+      if (b && b.type && CELL_COLORS[b.type]) cell.setAttribute('style', CELL_COLORS[b.type]);
+      // Clignotement si millésime > 9 ans
+      if (b && b.vintage && (new Date().getFullYear() - parseInt(b.vintage)) >= 9) {
+        cell.classList.add('old-vintage');
+      }
+      cell.title = b ? t('filledCell', b.name||'?', b.vintage, idx+1) : t('emptyCell', idx+1);
+      if (b) { const cap=document.createElement('div'); cap.className='cell-cap'; cell.appendChild(cap); }
+      const num2=document.createElement('span'); num2.className='cell-num'; num2.textContent=idx+1;
+      cell.appendChild(num2);
 
-      const cap = document.createElement('div');
-      cap.className = 'cell-cap';
-      cell.appendChild(cap);
-
-      const num = document.createElement('div');
-      num.className = 'cell-num';
-      num.textContent = cellId > 500 ? 'F' + (cellId-500) : cellId;
-      cell.appendChild(num);
-
-      const wine = cellar[cellId];
-      if(wine) {
-        cell.style.background = CELL_COLORS[wine.type] || '#444';
-        num.style.color = (wine.type==='white'||wine.type==='rose') ? 'rgba(0,0,0,.8)' : 'rgba(255,255,255,.8)';
-        usedTypes.add(wine.type);
-        
-        // Clignotement si vieux millésime (ex: avant 2015)
-        if (wine.vintage && parseInt(wine.vintage) <= 2015) {
-          cell.classList.add('old-vintage');
-        }
+      // Drag & drop — seulement si la cellule est remplie
+      if (b) {
+        cell.draggable = true;
+        cell.addEventListener('dragstart', e => {
+          dragSrcIdx = idx;
+          setTimeout(()=>cell.classList.add('dragging'), 0);
+          e.dataTransfer.effectAllowed = 'move';
+          // Afficher hint
+          document.querySelectorAll('.drag-hint').forEach(h=>h.classList.add('show'));
+        });
+        cell.addEventListener('dragend', () => {
+          cell.classList.remove('dragging');
+          dragSrcIdx = null;
+          document.querySelectorAll('.drag-hint').forEach(h=>h.classList.remove('show'));
+          document.querySelectorAll('.cell').forEach(c=>c.classList.remove('drag-over','drag-over-bad'));
+        });
       }
 
-      // Événements d'ouverture et drag and drop tactile / souris
-      cell.onclick = () => openCell(cellId);
-      setupDragAndDrop(cell);
+      // Drag over — toutes les cellules sont des cibles
+      cell.addEventListener('dragover', e => {
+        if (dragSrcIdx === null || dragSrcIdx === idx) return;
+        e.preventDefault();
+        document.querySelectorAll('.cell').forEach(c=>c.classList.remove('drag-over','drag-over-bad'));
+        cell.classList.add('drag-over');
+      });
+      cell.addEventListener('dragleave', () => {
+        cell.classList.remove('drag-over','drag-over-bad');
+      });
+      cell.addEventListener('drop', e => {
+        e.preventDefault();
+        cell.classList.remove('drag-over','drag-over-bad');
+        if (dragSrcIdx === null || dragSrcIdx === idx) return;
+        // Déplacer ou échanger
+        const src = cellar[dragSrcIdx];
+        const dst = cellar[idx];
+        if (dst) {
+          cellar[idx] = src; cellar[dragSrcIdx] = dst;
+          showToast(`🔄 Échange alvéoles ${dragSrcIdx+1} ↔ ${idx+1}`);
+        } else {
+          cellar[idx] = src; cellar[dragSrcIdx] = null;
+          showToast(`✅ ${lang==='de'?'Verschoben':'Déplacée'} → alvéole ${idx+1}`);
+        }
+        dragSrcIdx = null;
+        save(); renderShelves(); renderTable();
+      });
 
+      cell.addEventListener('click', ()=>{ if(dragSrcIdx===null) openModal(idx); });
       plank.appendChild(cell);
     }
-    rowDiv.appendChild(plank);
-    container.appendChild(rowDiv);
-
-    // Intercalaire visuel en bois entre les étagères
-    if(r < conf.rows - 1) {
-      const spacer = document.createElement('div');
-      spacer.className = 'shelf-spacer';
-      container.appendChild(spacer);
-    }
+    row.appendChild(plank);
+    grid.appendChild(row);
   }
 
-  // Rendu de la légende dynamique en bas du panneau
-  const legContainer = document.getElementById(legendId);
-  if(!legContainer) return;
-  legContainer.innerHTML = '';
-  if(usedTypes.size === 0) return;
+  // Hint drag sous la légende
+  const hint = document.createElement('div');
+  hint.className = 'drag-hint';
+  hint.textContent = lang==='de' ? '↕ Flasche ziehen zum Verschieben oder Tauschen' : '↕ Glissez une bouteille pour la déplacer ou l\'échanger';
+  grid.appendChild(hint);
 
-  usedTypes.forEach(type => {
-    const item = document.createElement('div');
-    item.className = 'legend-item';
-    const dot = document.createElement('div');
-    dot.className = 'legend-dot';
-    dot.style.background = CELL_COLORS[type];
-    const lbl = document.createElement('span');
-    lbl.textContent = LEGEND_LABELS[lang][type] || type;
-    item.appendChild(dot);
-    item.appendChild(lbl);
-    legContainer.appendChild(item);
-  });
+  // Légende
+  const leg = document.getElementById(legendId);
+  leg.innerHTML = Object.entries(TYPES).map(([k,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${v.bg};border:1px solid ${v.border}"></div>${v.label}</div>`).join('') +
+    `<div class="legend-item"><div class="legend-dot" style="background:${EMPTY_BG};border:1px solid #6a5640"></div>Vide</div>`;
 }
 
-// ══ GLISSER-DÉPOSER (DRAG & DROP) ══
-let draggedCellId = null;
-
-function setupDragAndDrop(el) {
-  el.addEventListener('dragstart', (e) => {
-    draggedCellId = el.dataset.id;
-    if(!cellar[draggedCellId]) { e.preventDefault(); return; }
-    el.classList.add('dragging');
-  });
-  el.addEventListener('dragend', () => el.classList.remove('dragging'));
-  el.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    if(el.dataset.id === draggedCellId) return;
-    el.classList.add(cellar[el.dataset.id] ? 'drag-over-bad' : 'drag-over');
-  });
-  el.addEventListener('dragleave', () => el.classList.remove('drag-over', 'drag-over-bad'));
-  el.addEventListener('drop', (e) => {
-    el.classList.remove('drag-over', 'drag-over-bad');
-    const targetId = parseInt(el.dataset.id);
-    const sourceId = parseInt(draggedCellId);
-    if(!sourceId || sourceId === targetId || cellar[targetId]) return;
-
-    cellar[targetId] = cellar[sourceId];
-    cellar[sourceId] = null;
-    saveData();
-    renderShelves();
-    showToast(lang === 'fr' ? `Bouteille déplacée en alvéole ${targetId}` : `Flasche in Fach ${targetId} verschoben`);
-  });
+function moveBottle() {
+  const b = cellar[curIdx]; if(!b) return;
+  // Ouvrir le sélecteur d'alvéole en mode "déplacement"
+  document.getElementById('modeView').style.display = 'none';
+  document.getElementById('modeEdit').style.display = '';
+  document.getElementById('eTitle').textContent = lang==='de' ? '↕️ Flasche verschieben' : '↕️ Déplacer la bouteille';
+  document.getElementById('eCell').textContent  = t('cellLabel', curIdx < S1_TOTAL ? 1 : 2, curIdx+1);
+  // Cacher tout le formulaire sauf le sélecteur
+  document.getElementById('photoZone').style.display    = 'none';
+  document.getElementById('aiBox').style.display        = 'none';
+  document.querySelector('.type-btns').parentElement.style.display = 'none';
+  document.querySelectorAll('#modeEdit .form-group').forEach(el=>el.style.display='none');
+  document.querySelectorAll('#modeEdit .form-row').forEach(el=>el.style.display='none');
+  document.querySelector('[data-i18n="btnSave"]').style.display   = 'none';
+  document.getElementById('pasteBtn').style.display     = 'none';
+  // Montrer le sélecteur
+  document.getElementById('cellPickerWrap').style.display = '';
+  document.getElementById('cellPickerTitle').textContent  = lang==='de' ? '📍 Ziel-Fach wählen' : '📍 Choisir l\'alvéole de destination';
+  buildCellPickerForMove();
+  // Bouton confirmer déplacement
+  document.getElementById('btnMoveConfirm').style.display = '';
+  document.getElementById('btnMoveCancel').style.display  = '';
 }
 
-// ══ GESTION DU TABLEAU TRIABLE ET FILTRABLE ══
-function sortBy(key) {
-  if(sortKey === key) sortAsc = !sortAsc;
-  else { sortKey = key; sortAsc = true; }
-  
-  // Mettre à jour visuellement les en-têtes de colonnes
-  document.querySelectorAll('th span').forEach(s => s.textContent = '');
-  const indicator = document.getElementById(`s-${key}`);
-  if(indicator) indicator.textContent = sortAsc ? ' ▲' : ' ▼';
-  
+function buildCellPickerForMove() {
+  const g1 = document.getElementById('cellPickerGrid1');
+  const g2 = document.getElementById('cellPickerGrid2');
+  const g3 = document.getElementById('cellPickerGrid3');
+  g1.innerHTML = ''; g2.innerHTML = ''; if(g3) g3.innerHTML = '';
+  for (let i=0; i<TOTAL; i++) {
+    const b = cellar[i];
+    const grid = i < S1_TOTAL ? g1 : i < S1_TOTAL+S2_TOTAL ? g2 : g3;
+    if (!grid) continue;
+    const isSrc = i === curIdx;
+    const pick = document.createElement('div');
+    pick.className = 'cell-pick' + (b && !isSrc ? ' occupied' : '') + (isSrc ? ' selected' : '');
+    if (b && b.type && CELL_COLORS[b.type]) pick.setAttribute('style', CELL_COLORS[b.type]);
+    pick.textContent = i+1;
+    if (!b) pick.addEventListener('click', ()=>{ document.querySelectorAll('.cell-pick').forEach(p=>p.classList.remove('selected')); pick.classList.add('selected'); curMoveTarget = i; });
+    grid.appendChild(pick);
+  }
+}
+
+let curMoveTarget = null;
+
+function confirmMove() {
+  if(curMoveTarget === null){ showToast('⚠️ ' + (lang==='de'?'Kein Ziel gewählt':'Aucune alvéole choisie')); return; }
+  cellar[curMoveTarget] = cellar[curIdx];
+  cellar[curIdx] = null;
+  save(); renderShelves(); renderTable();
+  showToast(`✅ ${lang==='de'?'Verschoben':'Déplacée'} → alvéole ${curMoveTarget+1}`);
+  curMoveTarget = null;
+  cancelMove();
+  closeModal();
+}
+
+function cancelMove() {
+  // Restaurer le formulaire complet
+  document.getElementById('photoZone').style.display    = '';
+  document.querySelector('.type-btns').parentElement.style.display = '';
+  document.querySelectorAll('#modeEdit .form-group').forEach(el=>el.style.display='');
+  document.querySelectorAll('#modeEdit .form-row').forEach(el=>el.style.display='');
+  document.querySelector('[data-i18n="btnSave"]').style.display   = '';
+  document.getElementById('cellPickerWrap').style.display = 'none';
+  document.getElementById('btnMoveConfirm').style.display = 'none';
+  curMoveTarget = null;
+}
+// ══ RESTAURER DEPUIS CONSO ══
+function restoreFromHistory(idx) {
+  const h = history[idx];
+  if (!h) return;
+  const msg = lang==='de'
+    ? `Was möchten Sie tun?\n\nOK = Flasche zurücklegen (wird aus Konsum entfernt)\nAbbrechen = Gleiche Flasche nachgekauft (bleibt in Konsum)`
+    : `Que voulez-vous faire ?\n\nOK = Remettre cette bouteille en cave (supprime de Conso)\nAnnuler = J'ai racheté la même bouteille (reste en Conso)`;
+  const removeFromHistory = confirm(msg);
+  const origIdx = h.cell - 1;
+  const targetIdx = (origIdx >= 0 && origIdx < TOTAL && !cellar[origIdx]) ? origIdx : cellar.findIndex(b=>!b);
+  if (targetIdx < 0) { showToast(lang==='de'?'⚠️ Kein freies Fach!':'⚠️ Aucune alvéole libre !'); return; }
+  const bottle = {...h};
+  delete bottle.consumedAt; delete bottle.cell;
+  curIdx = targetIdx; curPhoto = bottle.photo || null;
+  showEdit(bottle, curIdx);
+  document.getElementById('cellPickerWrap').style.display = '';
+  buildCellPicker();
+  document.getElementById('modeEdit').dataset.historyIdx = removeFromHistory ? idx : '';
+  document.getElementById('modalOverlay').classList.add('open');
+  showToast(lang==='de'?'📍 Fach wählen und speichern':'📍 Choisissez l\'alvéole puis enregistrez');
+}
+
+function openAddFromTable() {
+  // Trouver la première alvéole vide
+  const firstEmpty = cellar.findIndex(b=>!b);
+  curIdx = firstEmpty >= 0 ? firstEmpty : 0;
+  curPhoto = null;
+  showEdit(null, curIdx);
+  // Afficher le sélecteur d'alvéole
+  document.getElementById('cellPickerWrap').style.display = '';
+  buildCellPicker();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function buildCellPicker() {
+  const g1 = document.getElementById('cellPickerGrid1');
+  const g2 = document.getElementById('cellPickerGrid2');
+  const g3 = document.getElementById('cellPickerGrid3');
+  g1.innerHTML = ''; g2.innerHTML = ''; if(g3) g3.innerHTML = '';
+  for (let i=0; i<TOTAL; i++) {
+    const b = cellar[i];
+    const grid = i < S1_TOTAL ? g1 : i < S1_TOTAL+S2_TOTAL ? g2 : g3;
+    if (!grid) continue;
+    const pick = document.createElement('div');
+    pick.className = 'cell-pick' + (b?' occupied':'') + (i===curIdx?' selected':'');
+    if (b && b.type && CELL_COLORS[b.type]) pick.setAttribute('style', CELL_COLORS[b.type]);
+    pick.textContent = i+1;
+    if (!b) pick.addEventListener('click', ()=>selectPickerCell(i));
+    grid.appendChild(pick);
+  }
+}
+
+function selectPickerCell(idx) {
+  curIdx = idx;
+  document.querySelectorAll('.cell-pick').forEach((p,i)=>p.classList.toggle('selected', i===idx));
+  document.getElementById('eCell').textContent = t('cellLabel', idx < S1_TOTAL ? 1 : 2, idx+1);
+}
+
+function togglePickerShelf() {
+  const wrap = document.getElementById('cellPickerGrid2Wrap');
+  const tog  = document.getElementById('cellPickerShelf2Toggle');
+  const visible = wrap.style.display !== 'none';
+  wrap.style.display = visible ? 'none' : 'block';
+  tog.textContent = visible
+    ? (lang==='de'?'▼ Regale 2 + 3 anzeigen':'▼ Voir aussi Étagères 2 + 3')
+    : (lang==='de'?'▲ Regale 2 + 3 ausblenden':'▲ Masquer Étagères 2 + 3');
+}
+
+
+function renderShelves() {
+  document.querySelector('#shelfName1') && (document.querySelector('#shelfName1').textContent = t('shelf1name'));
+  document.querySelector('#shelfName2') && (document.querySelector('#shelfName2').textContent = t('shelf2name'));
+  document.querySelector('#shelfName3') && (document.querySelector('#shelfName3').textContent = lang==='de'?'🍽️ Speisekammer / Kühl':'🍽️ Garde-manger / Frigo');
+  buildShelfGrid('shelfGrid1','legend1', 0,                    S1_ROWS, S1_COLS);
+  buildShelfGrid('shelfGrid2','legend2', S1_TOTAL,             S2_ROWS, S2_COLS);
+  buildShelfGrid('shelfGrid3','legend3', S1_TOTAL+S2_TOTAL,    S3_ROWS, S3_COLS);
+}
+
+function switchShelf(n) {
+  curShelf = n;
+  document.getElementById('shelf-panel-1').style.display = n===1 ? '' : 'none';
+  document.getElementById('shelf-panel-2').style.display = n===2 ? '' : 'none';
+  document.getElementById('stab1').classList.toggle('active', n===1);
+  document.getElementById('stab2').classList.toggle('active', n===2);
+}
+
+// ══ TABLE ══
+function renderTable() {
+  const q  = document.getElementById('tSearch').value.toLowerCase();
+  const f  = document.getElementById('tFilter').value;
+  const tb = document.getElementById('tableBody');
+  let rows = cellar.map((b,i)=> b
+    ? {...b, _i:i, _id:i+1, _shelf: i<S1_TOTAL?1:2, _empty:false}
+    : {_i:i, _id:i+1, _shelf: i<S1_TOTAL?1:2, _empty:true}
+  );
+  if (f==='empty') rows=rows.filter(r=>r._empty);
+  else if (f)      rows=rows.filter(r=>!r._empty && r.type===f);
+  else             rows=rows.filter(r=>!r._empty);
+  if (q) rows=rows.filter(r=>[r.name,r.vintage,r.region,r.shop,r.notes].join(' ').toLowerCase().includes(q));
+  rows.sort((a,b)=>{
+    let va = sortKey==='id'?a._id : sortKey==='shelf'?a._shelf : (a[sortKey]||'');
+    let vb = sortKey==='id'?b._id : sortKey==='shelf'?b._shelf : (b[sortKey]||'');
+    if(['price','vintage','id','shelf'].includes(sortKey)){va=parseFloat(va)||0;vb=parseFloat(vb)||0;}
+    else{va=String(va).toLowerCase();vb=String(vb).toLowerCase();}
+    return sortAsc?(va>vb?1:-1):(va<vb?1:-1);
+  });
+  const thisYear = new Date().getFullYear();
+  tb.innerHTML = rows.length===0
+    ? `<tr><td colspan="5" style="text-align:center;padding:20px;opacity:.35;font-style:italic">${t('tblEmpty')}</td></tr>`
+    : rows.map(r=>{
+      const old = r.vintage && (thisYear - parseInt(r.vintage)) >= 9;
+      return `<tr style="cursor:pointer" class="${old?'old-vintage':''}" onclick="openModal(${r._i});switchView('shelf',document.querySelector('.nav-btn'))">
+        <td style="font-size:.72rem">${r._id}</td>
+        <td style="font-size:.65rem">${r.type?`<span class="type-dot-sm" style="background:${TYPES[r.type]?.bg}"></span>`:'—'}</td>
+        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px">${r.name||`<em style="opacity:.4">${t('tblVide')}</em>`}${old?' 🏆':''}</td>
+        <td style="font-size:.7rem;opacity:.7">${r.vintage||'—'}</td>
+        <td style="font-size:.7rem;white-space:nowrap">${r.price?parseFloat(r.price).toFixed(2).replace('.',',')+' €':'—'}</td>
+      </tr>`;
+    }).join('');
+}
+
+function sortBy(k) {
+  if(sortKey===k) sortAsc=!sortAsc; else{sortKey=k;sortAsc=true;}
+  document.querySelectorAll('[id^="s-"]').forEach(el=>el.textContent='');
+  const el=document.getElementById('s-'+k); if(el) el.textContent=sortAsc?' ↑':' ↓';
   renderTable();
 }
 
-function renderTable() {
-  const tbody = document.getElementById('tableBody');
-  if(!tbody) return;
-  tbody.innerHTML = '';
-
-  const q = document.getElementById('tSearch').value.toLowerCase().trim();
-  const f = document.getElementById('tFilter').value;
-
-  // Rassembler toutes les lignes de données réelles
-  let list = [];
-  for(let i=1; i<cellar.length; i++) {
-    const w = cellar[i];
-    const displayId = i > 500 ? 'F' + (i-500) : i;
-    
-    if(f === 'empty') {
-      if(!w && ((i>=1 && i<=176) || (i>=501 && i<=512))) {
-        list.push({ id: i, displayId, isEmpty: true, name: `(${t('msgEmptyCell')})`, type:'', vintage:'', price:0, region:'', comment:'' });
-      }
-    } else {
-      if(w) {
-        if(f && w.type !== f) continue;
-        if(q) {
-          const match = (w.name||'').toLowerCase().includes(q) || 
-                        (w.region||'').toLowerCase().includes(q) || 
-                        (w.comment||'').toLowerCase().includes(q) || 
-                        (w.vintage||'').toString().includes(q) ||
-                        displayId.toString().toLowerCase().includes(q);
-          if(!match) continue;
-        }
-        list.push({ ...w, id: i, displayId, isEmpty: false });
-      }
-    }
-  }
-
-  // Application du tri algorithmique
-  list.sort((a,b) => {
-    if(a.isEmpty !== b.isEmpty) return a.isEmpty ? 1 : -1;
-    let va = a[sortKey], vb = b[sortKey];
-    if(sortKey === 'price' || sortKey === 'vintage' || sortKey === 'id') {
-      va = parseFloat(va) || 0; vb = parseFloat(vb) || 0;
-    } else {
-      va = (va||'').toString().toLowerCase(); vb = (vb||'').toString().toLowerCase();
-    }
-    if(va < vb) return sortAsc ? -1 : 1;
-    if(va > vb) return sortAsc ? 1 : -1;
-    return 0;
-  });
-
-  if(list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-icon">🔍</div><div>${t('msgNoWine')}</div></td></tr>`;
-    return;
-  }
-
-  list.forEach(w => {
-    const tr = document.createElement('tr');
-    if(w.isEmpty) tr.className = 'empty-row';
-    tr.onclick = () => openCell(w.id);
-
-    // Style spécial si vieux millésime
-    if (!w.isEmpty && w.vintage && parseInt(w.vintage) <= 2015) {
-      tr.classList.add('old-vintage');
-    }
-
-    const dotHtml = w.isEmpty ? '' : `<span class="type-dot-sm" style="background:${CELL_COLORS[w.type]}"></span>`;
-    const priceHtml = w.isEmpty || !w.price ? '—' : `${parseFloat(w.price).toFixed(2)} €`;
-
-    tr.innerHTML = `
-      <td style="font-weight:bold;color:var(--gold);font-size:.75rem">${w.displayId}</td>
-      <td>${dotHtml}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-        <div style="font-weight:500;color:var(--cream)">${w.name}</div>
-        <div style="font-size:.68rem;opacity:.5;overflow:hidden;text-overflow:ellipsis">${w.region||''}</div>
-      </td>
-      <td style="font-size:.75rem">${w.vintage||'—'}</td>
-      <td style="text-align:right;font-size:.75rem;font-weight:500">${priceHtml}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-// ══ VUE HISTORIQUE DES BOUTEILLES BUSES ══
+// ══ HISTORY ══
 function renderHistory() {
-  const container = document.getElementById('historyList');
-  if(!container) return;
-  container.innerHTML = '';
+  const list = document.getElementById('historyList');
+  const q = (document.getElementById('histSearch')?.value||'').toLowerCase().trim();
+  if (!history.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">📜</div><div>${t('histEmpty')}</div></div>`; return; }
 
-  if(history.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📜</div><div>${t('emptyHistory')}</div></div>`;
-    return;
-  }
+  let items = [...history].map((h,i)=>({...h,_i:i})).reverse();
+  if (q) items = items.filter(h=>
+    [h.name,h.region,h.vintage,h.shop,h.notice_with,h.notice_occasion,h.notice_taste,h.notice_notes]
+    .join(' ').toLowerCase().includes(q)
+  );
+  if (!items.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div>${t('histNoResult',q)}</div></div>`; return; }
 
-  // Tri chronologique inverse (le plus récent bu en premier)
-  const sorted = [...history].sort((a,b) => b.date - a.date);
-
-  sorted.forEach(h => {
-    const card = document.createElement('div');
-    card.className = 'hist-card';
-    const dStr = new Date(h.date).toLocaleDateString(lang==='fr'?'fr-FR':'de-DE', {day:'2-digit',month:'2-digit'});
-    
-    card.innerHTML = `
-      <div class="hist-icon">🍷</div>
+  list.innerHTML = items.map(h=>{
+    const i = h._i;
+    const hasNotice = h.notice_with||h.notice_occasion||h.notice_taste||h.notice_notes;
+    return `<div class="hist-card" id="hcard-${i}" ontouchstart="startLongPress(${i},event)" ontouchend="cancelLongPress()" onmousedown="startLongPress(${i},event)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()">
+      <div class="hist-icon">${TYPES[h.type]?.emoji||'🍾'}</div>
       <div style="flex:1;min-width:0">
-        <div class="hist-name">${h.name}</div>
-        <div class="hist-meta">${h.vintage||'—'} · ${h.region||''}</div>
+        <div class="hist-name">${h.name||'Sans nom'}</div>
+        <div class="hist-meta">${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
+        ${h.aromas?`<div class="hist-meta">🌸 ${h.aromas}</div>`:''}
+        ${h.price?`<div class="hist-meta">💶 ${parseFloat(h.price).toFixed(2).replace('.',',')} €</div>`:''}
+        ${hasNotice?`<div style="margin-top:6px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:6px;padding:6px 8px;font-size:.73rem;color:var(--cream-d);line-height:1.6">
+          ${h.notice_with?`<div>👥 ${h.notice_with}</div>`:''}
+          ${h.notice_occasion?`<div>🎉 ${h.notice_occasion}</div>`:''}
+          ${h.notice_taste?`<div>⭐ ${h.notice_taste}</div>`:''}
+          ${h.notice_notes?`<div>📝 ${h.notice_notes}</div>`:''}
+        </div>`:''}
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button onclick="event.stopPropagation();openNotice(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);color:var(--cream-d);border-radius:6px;padding:5px 6px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
+            📝 ${hasNotice?t('noticeBtnEdit'):t('noticeBtnAdd')}
+          </button>
+          <button onclick="event.stopPropagation();restoreFromHistory(${i})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="flex:1;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:6px;padding:5px 6px;font-size:.72rem;cursor:pointer;font-family:Georgia,serif">
+            🔄 ${lang==='de'?'Zurück ins Regal':'Remettre en cave'}
+          </button>
+        </div>
       </div>
-      <div class="hist-date">${dStr}</div>
-    `;
-    container.appendChild(card);
-  });
+      <div style="text-align:right;flex-shrink:0">
+        <div class="hist-date">${fmtDate(h.consumedAt)}</div>
+        <div style="font-size:.6rem;opacity:.3;margin-top:4px">⏱ long</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-// ══ VUE STATISTIQUES FINANCIÈRES ET GRAPHIQUES ══
-function updateStats() {
-  let totalInCellar = 0;
-  let totalPrice = 0;
-  let counts = { red:0, white:0, rose:0, petillant:0, other:0 };
-  let regions = {};
+// ══ NOTICES CONSO ══
+let curNoticeIdx = null;
 
-  cellar.forEach(w => {
-    if(!w) return;
-    totalInCellar++;
-    totalPrice += parseFloat(w.price) || 0;
-    if(counts[w.type] !== undefined) counts[w.type]++;
-    if(w.region) {
-      let reg = w.region.trim();
-      regions[reg] = (regions[reg]||0) + 1;
-    }
-  });
-
-  // Mettre à jour les indicateurs monétaires globaux
-  document.getElementById('sVal').textContent = `${totalPrice.toFixed(2)} €`;
-  
-  if(document.getElementById('kpiCount')) {
-    document.getElementById('kpiCount').textContent = totalInCellar;
-    document.getElementById('kpiValue').textContent = `${totalPrice.toFixed(2)} €`;
-  }
-
-  // Rendu de la barre horizontale de couleurs
-  const colorCont = document.getElementById('statsColors');
-  if(colorCont) {
-    colorCont.innerHTML = '';
-    if(totalInCellar === 0) {
-      colorCont.innerHTML = `<div class="stat-empty">${t('anecdoteEmpty')}</div>`;
-    } else {
-      Object.keys(counts).forEach(type => {
-        const c = counts[type];
-        if(c === 0) return;
-        const pct = ((c / totalInCellar)*100).toFixed(0);
-        
-        const card = document.createElement('div');
-        card.className = 'stat-card';
-        card.innerHTML = `
-          <div class="stat-card-row">
-            <span class="stat-card-label">${dot(type)} ${LEGEND_LABELS[lang][type]}</span>
-            <span class="stat-card-val">${c} (${pct}%)</span>
-          </div>
-          <div class="stat-bar-wrap">
-            <div class="stat-bar" style="width:${pct}%;background:${CELL_COLORS[type]}"></div>
-          </div>
-        `;
-        colorCont.appendChild(card);
-      });
-    }
-  }
-
-  // Rendu du classement top régions
-  const regCont = document.getElementById('statsRegions');
-  if(regCont) {
-    regCont.innerHTML = '';
-    const sortedReg = Object.entries(regions).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    if(sortedReg.length === 0) {
-      regCont.innerHTML = `<div class="stat-empty">${t('anecdoteEmpty')}</div>`;
-    } else {
-      sortedReg.forEach(([name, c]) => {
-        const pct = ((c / totalInCellar)*100).toFixed(0);
-        const card = document.createElement('div');
-        card.className = 'stat-card';
-        card.innerHTML = `
-          <div class="stat-card-row">
-            <span class="stat-card-label">📍 ${name}</span>
-            <span class="stat-card-val">${c} Fl.</span>
-          </div>
-          <div class="stat-bar-wrap">
-            <div class="stat-bar" style="width:${pct}%;background:var(--gold)"></div>
-          </div>
-        `;
-        regCont.appendChild(card);
-      });
-    }
-  }
-
-  // Générateur d'anecdotes écrites intelligentes
-  const anecCont = document.getElementById('statsAnecdotes');
-  if(anecCont) {
-    anecCont.innerHTML = '';
-    if(totalInCellar === 0) {
-      anecCont.innerHTML = `<div class="stat-empty">${t('anecdoteEmpty')}</div>`;
-    } else {
-      let html = '';
-      const avgPrice = totalPrice / totalInCellar;
-      if(lang==='fr') {
-        html += `<div class="stat-anecdote">Le prix moyen d'une bouteille dans votre cave est de <strong>${avgPrice.toFixed(2)} €</strong>.</div>`;
-      } else {
-        html += `<div class="stat-anecdote">Der durchschnittliche Preis einer Flasche in Ihrem Keller beträgt <strong>${avgPrice.toFixed(2)} €</strong>.</div>`;
-      }
-      
-      // Trouver le vin le plus ancien encore en cave
-      let oldest = null;
-      cellar.forEach(w => {
-        if(!w || !w.vintage) return;
-        const v = parseInt(w.vintage);
-        if(!v) return;
-        if(!oldest || v < oldest.v) oldest = { v, name: w.name };
-      });
-      if(oldest) {
-        if(lang==='fr') {
-          html += `<div class="stat-anecdote">Le plus vieux millésime de votre collection est le <strong>${oldest.v}</strong> (${oldest.name}).</div>`;
-        } else {
-          html += `<div class="stat-anecdote">Der älteste Jahrgang in Ihrer Sammlung ist <strong>${oldest.v}</strong> (${oldest.name}).</div>`;
-        }
-      }
-      anecCont.innerHTML = html;
-    }
-  }
-}
-function dot(type) { return `<span class="type-dot-sm" style="background:${CELL_COLORS[type]};margin-right:2px"></span>`; }
-
-// ══ OUVERTURE DE LA MODAL DETAIL / EDITION ══
-function openCell(id) {
-  const overlay = document.getElementById('modalOverlay');
-  const content = document.getElementById('modalContent');
-  const wine = cellar[id];
-  const displayId = id > 500 ? 'F' + (id-500) : id;
-
-  if(!wine) {
-    // Mode d'ajout rapide direct dans l'alvéole vide sélectionnée
-    openAddForm(id);
-    return;
-  }
-
-  overlay.classList.add('open');
-  
-  const priceText = wine.price ? `${parseFloat(wine.price).toFixed(2)} €` : '—';
-  
-  content.innerHTML = `
-    <span class="wine-badge" style="background:${CELL_COLORS[wine.type]};color:${(wine.type==='white'||wine.type==='rose')?'#111':'#fff'}">${LEGEND_LABELS[lang][wine.type]}</span>
-    <div class="wine-title">${wine.name}</div>
-    <div class="wine-cell">Alvéole ${displayId}</div>
-    
-    <div style="margin-bottom:16px">
-      <div class="info-row"><span class="info-key">${t('lblVintage')}</span><span class="info-val">${wine.vintage||'—'}</span></div>
-      <div class="info-row"><span class="info-key">${t('lblRegion')}</span><span class="info-val">${wine.region||'—'}</span></div>
-      <div class="info-row"><span class="info-key">${t('lblPrice')}</span><span class="info-val">${priceText}</span></div>
-      <div class="info-row" style="border:none"><span class="info-key">${t('lblComment')}</span><span class="info-val" style="text-align:left;display:block;margin-top:4px">${wine.comment||'—'}</span></div>
-    </div>
-
-    <button class="btn btn-search" onclick="searchGoogleAI('${wine.name}','${wine.vintage||''}')">${t('searchGoogleAI')}</button>
-    <div class="ai-box" id="aiBox"></div>
-
-    <button class="btn btn-primary" onclick="openEditForm(${id})">${t('btnEdit')}</button>
-    <button class="btn btn-ghost" onclick="drinkWine(${id})">${t('btnDrink')}</button>
-    <button class="btn btn-danger" onclick="deleteWine(${id})">${t('btnDelete')}</button>
-    <button class="btn btn-warn" onclick="closeModal()">${t('btnCancel')}</button>
-  `;
+function openNotice(idx) {
+  const h = history[idx]; if(!h) return;
+  curNoticeIdx = idx;
+  document.getElementById('noticeTitle').textContent = t('noticeTitle');
+  document.getElementById('noticeWineName').textContent = (h.name||'?') + (h.vintage?' '+h.vintage:'');
+  // Labels
+  document.querySelector('#noticeOverlay label[for-field="noticeWith"]') && null;
+  document.getElementById('noticeWith').value      = h.notice_with      || '';
+  document.getElementById('noticeOccasion').value  = h.notice_occasion  || '';
+  document.getElementById('noticeTaste').value     = h.notice_taste     || '';
+  document.getElementById('noticeNotes').value     = h.notice_notes     || '';
+  // Placeholders
+  document.getElementById('noticeWith').placeholder      = t('noticeWithPh');
+  document.getElementById('noticeOccasion').placeholder  = t('noticeOccasionPh');
+  document.getElementById('noticeTaste').placeholder     = t('noticeTastePh');
+  document.getElementById('noticeNotes').placeholder     = t('noticeNotesPh');
+  // Bouton save
+  document.getElementById('noticeSaveBtn').textContent = t('noticeSave');
+  document.getElementById('noticeOverlay').classList.add('open');
 }
 
-// Link intelligent d'accords mets-vins
-function searchGoogleAI(name, vintage) {
-  const query = encodeURIComponent(`accords mets vins gastronomie ${name} ${vintage}`.trim());
-  window.open(`https://www.google.com/search?q=${query}`, '_blank');
+function closeNotice() {
+  document.getElementById('noticeOverlay').classList.remove('open');
+  curNoticeIdx = null;
 }
 
+function saveNotice() {
+  if (curNoticeIdx === null) return;
+  history[curNoticeIdx].notice_with      = document.getElementById('noticeWith').value.trim();
+  history[curNoticeIdx].notice_occasion  = document.getElementById('noticeOccasion').value.trim();
+  history[curNoticeIdx].notice_taste     = document.getElementById('noticeTaste').value.trim();
+  history[curNoticeIdx].notice_notes     = document.getElementById('noticeNotes').value.trim();
+  save(); renderHistory(); closeNotice();
+  showToast(t('toastNoticeSaved'));
+}
+
+
+let longPressTimer = null;
+function startLongPress(idx, e) {
+  e.preventDefault();
+  longPressTimer = setTimeout(()=>{
+    const h = history[idx];
+    if (!h) return;
+    if (confirm(lang==='de'?`"${h.name||'?'}" endgültig löschen?`:`Supprimer définitivement "${h.name||'?'}" des archives ?`)) {
+      history.splice(idx, 1);
+      save(); renderHistory();
+      showToast(lang==='de'?'🗑️ Endgültig gelöscht':'🗑️ Supprimé définitivement');
+    }
+  }, 1200);
+}
+function cancelLongPress() { clearTimeout(longPressTimer); }
+
+
+// ══ MODAL ══
+function goToShelf(idx) {
+  const savedIdx = idx !== undefined ? idx : curIdx;
+  closeModal();
+  const shelf = (savedIdx !== null && savedIdx < S1_TOTAL) ? 1 : 2;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelector('.nav-btn').classList.add('active');
+  document.getElementById('view-shelf').classList.add('active');
+  switchShelf(shelf);
+}
+
+function openModal(idx) {
+  curIdx=idx; curPhoto=null;
+  const b=cellar[idx];
+  if(b) showView(b,idx); else showEdit(null,idx);
+  document.getElementById('modalOverlay').classList.add('open');
+}
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
+  curIdx=null; curPhoto=null; hideAiBox();
 }
 
-// ══ FORMULAIRES D'AJOUT ET D'ÉDITION ══
-function openAddFromTable() {
-  // Trouver la toute première alvéole vacante disponible dans l'étagère courante
-  let start=1, end=120;
-  if(currentShelf===2) { start=121; end=176; }
-  let found = null;
-  for(let i=start; i<=end; i++) {
-    if(!cellar[i]) { found=i; break; }
+function buildSearchBtns(name, vintage) {
+  if (!name) return '';
+  const searchTerm = [name, vintage].filter(Boolean).join(' ');
+  const qGAI = encodeURIComponent(searchTerm + ' vin arômes accords mets prix conservation');
+  return `<a href="https://www.google.com/search?q=${qGAI}&udm=50" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:7px 12px;border-radius:6px;font-size:.82rem;text-decoration:none;margin-right:5px;margin-bottom:6px">🤖 Google IA</a>`;
+}
+
+function updateGoogleAILink(name, vintage) {
+  const link = document.getElementById('googleAILink');
+  if (!link) return;
+  if (name) {
+    const q = encodeURIComponent([name, vintage].filter(Boolean).join(' ') + ' vin arômes accords mets prix conservation');
+    link.href = 'https://www.google.com/search?q=' + q + '&udm=50';
+    link.style.pointerEvents = '';
+    link.style.opacity = '1';
+    link.textContent = '🤖 Google IA — ' + name;
+  } else {
+    link.href = '#';
+    link.style.pointerEvents = 'none';
+    link.style.opacity = '.4';
+    link.textContent = '🤖 Google IA — saisissez d\'abord le nom';
   }
-  if(!found) {
-    // Repli de secours global si aucun espace libre sur l'étagère
-    for(let i=1; i<cellar.length; i++) {
-      if(!cellar[i] && ((i>=1&&i<=176)||(i>=501&&i<=512))) { found=i; break; }
-    }
-  }
-  openAddForm(found || 1);
 }
 
-function openAddForm(targetCellId) {
-  const overlay = document.getElementById('modalOverlay');
-  const content = document.getElementById('modalContent');
-  overlay.classList.add('open');
-
-  content.innerHTML = `
-    <div class="wine-title" style="margin-bottom:12px">${t('btnAddWine')}</div>
-    
-    <div class="cell-picker-wrap">
-      <div class="cell-picker-title">${t('lblChooseCell')}</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="fId" onchange="renderMiniPicker(this.value)" style="width:110px">
-          ${generateCellOptions(targetCellId)}
-        </select>
-        <span style="font-size:.72rem;opacity:.5" id="miniPickerHint"></span>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>${t('lblType')}</label>
-      <div class="type-btns">
-        <div class="type-btn active-type" onclick="selectFormType('red',this)">${t('typeRed')}</div>
-        <div class="type-btn" onclick="selectFormType('white',this)">${t('typeWhite')}</div>
-        <div class="type-btn" onclick="selectFormType('rose',this)">${t('typeRose')}</div>
-        <div class="type-btn" onclick="selectFormType('petillant',this)">${t('typePet')}</div>
-        <div class="type-btn" onclick="selectFormType('other',this)">${t('typeOther')}</div>
-      </div>
-      <input type="hidden" id="fType" value="red">
-    </div>
-
-    <div class="form-group">
-      <label>${t('lblName')} *</label>
-      <input type="text" id="fName" required placeholder="Château, Domaine, Cépage...">
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>${t('lblVintage')}</label>
-        <input type="number" id="fVintage" placeholder="2020">
-      </div>
-      <div class="form-group">
-        <label>${t('lblPrice')}</label>
-        <input type="number" step="0.01" id="fPrice" placeholder="15.50">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>${t('lblRegion')}</label>
-      <input type="text" id="fRegion" placeholder="Bordeaux, Alsace, Toscane...">
-    </div>
-
-    <div class="form-group">
-      <label>${t('lblComment')}</label>
-      <textarea id="fComment" placeholder="Cadeau de Jean, à boire avant 2028..."></textarea>
-    </div>
-
-    <button class="btn btn-primary" onclick="saveAddForm()">${t('btnSave')}</button>
-    <button class="btn btn-warn" onclick="closeModal()">${t('btnCancel')}</button>
-  `;
+function showView(b, idx) {
+  document.getElementById('modeView').style.display=''; document.getElementById('modeEdit').style.display='none';
+  const tc=TYPES[b.type]||{};
+  document.getElementById('vBadge').textContent=(tc.emoji||'')+(tc.label?' '+tc.label:'');
+  document.getElementById('vBadge').style.cssText=`background:${tc.badge||'rgba(100,100,100,.3)'};color:${tc.bc||'#ccc'};border:1px solid ${tc.border||'#555'}`;
+  document.getElementById('vName').textContent=b.name||'Sans nom';
+  const shelf = idx < S1_TOTAL ? 1 : 2;
+  document.getElementById('vCell').textContent = t('cellLabel', shelf, idx+1);
+  const pw=document.getElementById('vPhotoWrap');
+  if(b.photo){pw.style.display='';document.getElementById('vPhoto').src=b.photo;}else pw.style.display='none';
+  document.getElementById('vInfoCard').innerHTML=[
+    [t('infoVintage'), b.vintage||'—'],
+    [t('infoPrice'),   b.price?parseFloat(b.price).toFixed(2).replace('.',',')+' €':'—'],
+    [t('infoShop'),    b.shop||'—'],
+    [t('infoRegion'),  b.region||'—'],
+    [t('infoDate'),    b.date?fmtDate(b.date):'—'],
+    [t('infoAromas'),       b.aromas||'—'],
+    [t('infoPairing'),      b.pairing||'—'],
+    ['🕰️ Conservation',    b.conservation||'—'],
+    ['📝 Notes',            b.noteslib||'—']
+  ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
+  // Boutons recherche
+  document.getElementById('vSearchBtns').innerHTML = buildSearchBtns(b.name, b.vintage);
 }
 
-function generateCellOptions(selectedId) {
-  let html = '';
-  // Parcourir l'ensemble des cases valides configurées
-  for(let i=1; i<cellar.length; i++) {
-    if((i>=1 && i<=176) || (i>=501 && i<=512)) {
-      const displayId = i > 500 ? 'F' + (i-500) : i;
-      const status = cellar[i] ? ` (${cellar[i].name})` : '';
-      const sel = i === selectedId ? 'selected' : '';
-      html += `<option value="${i}" ${sel}>#${displayId}${status}</option>`;
-    }
-  }
-  return html;
+function selectType(t) {
+  document.getElementById('fType').value=t;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active-type'));
+  const btn=document.getElementById('tb-'+t); if(btn) btn.classList.add('active-type');
 }
 
-function selectFormType(type, btn) {
-  document.getElementById('fType').value = type;
-  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active-type'));
-  btn.classList.add('active-type');
+function showEdit(b, idx) {
+  document.getElementById('modeView').style.display='none'; document.getElementById('modeEdit').style.display='';
+  const shelf = idx < S1_TOTAL ? 1 : 2;
+  document.getElementById('eTitle').textContent = b ? t('editBottle') : t('addBottle');
+  document.getElementById('eCell').textContent  = t('cellLabel', idx < S1_TOTAL ? 1 : 2, idx+1);
+  selectType(b?.type||'red');
+  document.getElementById('fName').value    = b?.name    || '';
+  document.getElementById('fVintage').value = b?.vintage || '';
+  document.getElementById('fPrice').value   = b?.price   || '';
+  document.getElementById('fShop').value    = b?.shop    || '';
+  document.getElementById('fRegion').value  = b?.region  || '';
+  document.getElementById('fDate').value    = b?.date    || '';
+  document.getElementById('fAromas').value       = b?.aromas       || '';
+  document.getElementById('fPairing').value      = b?.pairing      || '';
+  document.getElementById('fConservation').value = b?.conservation || '';
+  document.getElementById('fNotesLib').value     = b?.noteslib     || '';
+  // Mettre à jour le lien Google IA si nom disponible
+  updateGoogleAILink(b?.name, b?.vintage);
+  curPhoto = b?.photo||null;
+  const prev=document.getElementById('photoPreview'), img=document.getElementById('photoImg');
+  if(curPhoto){img.src=curPhoto;prev.style.display='';}else{prev.style.display='none';img.src='';}
+  hideAiBox();
+  // Masquer le sélecteur (visible seulement depuis "Ajouter depuis tableau")
+  document.getElementById('cellPickerWrap').style.display = 'none';
+  const pasteBtn=document.getElementById('pasteBtn'), pasteName=document.getElementById('pasteName');
+  if(pasteBtn){const show=!b&&clipboard;pasteBtn.style.display=show?'':'none';if(show&&pasteName)pasteName.textContent=clipboard.name||'bouteille copiée';}
+  // Boutons recherche si on a un nom
+  document.getElementById('eSearchBtns').innerHTML = buildSearchBtns(b?.name, b?.vintage);
 }
 
-function saveAddForm() {
-  const id = parseInt(document.getElementById('fId').value);
-  const name = document.getElementById('fName').value.trim();
-  if(!name) { alert("Veuillez saisir un nom"); return; }
+function switchEdit() { showEdit(cellar[curIdx], curIdx); }
+function cancelEdit()  { cellar[curIdx]?showView(cellar[curIdx],curIdx):closeModal(); }
 
-  cellar[id] = {
-    name,
-    type: document.getElementById('fType').value,
-    vintage: document.getElementById('fVintage').value || null,
-    price: document.getElementById('fPrice').value || null,
-    region: document.getElementById('fRegion').value.trim() || null,
-    comment: document.getElementById('fComment').value.trim() || null
+function saveBottle() {
+  if(curIdx===null||curIdx<0||curIdx>=TOTAL){showToast('⚠️ Erreur : alvéole invalide');return;}
+  const name=document.getElementById('fName').value.trim();
+  if(!name){showToast(t('toastInvalidName'));return;}
+  const type=document.getElementById('fType').value;
+  cellar[curIdx]={
+    type: TYPES[type]?type:'red', name,
+    vintage: document.getElementById('fVintage').value,
+    price:   document.getElementById('fPrice').value,
+    shop:    document.getElementById('fShop').value,
+    region:  document.getElementById('fRegion').value,
+    date:    document.getElementById('fDate').value,
+    aromas:        document.getElementById('fAromas').value,
+    pairing:       document.getElementById('fPairing').value,
+    conservation:  document.getElementById('fConservation').value,
+    noteslib:      document.getElementById('fNotesLib').value,
+    photo:   curPhoto,
+    addedAt: cellar[curIdx]?.addedAt||new Date().toISOString()
   };
+  if(cellar.length!==TOTAL) cellar=Array.from({length:TOTAL},(_,i)=>cellar[i]||null);
+  // Si restauration depuis historique, supprimer l'entrée
+  const hIdx = document.getElementById('modeEdit').dataset.historyIdx;
+  if (hIdx !== undefined && hIdx !== '') {
+    history.splice(parseInt(hIdx), 1);
+    delete document.getElementById('modeEdit').dataset.historyIdx;
+  }
+  save(); renderShelves(); renderTable(); renderHistory();
+  showToast(t('toastSaved'));
+  goToShelf(curIdx);
+}
 
-  saveData();
-  renderShelves();
-  renderTable();
+// ══ UNDO ══
+function consume() {
+  const b=cellar[curIdx]; if(!b)return;
+  history.push({...b, cell:curIdx+1, consumedAt:new Date().toISOString()});
+  cellar[curIdx]=null; save(); renderShelves(); renderTable(); renderHistory();
+  showToast(t('toastConsumed'));
+  goToShelf(curIdx);
+}
+
+function clearCell() {
+  if(!confirm(t('confirmClear')))return;
+  cellar[curIdx]=null; save(); renderShelves(); renderTable();
+  showToast(t('toastCleared'));
+  goToShelf(curIdx);
+}
+
+// ══ COPIER / COLLER ══
+let clipboard = null;
+function copyBottle() {
+  const b=cellar[curIdx]; if(!b)return;
+  const photo = b.photo || localStorage.getItem('pascal_photo_'+curIdx) || null;
+  clipboard = {...b, photo};
+  showToast(t('toastCopied'));
   closeModal();
-  showToast(t('msgAdded'));
-  syncNow();
 }
 
-function openEditForm(id) {
-  const wine = cellar[id];
-  const content = document.getElementById('modalContent');
-  const displayId = id > 500 ? 'F' + (id-500) : id;
-
-  content.innerHTML = `
-    <div class="wine-title" style="margin-bottom:12px">${t('btnEdit')}</div>
-    <div style="font-size:.8rem;color:var(--gold);margin-bottom:10px">Alvéole ${displayId}</div>
-
-    <div class="form-group">
-      <label>${t('lblType')}</label>
-      <div class="type-btns">
-        <div class="type-btn ${wine.type==='red'?'active-type':''}" onclick="selectFormType('red',this)">${t('typeRed')}</div>
-        <div class="type-btn ${wine.type==='white'?'active-type':''}" onclick="selectFormType('white',this)">${t('typeWhite')}</div>
-        <div class="type-btn ${wine.type==='rose'?'active-type':''}" onclick="selectFormType('rose',this)">${t('typeRose')}</div>
-        <div class="type-btn ${wine.type==='petillant'?'active-type':''}" onclick="selectFormType('petillant',this)">${t('typePet')}</div>
-        <div class="type-btn ${wine.type==='other'?'active-type':''}" onclick="selectFormType('other',this)">${t('typeOther')}</div>
-      </div>
-      <input type="hidden" id="fType" value="${wine.type}">
-    </div>
-
-    <div class="form-group">
-      <label>${t('lblName')} *</label>
-      <input type="text" id="fName" value="${wine.name||''}" required>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>${t('lblVintage')}</label>
-        <input type="number" id="fVintage" value="${wine.vintage||''}">
-      </div>
-      <div class="form-group">
-        <label>${t('lblPrice')}</label>
-        <input type="number" step="0.01" id="fPrice" value="${wine.price||''}">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>${t('lblRegion')}</label>
-      <input type="text" id="fRegion" value="${wine.region||''}">
-    </div>
-
-    <div class="form-group">
-      <label>${t('lblComment')}</label>
-      <textarea id="fComment">${wine.comment||''}</textarea>
-    </div>
-
-    <button class="btn btn-primary" onclick="saveEditForm(${id})">${t('btnSave')}</button>
-    <button class="btn btn-warn" onclick="openCell(${id})">${t('btnCancel')}</button>
-  `;
+function pasteBottle() {
+  if(!clipboard)return;
+  cellar[curIdx] = {...clipboard, addedAt: new Date().toISOString()};
+  save(); renderShelves(); renderTable();
+  showToast(t('toastPasted'));
+  goToShelf(curIdx);
 }
 
-function saveEditForm(id) {
-  const name = document.getElementById('fName').value.trim();
-  if(!name) { alert("Nom obligatoire"); return; }
-
-  cellar[id] = {
-    name,
-    type: document.getElementById('fType').value,
-    vintage: document.getElementById('fVintage').value || null,
-    price: document.getElementById('fPrice').value || null,
-    region: document.getElementById('fRegion').value.trim() || null,
-    comment: document.getElementById('fComment').value.trim() || null
-  };
-
-  saveData();
-  renderShelves();
-  renderTable();
-  openCell(id);
-  showToast(t('msgSaved'));
-  syncNow();
-}
-
-// ACTIONS BOUTEILLES (BOIRE / SUPPRIMER)
-function drinkWine(id) {
-  const wine = cellar[id];
-  if(!wine) return;
-
-  // Envoi vers la structure de données d'archivage historique
-  history.push({
-    name: wine.name,
-    vintage: wine.vintage,
-    region: wine.region,
-    date: Date.now()
+// ══ PHOTO + IA ══
+function compressPhoto(dataUrl, maxSize=800, quality=0.7) {
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      let w=img.width, h=img.height;
+      if(w>maxSize||h>maxSize){if(w>h){h=Math.round(h*maxSize/w);w=maxSize;}else{w=Math.round(w*maxSize/h);h=maxSize;}}
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.src=dataUrl;
   });
-
-  cellar[id] = null;
-  saveData();
-  renderShelves();
-  renderTable();
-  closeModal();
-  showToast(t('msgDrunk'));
-  syncNow();
 }
 
-function deleteWine(id) {
-  if(!confirm(lang==='fr'?"Supprimer cette bouteille définitivement ?":"Flasche endgültig löschen?")) return;
-  cellar[id] = null;
-  saveData();
-  renderShelves();
-  renderTable();
-  closeModal();
-  showToast(t('msgDeleted'));
-  syncNow();
+function handlePhoto(evt) {
+  const file=evt.target.files[0]; if(!file)return;
+  const rd=new FileReader();
+  rd.onload=async e=>{
+    const compressed=await compressPhoto(e.target.result);
+    curPhoto=compressed;
+    document.getElementById('photoImg').src=compressed;
+    document.getElementById('photoPreview').style.display='';
+    await analyzeLabel(compressed);
+  };
+  rd.readAsDataURL(file); evt.target.value='';
 }
 
-// ══ CRÉATION DU MOTEUR DE RECHERCHE GLOBAL MODAL ══
+function showAiBox(html,loading=false){const box=document.getElementById('aiBox');box.classList.add('show');box.innerHTML=loading?`<div class="ai-loading"><div class="spinner"></div>${html}</div>`:html;}
+function hideAiBox(){const b=document.getElementById('aiBox');b.classList.remove('show');b.innerHTML='';}
+
+async function callProxy(body){
+  const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json(); if(d.error)throw new Error(d.error.message||'Erreur API');
+  // Extraire TOUS les blocs texte (y compris après tool_use/tool_result)
+  return (d.content||[]).map(i=>i.type==='text'?i.text:'').filter(Boolean).join('\n').trim();
+}
+function parseJ(raw){
+  try{
+    // Chercher un bloc JSON n'importe où dans la réponse
+    const match = raw.match(/\{[\s\S]*\}/);
+    if(match) return JSON.parse(match[0]);
+    return {};
+  }catch{return {};}
+}
+
+async function analyzeLabel(dataUrl){
+  showAiBox(t('aiAnalyzing'),true);
+  const b64=dataUrl.split(',')[1], mime=dataUrl.match(/data:(image\/\w+);/)?.[1]||'image/jpeg';
+  try{
+    const r1=await callProxy({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+      {type:'text',text:`Expert vin. Lis cette étiquette. Réponds UNIQUEMENT en JSON sans markdown ni texte avant/après :
+{"name":"nom complet","type":"red|white|rose|petillant|other","vintage":"année ou null","region":"appellation ou null","producer":"producteur ou null","country":"pays ou null"}`}
+    ]}]});
+    const wine=parseJ(r1);
+    if(wine.name)    document.getElementById('fName').value=wine.name;
+    if(wine.type&&TYPES[wine.type]) selectType(wine.type);
+    if(wine.vintage) document.getElementById('fVintage').value=wine.vintage;
+    if(wine.region)  document.getElementById('fRegion').value=wine.region;
+    if(!wine.name){showAiBox(t('aiUnreadable'));return;}
+    // Mettre à jour les boutons recherche
+    document.getElementById('eSearchBtns').innerHTML = buildSearchBtns(wine.name, wine.vintage);
+    showAiBox(`<b style="color:#e8c97a">${wine.name}</b>${wine.vintage?' '+wine.vintage:''}${wine.region?'<br>'+wine.region:''}<br><br>${buildSearchBtns(wine.name, wine.vintage)}`);
+    showToast(t('aiDone'));
+  }catch(err){showAiBox(t('aiError')+(err.message||''));}
+}
+
+// ══ STATS ══
+function groupBy(arr, fn) {
+  const m={};
+  arr.forEach(b=>{ const k=fn(b); if(k!=null && k!=='') { m[k]=m[k]||[]; m[k].push(b); } });
+  return Object.entries(m).sort((a,b)=>b[1].length-a[1].length);
+}
+
+function barColor(type) {
+  return {red:'#c0304a',white:'#d4b84a',rose:'#d4768a',petillant:'#c8a84a',other:'#5a7a4a'}[type]||'var(--gold)';
+}
+
+function renderStats() {
+  const bottles = cellar.map((b,i)=>b?{...b,_i:i}:null).filter(Boolean);
+  const el = document.getElementById('statsContent');
+  if (!bottles.length) { el.innerHTML=`<div class="stat-empty">${t('statEmpty')}</div>`; return; }
+
+  const total = bottles.length;
+  const totalVal = bottles.reduce((a,b)=>a+(parseFloat(b.price)||0),0);
+  const avgPrice = totalVal/total;
+  const withPrice = bottles.filter(b=>parseFloat(b.price)>0);
+  const maxPrice = withPrice.length ? withPrice.reduce((a,b)=>parseFloat(b.price)>parseFloat(a.price)?b:a) : null;
+  const oldest = bottles.filter(b=>b.vintage).reduce((a,b)=>(!a||parseInt(b.vintage)<parseInt(a.vintage))?b:a, null);
+  const newest = bottles.filter(b=>b.vintage).reduce((a,b)=>(!a||parseInt(b.vintage)>parseInt(a.vintage))?b:a, null);
+  const vides = TOTAL - total;
+
+  const byType          = groupBy(bottles, b=>b.type);
+  const byRegion        = groupBy(bottles, b=>(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||'Non renseignée');
+  const byVintage       = groupBy(bottles, b=>b.vintage||'Non renseigné');
+  const byShop          = groupBy(bottles, b=>b.shop||'Non renseigné');
+  const byShelf         = groupBy(bottles, b=>b._i<S1_TOTAL?'Étagère 1':'Étagère 2');
+  const byRegionType    = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const t=TYPES[b.type]?.label||null; return r&&t?`${r} · ${t}`:r||t||'Non renseigné'; });
+  const byRegionVintage = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const v=b.vintage||null; return r&&v?`${r} ${v}`:null; });
+
+  function renderGroup(entries, maxN, colorFn, showPct=true) {
+    if(!entries.length) return `<div style="opacity:.4;font-size:.8rem;padding:6px 0">${t('statNoData')}</div>`;
+    const maxCount = entries[0][1].length;
+    return entries.slice(0,maxN).map(([k,arr])=>{
+      const pct = Math.round(arr.length/total*100);
+      const val = arr.reduce((a,b)=>a+(parseFloat(b.price)||0),0);
+      const color = colorFn(arr[0]?.type);
+      return `<div class="stat-card">
+        <div class="stat-card-row">
+          <span class="stat-card-label">${k}</span>
+          <span class="stat-card-val">${arr.length} bouteille${arr.length>1?'s':''} ${showPct?`<small style="color:var(--cream-d);opacity:.5;font-weight:normal">${pct}%</small>`:''}</span>
+        </div>
+        ${val>0?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">Valeur : ${val.toFixed(2).replace('.',',')} €</div>`:''}
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.max(4,Math.round(arr.length/maxCount*100))}%;background:${color}"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  const anecdotes = byRegionVintage.filter(([k,arr])=>arr.length>=2).slice(0,8)
+    .map(([k,arr])=>{ const tp=TYPES[arr[0].type]?.label||''; return `<div class="stat-anecdote">${t('anecSeries',arr.length,k,tp)}</div>`; }).join('');
+
+  const topVal = [...bottles].filter(b=>parseFloat(b.price)>0).sort((a,b)=>parseFloat(b.price)-parseFloat(a.price)).slice(0,5);
+
+  el.innerHTML = `
+    <div class="stat-kpi-grid">
+      <div class="stat-kpi"><div class="stat-kpi-num">${total}</div><div class="stat-kpi-lbl">${t('kpiBottles')}</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${vides}</div><div class="stat-kpi-lbl">${t('kpiFree')}</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${totalVal.toFixed(0)} €</div><div class="stat-kpi-lbl">${t('kpiValue')}</div></div>
+      <div class="stat-kpi"><div class="stat-kpi-num">${avgPrice.toFixed(2).replace('.',',')} €</div><div class="stat-kpi-lbl">${t('kpiAvg')}</div></div>
+    </div>
+    <div class="stats-section"><div class="stats-title">${t('statsShelf')}</div>${renderGroup(byShelf,2,()=>'var(--gold)',false)}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsType')}</div>${renderGroup(byType.map(([k,arr])=>[(TYPES[k]?.emoji||'')+' '+(TYPES[k]?.label||k),arr]),6,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsRegion')}</div>${renderGroup(byRegion,12,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsRegionType')}</div>${renderGroup(byRegionType,12,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsVintage')}</div>${renderGroup(byVintage,12,t=>barColor(t))}</div>
+    ${anecdotes?`<div class="stats-section"><div class="stats-title">${t('statsSeries')}</div>${anecdotes}</div>`:''}
+    ${topVal.length?`<div class="stats-section"><div class="stats-title">${t('statsTop5')}</div>${topVal.map(b=>`<div class="stat-card"><div class="stat-card-row"><span class="stat-card-label">${TYPES[b.type]?.emoji||'🍾'} ${b.name||'?'} <small>${b.vintage||''}</small></span><span class="stat-card-val">${parseFloat(b.price).toFixed(2).replace('.',',')} €</span></div>${b.region?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">${b.region}</div>`:''}</div>`).join('')}</div>`:''}
+    <div class="stats-section"><div class="stats-title">${t('statsShop')}</div>${renderGroup(byShop,8,t=>barColor(t))}</div>
+    <div class="stats-section"><div class="stats-title">${t('statsAnecdotes')}</div>
+      ${oldest?`<div class="stat-anecdote">${t('anecOldest',oldest.name||'?',oldest.vintage,oldest.region)}</div>`:''}
+      ${newest&&newest.vintage!==oldest?.vintage?`<div class="stat-anecdote">${t('anecNewest',newest.name||'?',newest.vintage,newest.region)}</div>`:''}
+      ${maxPrice?`<div class="stat-anecdote">${t('anecMost',maxPrice.name||'?',parseFloat(maxPrice.price).toFixed(2).replace('.',','))}</div>`:''}
+      ${history.length?`<div class="stat-anecdote">${t('anecConsumed',history.length)}</div>`:''}
+    </div>
+  `;
+}
+
+// ══ GITHUB SYNC ══
+function setSyncStatus(status, msg) {
+  syncStatus = status;
+  const el = document.getElementById('sSyncStatus');
+  if (!el) return;
+  const icons = { idle:'☁️', syncing:'🔄', ok:'✅', error:'⚠️' };
+  el.textContent = (icons[status]||'☁️') + ' ' + (msg || 'Sync');
+  el.style.color = status==='ok' ? '#90ee90' : status==='error' ? '#ff9090' : status==='syncing' ? '#e8c97a' : '';
+}
+
+async function jbSave() {
+  setSyncStatus('syncing', lang==='de'?'Speichern...':'Sauvegarde...');
+  try {
+    var now = new Date().toISOString();
+    localStorage.setItem('pascal_updated', now);
+    var payload = {
+      version: 2,
+      updatedAt: now,
+      cellar: cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;}),
+      history: history
+    };
+    const r = await fetch(JB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JB_API_KEY },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error('JSONBin save ' + r.status);
+    const n = cellar.filter(Boolean).length;
+    setSyncStatus('ok', n + (lang==='de'?' Fl.':' btl.'));
+  } catch(e) {
+    setSyncStatus('error', 'Erreur sync');
+    console.warn('JSONBin save error:', e);
+  }
+}
+
+async function jbLoad(force) {
+  force = force || false;
+  setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
+  try {
+    const r = await fetch(JB_URL + '/latest', {
+      headers: { 'X-Master-Key': JB_API_KEY, 'X-Bin-Meta': 'false' }
+    });
+    if (!r.ok) throw new Error('JSONBin ' + r.status);
+    const json = await r.json();
+    // Vérifier que c'est bien des données de cave (pas {"test":"ok"} ou autre)
+    if (!json || !Array.isArray(json.cellar) || !json.version) {
+      // Bin vide ou invalide — on y pousse nos données locales
+      setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+      await jbSave();
+      return;
+    }
+    // Comparer dates sauf si force=true
+    var jbDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
+    var locStr  = localStorage.getItem('pascal_updated');
+    var locDate = locStr ? new Date(locStr).getTime() : 0;
+    if (!force && jbDate <= locDate) {
+      setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+      return;
+    }
+    // Charger depuis JSONBin
+    var newCellar = Array.from({length:TOTAL}, function(_,i) {
+      var b = json.cellar[i];
+      if (!b || !b.name) return null;
+      if (!TYPES[b.type]) b.type = 'red';
+      var photo = localStorage.getItem('pascal_photo_'+i);
+      if (photo) b.photo = photo;
+      return b;
+    });
+    var nbJb = newCellar.filter(Boolean).length;
+    var nbLoc = cellar.filter(Boolean).length;
+    // Sécurité : ne pas écraser des données locales plus riches par un bin vide
+    if (!force && nbJb < nbLoc) {
+      setSyncStatus('ok', nbLoc + (lang==='de'?' Fl.':' btl.'));
+      return;
+    }
+    cellar  = newCellar;
+    history = json.history || [];
+    localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
+    localStorage.setItem('pascal_history', JSON.stringify(history));
+    localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
+    renderShelves(); renderTable(); renderHistory(); updateStats();
+    if (document.getElementById('view-stats').classList.contains('active')) renderStats();
+    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    if (force) showToast(lang==='de'?'✅ Synchronisiert!':'✅ Synchronisé !');
+  } catch(e) {
+    setSyncStatus('error', 'Erreur');
+    console.warn('JSONBin load:', e);
+  }
+}
+
+async function syncNow()      { await jbLoad(false); }
+async function forceSyncNow() { await jbLoad(true);  }
+
+let _ghSaveTimer = null;
+let _lastSaveTime = 0;
+
+function save() {
+  _lastSaveTime = Date.now();
+  try {
+    const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
+    cellar.forEach((b,i) => {
+      if (b?.photo) { try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {} }
+      else { localStorage.removeItem('pascal_photo_'+i); }
+    });
+    localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
+    localStorage.setItem('pascal_history', JSON.stringify(history));
+  } catch(e) {
+    try {
+      localStorage.setItem('pascal_cellar', JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
+      localStorage.setItem('pascal_history', JSON.stringify(history));
+    } catch(e2) { showToast('⚠️ Erreur sauvegarde locale'); }
+  }
+  updateStats();
+  clearTimeout(_ghSaveTimer);
+  _ghSaveTimer = setTimeout(jbSave, 800);
+}
+
+
+
+function translateField(fieldId) {
+  const text = document.getElementById(fieldId).value.trim();
+  if (!text) { showToast(lang==='de'?'⚠️ Kein Text zum Übersetzen':'⚠️ Aucun texte à traduire'); return; }
+  // Détecter langue source / cible
+  const src = lang==='fr' ? 'fr' : 'de';
+  const tgt = lang==='fr' ? 'de' : 'fr';
+  const url = `https://translate.google.com/?sl=${src}&tl=${tgt}&text=${encodeURIComponent(text)}&op=translate`;
+  window.open(url, '_blank');
+  showToast(lang==='de'?'🌐 Google Übersetzer geöffnet — Text kopieren & einfügen':'🌐 Google Traduction ouvert — copiez-collez la traduction');
+}
+
+// ══ TOKEN SETUP ══
+function openTokenSetup() {
+  document.getElementById('tokenInput').value = getToken() ? '••••••••••••••••' : '';
+  document.getElementById('tokenOverlay').classList.add('open');
+}
+function closeTokenSetup() {
+  document.getElementById('tokenOverlay').classList.remove('open');
+}
+async function saveToken() {
+  const val = document.getElementById('tokenInput').value.trim();
+  if (!val || val.startsWith('•')) { closeTokenSetup(); return; }
+  localStorage.setItem('pascal_gh_token', val);
+  closeTokenSetup();
+  showToast('🔑 Token enregistré — test de connexion…');
+  await loadFromGitHub();
+}
+
 function openSearch() {
   document.getElementById('searchOverlay').classList.add('open');
-  document.getElementById('searchInput').value = '';
+  setTimeout(()=>document.getElementById('searchInput').focus(), 100);
   document.getElementById('searchResults').innerHTML = '';
-  setTimeout(() => document.getElementById('searchInput').focus(), 150);
+  document.getElementById('searchInput').value = '';
 }
-
 function closeSearch() {
   document.getElementById('searchOverlay').classList.remove('open');
 }
+function highlight(text, q) {
+  if (!q || !text) return text||'';
+  return String(text).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
+}
+function doSearch(q) {
+  const res = document.getElementById('searchResults');
+  q = q.trim();
+  if (q.length < 2) { res.innerHTML = ''; return; }
+  const ql = q.toLowerCase();
+  const tc = tp => ({red:'#c0304a',white:'#d4b84a',rose:'#d4768a',petillant:'#4a9ec4',other:'#5a7a4a'}[tp]||'#888');
 
-function doGlobalSearch() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  const resDiv = document.getElementById('searchResults');
-  resDiv.innerHTML = '';
-  if(!q) return;
+  // Recherche dans les bouteilles en cave
+  const bottles = cellar.map((b,i)=>b?{...b,_i:i}:null).filter(Boolean);
+  const matchBottles = bottles.filter(b =>
+    [b.name, b.region, b.vintage, b.shop, b.aromas, b.pairing, b.conservation, b.noteslib, b.producer, b.country]
+    .join(' ').toLowerCase().includes(ql)
+  );
 
-  let matches = [];
-  for(let i=1; i<cellar.length; i++) {
-    const w = cellar[i];
-    if(!w) continue;
-    const displayId = i > 500 ? 'F' + (i-500) : i;
-    
-    if((w.name||'').toLowerCase().includes(q) || 
-       (w.region||'').toLowerCase().includes(q) || 
-       (w.comment||'').toLowerCase().includes(q) || 
-       (w.vintage||'').toString().includes(q) ||
-       displayId.toString().includes(q)) {
-      matches.push({ ...w, id: i, displayId });
-    }
-  }
+  // Recherche dans les notices de la conso
+  const matchHistory = history.map((h,i)=>({...h,_hi:i})).filter(h =>
+    [h.name, h.region, h.vintage, h.shop, h.aromas, h.notice_with, h.notice_occasion, h.notice_taste, h.notice_notes]
+    .join(' ').toLowerCase().includes(ql)
+  );
 
-  if(matches.length === 0) {
-    resDiv.innerHTML = `<div class="search-empty">${t('searchNoResult')}</div>`;
+  if (!matchBottles.length && !matchHistory.length) {
+    res.innerHTML = `<div class="search-empty">${lang==='de'?'Keine Ergebnisse für':'Aucun résultat pour'} "<b>${q}</b>"</div>`;
     return;
   }
 
-  matches.forEach(w => {
-    const item = document.createElement('div');
-    item.className = 'search-result';
-    item.onclick = () => { closeSearch(); openCell(w.id); };
-    
-    item.innerHTML = `
-      <div class="search-result-name">${w.name}</div>
-      <div class="search-result-meta">
-        <span class="search-result-badge" style="background:${CELL_COLORS[w.type]}">#${w.displayId}</span>
-        ${w.vintage||'—'} · ${w.region||''}
-      </div>
-    `;
-    resDiv.appendChild(item);
-  });
-}
+  let html = '';
 
-// ══ BACKUP SÉCURISÉ (EXPORT / IMPORT JSON) ══
-function exportBackup() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ cellar, history }));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `cave_backup_${new Date().toISOString().slice(0,10)}.json`);
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-}
-
-function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if(!file) return;
-  readFile(file);
-}
-
-function handleDrop(e) {
-  e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  if(!file) return;
-  readFile(file);
-}
-
-function readFile(file) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if(!data.cellar || !Array.isArray(data.cellar)) throw new Error();
-      
-      cellar = data.cellar;
-      history = data.history || [];
-      saveData();
-      setLang(lang);
-      showToast(t('msgImportOk'));
-      syncNow();
-    } catch(err) {
-      alert(t('msgImportErr'));
-    }
-  };
-  reader.readAsText(file);
-}
-
-function resetCellarData() {
-  if(!confirm(lang==='fr'?"ATTENTION ! Supprimer TOUTES les bouteilles et les archives définitivement ?":"ACHTUNG! ALLE Flaschen und das Archiv unwiderruflich löschen?")) return;
-  cellar = Array(600).fill(null);
-  history = [];
-  saveData();
-  setLang(lang);
-  showToast(t('msgResetOk'));
-  syncNow();
-}
-
-// ══ UTILITAIRES COEUR ══
-function saveData() {
-  localStorage.setItem('pascal_cellar', JSON.stringify(cellar));
-  localStorage.setItem('pascal_history', JSON.stringify(history));
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// ══ INITIALISATION DYNAMIQUE AU DÉMARRAGE ══
-(function init() {
-  // Détection automatique si données partagées via URL chiffrée en base64 (système de partage existant)
-  const hash = window.location.hash;
-  if (hash.startsWith('#share=')) {
-    try {
-      const encoded = hash.slice(7);
-      const json = decodeURIComponent(escape(atob(encoded)));
-      const data = JSON.parse(json);
-      if (Array.isArray(data.cellar)) {
-        cellar = data.cellar;
-        history = data.history || [];
-        saveData();
-        window.location.hash = '';
-      }
-    } catch(e) { console.error("Share error", e); }
+  // Résultats cave
+  if (matchBottles.length) {
+    html += `<div style="font-size:.7rem;color:var(--gold);opacity:.6;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">🗄️ ${lang==='de'?'Im Keller':'En cave'} (${matchBottles.length})</div>`;
+    html += matchBottles.map(b => {
+      const shelf = b._i < S1_TOTAL ? 1 : b._i < S1_TOTAL+S2_TOTAL ? 2 : 3;
+      const metas = [
+        b.vintage && highlight(b.vintage, q),
+        b.region  && highlight(b.region, q),
+        b.shop    && highlight(b.shop, q),
+        b.price   && parseFloat(b.price).toFixed(2).replace('.',',') + ' €',
+        b.aromas  && `🌸 ${highlight(b.aromas, q)}`,
+        b.conservation && `🕰️ ${highlight(b.conservation, q)}`,
+        b.noteslib && `📝 ${highlight(b.noteslib, q)}`,
+      ].filter(Boolean).join(' · ');
+      return `<div class="search-result" onclick="closeSearch();openModal(${b._i})">
+        <div class="search-result-name">
+          <span class="search-result-badge" style="background:${tc(b.type)}22;color:${tc(b.type)};border:1px solid ${tc(b.type)}44">${TYPES[b.type]?.emoji||'🍾'} ${TYPES[b.type]?.label||''}</span>
+          ${highlight(b.name||'?', q)}
+        </div>
+        <div class="search-result-meta">${lang==='de'?'Regal':'Étagère'} ${shelf} · ${lang==='de'?'Fach':'Alvéole'} ${b._i+1}${metas?' · '+metas:''}</div>
+      </div>`;
+    }).join('');
   }
 
-  // Lancement global des langues et rendus
-  setLang(lang);
+  // Résultats conso (notices)
+  if (matchHistory.length) {
+    html += `<div style="font-size:.7rem;color:var(--gold);opacity:.6;margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em">📜 ${lang==='de'?'Konsumiert':'Consommées'} (${matchHistory.length})</div>`;
+    html += matchHistory.map(h => {
+      const noticeMetas = [
+        h.notice_with     && `👥 ${highlight(h.notice_with, q)}`,
+        h.notice_occasion && `🎉 ${highlight(h.notice_occasion, q)}`,
+        h.notice_taste    && `⭐ ${highlight(h.notice_taste, q)}`,
+        h.notice_notes    && `📝 ${highlight(h.notice_notes, q)}`,
+        h.vintage         && highlight(h.vintage, q),
+        h.region          && highlight(h.region, q),
+      ].filter(Boolean).join(' · ');
+      return `<div class="search-result" onclick="closeSearch();switchView('history',document.querySelectorAll('.nav-btn')[3])">
+        <div class="search-result-name">
+          <span class="search-result-badge" style="background:${tc(h.type)}22;color:${tc(h.type)};border:1px solid ${tc(h.type)}44">${TYPES[h.type]?.emoji||'🍾'} ${TYPES[h.type]?.label||''}</span>
+          ${highlight(h.name||'?', q)} <span style="opacity:.5;font-size:.72rem">(${fmtDate(h.consumedAt)})</span>
+        </div>
+        <div class="search-result-meta">${noticeMetas||'—'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  res.innerHTML = html;
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSearch(); });
+
+function exportForDanielle(){
+  const bottleCount = cellar.filter(Boolean).length;
+  const date = new Date().toLocaleDateString('fr-FR');
+  // Encoder les données SANS photos dans l'URL (hash) pour éviter le problème de domaine
+  const dataNoPhoto = {
+    version:2, exportDate:new Date().toISOString(),
+    cellar: cellar.map(b => b ? {...b, photo:null} : null),
+    history
+  };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(dataNoPhoto))));
+  const shareUrl = 'https://gamezpascal76889.github.io/cave-a-vins/#share=' + encoded;
+  const sc = 'script';
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1.0">'
+    + '<title>Cave de Danielle &amp; Pascal \uD83C\uDF77</title>'
+    + '<style>*{box-sizing:border-box;margin:0;padding:0}'
+    + 'body{font-family:Georgia,serif;background:#2c1810;color:#f5ede0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}'
+    + '.card{background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:28px 24px;max-width:400px;width:100%}'
+    + 'h1{color:#c9a84c;font-size:1.6rem;line-height:1.3;margin-bottom:6px;font-style:italic}'
+    + '.sub{opacity:.6;font-size:.82rem;margin-bottom:20px}'
+    + '.info{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:8px;padding:12px;margin-bottom:20px;font-size:.9rem;color:#e8c97a}'
+    + '.btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#c9a84c,#a07830);color:#1a0d08;border:none;border-radius:10px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer;margin-bottom:10px}'
+    + '.steps{text-align:left;font-size:.8rem;opacity:.7;line-height:1.8;margin-top:16px}'
+    + '.steps b{color:#c9a84c}</style></head><body>'
+    + '<div class="card">'
+    + '<div style="font-size:2.5rem;margin-bottom:10px">\uD83C\uDF77</div>'
+    + '<h1>La Cave<br>de Danielle &amp; Pascal</h1>'
+    + '<div class="sub">Partagé le ' + date + '</div>'
+    + '<div class="info">\uD83C\uDF7E ' + bottleCount + ' bouteille' + (bottleCount>1?'s':'') + ' &nbsp;·&nbsp; \uD83D\uDCDC ' + history.length + ' consommée' + (history.length>1?'s':'') + '</div>'
+    + '<button class="btn" onclick="go()">\uD83D\uDCF2 Voir notre cave</button>'
+    + '<div class="steps"><b>Comment ça marche :</b><br>1. Clique sur le bouton ci-dessus<br>2. Tu seras redirigée vers la cave<br>3. Toutes les bouteilles seront visibles !</div>'
+    + '</div>'
+    + '<' + sc + '>function go(){window.location.href="' + shareUrl + '";}</' + sc + '>'
+    + '</body></html>';
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'cave-danielle-pascal-' + new Date().toISOString().split('T')[0] + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(lang==='de'?'\uD83D\uDCE4 Datei bereit \u2014 an Danielle senden!':'\uD83D\uDCE4 Fichier prêt \u2014 envoie-le à Danielle !');
+}
+
+function exportData(){
+  // Inclure les photos depuis localStorage
+  const cellarWithPhotos = cellar.map((b,i) => {
+    if (!b) return null;
+    const photo = b.photo || localStorage.getItem('pascal_photo_'+i) || null;
+    return photo ? {...b, photo} : {...b};
+  });
+  const data = {version:3, exportDate:new Date().toISOString(), cellar:cellarWithPhotos, history};
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`cave-pascal-${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  const n = cellarWithPhotos.filter(Boolean).length;
+  const nPhotos = cellarWithPhotos.filter(b=>b&&b.photo).length;
+  showToast(`✅ ${n} bouteilles exportées dont ${nPhotos} avec photo`);
+}
+
+function importData(evt){
+  const f=evt.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!Array.isArray(d.cellar))throw new Error('Format invalide');
+      if(!confirm(t('confirmImport', fmtDate(d.exportDate))))return;
+      // Restaurer les bouteilles
+      cellar = Array.from({length:TOTAL},(_,i)=>d.cellar[i]||null);
+      // Restaurer les photos dans localStorage
+      let nPhotos = 0;
+      cellar.forEach((b,i) => {
+        if (b && b.photo) {
+          try { localStorage.setItem('pascal_photo_'+i, b.photo); nPhotos++; } catch(e){}
+        } else {
+          localStorage.removeItem('pascal_photo_'+i);
+        }
+      });
+      history=d.history||[];
+      save(); renderShelves(); renderTable(); renderHistory();
+      showToast(`✅ Cave importée — ${cellar.filter(Boolean).length} bouteilles, ${nPhotos} photos restaurées`);
+    }catch(err){showToast('❌ '+err.message);}
+  };
+  rd.readAsText(f); evt.target.value='';
+}
+function resetAll(){
+  if(!confirm(t('confirmReset')))return;
+  cellar=Array(TOTAL).fill(null);history=[];save();renderShelves();renderTable();renderHistory();
+  showToast(t('toastReset'));
+}
+
+// ══ NAV ══
+function switchView(name,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='table')   { sortKey='id'; sortAsc=true; renderTable(); }
+  if(name==='history') renderHistory();
+  if(name==='stats')   renderStats();
+  if(name==='backup'){
+    const f=cellar.filter(Boolean).length,v=cellar.reduce((a,b)=>a+(b?parseFloat(b.price)||0:0),0);
+    document.getElementById('bkInfo').textContent=`${f} bouteilles · ${history.length} archives · ${v.toFixed(2).replace('.',',')} €`;
+    const hasToken = !!getToken();
+    document.getElementById('bkSyncInfo').textContent = hasToken ? '✅ Token configuré — sync active' : '⚠️ Token non configuré';
+  }
+}
+
+// ══ UTILS ══
+function fmtDate(d){try{return new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});}catch{return '';}}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ══ INIT ══
+document.getElementById('fName').addEventListener('input', function() {
+  updateGoogleAILink(this.value.trim(), document.getElementById('fVintage').value);
+});
+// Détecter si données partagées via URL hash
+(function detectShare() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#share=')) return;
+  try {
+    const encoded = hash.slice(7);
+    const json = decodeURIComponent(escape(atob(encoded)));
+    const data = JSON.parse(json);
+    if (!Array.isArray(data.cellar)) return;
+    const cellarNoPhoto = data.cellar.map(b => b ? {...b, photo:null} : null);
+    localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
+    localStorage.setItem('pascal_history', JSON.stringify(data.history||[]));
+    window.location.replace(window.location.pathname);
+  } catch(e) { console.warn('Share import error:', e); }
 })();
+
+renderShelves();
+updateStats();
+setLang(lang);
+// Au démarrage : si données locales → les pousser vers JSONBin
+// Si pas de données locales → charger depuis JSONBin
+const _hasLocal = localStorage.getItem('pascal_cellar');
+if (_hasLocal) {
+  setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+  // Pousser les données locales vers JSONBin pour Danielle
+  setTimeout(jbSave, 2000);
+} else {
+  jbLoad(true);
+}
 </script>
 </body>
 </html>
