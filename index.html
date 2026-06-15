@@ -220,18 +220,18 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <div class="header-title" id="hTitle" style="line-height:1.2;font-size:.95rem;white-space:nowrap">La Cave à Vins<br><span id="hTitleSub" style="font-size:.75rem;opacity:.85">de Danielle &amp; Pascal</span></div>
     </div>
     <div style="display:flex;gap:4px;flex-shrink:0">
-      <button onclick="openSearch()" style="background:none;border:1.5px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 6px;font-size:1rem;cursor:pointer;color:var(--gold)" title="Rechercher">🔍</button>
-      <button onclick="openAddFromTable()" style="background:none;border:1.5px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 6px;font-size:1rem;cursor:pointer;color:var(--gold);font-weight:bold;line-height:1" title="Ajouter une bouteille">＋</button>
+      <button onclick="openSearch()" style="background:none;border:1.5px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 6px;font-size:1rem;cursor:pointer;color:var(--gold)" id="btnSearchHeader">🔍</button>
+      <button onclick="openAddFromTable()" style="background:none;border:1.5px solid rgba(201,168,76,.4);border-radius:6px;padding:2px 6px;font-size:1rem;cursor:pointer;color:var(--gold);font-weight:bold;line-height:1" id="btnAddHeader">＋</button>
       <button onclick="setLang('fr')" id="btn-fr" style="background:none;border:2px solid var(--gold);border-radius:6px;padding:1px 5px;font-size:1rem;cursor:pointer;opacity:1" title="Français">🇫🇷</button>
       <button onclick="setLang('de')" id="btn-de" style="background:none;border:2px solid transparent;border-radius:6px;padding:1px 5px;font-size:1rem;cursor:pointer;opacity:.5" title="Deutsch">🇩🇪</button>
     </div>
   </div>
   <div class="header-stats">
-    <span class="stat stat-total" id="sTotal">0 / 176 bouteilles</span>
+    <span class="stat stat-total" id="sTotal">…</span>
     <span class="stat" id="sVal">0,00 €</span>
-    <span class="stat" id="sE1">Ét.1 : 0/120</span>
-    <span class="stat" id="sE2">Ét.2 : 0/56</span>
-    <span class="stat" id="sSyncStatus" style="cursor:pointer" onclick="syncNow()" title="Synchroniser">☁️ Sync</span>
+    <span class="stat" id="sE1">…</span>
+    <span class="stat" id="sE2">…</span>
+    <span class="stat" id="sSyncStatus" style="cursor:pointer" onclick="syncNow()">☁️ Sync</span>
   </div>
 </div>
 
@@ -255,8 +255,8 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <div id="shelf-panel-1">
     <div class="shelf-wrap">
       <div class="shelf-header">
-        <div class="shelf-name" id="shelfName1">🏛️ Étagère 1</div>
-        <div class="shelf-badge" id="badge1">— bouteilles</div>
+        <div class="shelf-name" id="shelfName1">🏛️ …</div>
+        <div class="shelf-badge" id="badge1">…</div>
       </div>
       <div id="shelfGrid1"></div>
     </div>
@@ -267,8 +267,8 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <div id="shelf-panel-2" style="display:none">
     <div class="shelf-wrap" style="max-width:360px">
       <div class="shelf-header">
-        <div class="shelf-name" id="shelfName2">🏛️ Étagère 2</div>
-        <div class="shelf-badge" id="badge2">— bouteilles</div>
+        <div class="shelf-name" id="shelfName2">🏛️ …</div>
+        <div class="shelf-badge" id="badge2">…</div>
       </div>
       <div id="shelfGrid2"></div>
     </div>
@@ -276,8 +276,8 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <div style="margin-top:14px;display:flex;justify-content:center">
       <div class="shelf-wrap" style="border-color:#4a9ec4;max-width:200px;width:100%">
         <div class="shelf-header">
-          <div class="shelf-name" id="shelfName3" style="color:#a8d8f0">🍽️ Garde-manger / Frigo</div>
-          <div class="shelf-badge" id="badge3">— bouteilles</div>
+          <div class="shelf-name" id="shelfName3" style="color:#a8d8f0">🍽️ …</div>
+          <div class="shelf-badge" id="badge3">…</div>
         </div>
         <div id="shelfGrid3"></div>
       </div>
@@ -288,7 +288,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 
 <!-- TABLEAU -->
 <div class="view" id="view-table">
-  <button class="add-btn" onclick="openAddFromTable()" id="addFromTableBtn">➕ Ajouter une bouteille</button>
+  <button class="add-btn" onclick="openAddFromTable()" id="addFromTableBtn" data-i18n="btnAddTitle">➕ Ajouter une bouteille</button>
   <div class="table-controls">
     <input class="t-search" type="text" placeholder="🔍 Rechercher…" oninput="renderTable()" id="tSearch" data-i18n-ph="searchPh">
     <select class="t-filter" onchange="renderTable()" id="tFilter">
@@ -326,7 +326,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 <!-- ARCHIVES / CONSO -->
 <div class="view" id="view-history">
   <div style="margin-bottom:10px">
-    <button onclick="goToShelf(0)" style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:8px;padding:8px 14px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer">← Retour à l'étagère</button>
+    <button onclick="goToShelf(0)" style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);border-radius:8px;padding:8px 14px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer" data-i18n="btnBack">← Retour à l'étagère</button>
   </div>
   <div id="historyList"></div>
 </div>
@@ -335,7 +335,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 <div class="view" id="view-backup">
   <div class="bk-card">
     <div class="bk-title" data-i18n="bkExportTitle">📤 Exporter</div>
-    <div class="bk-text">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, <b style="color:#e8c97a">photos incluses</b> et archives. Conserve ce fichier précieusement !</div>
+    <div class="bk-text" data-i18n="bkExportText">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, <b style="color:#e8c97a">photos incluses</b> et archives. Conserve ce fichier précieusement !</div>
     <div id="bkInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px"></div>
     <button class="btn btn-primary" onclick="exportData()" data-i18n="bkExportBtn">📥 Télécharger la sauvegarde complète</button>
   </div>
@@ -349,10 +349,10 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
   </div>
   <div class="bk-card">
-    <div class="bk-title">☁️ Synchronisation</div>
-    <div class="bk-text" id="bkSyncTextEl">Synchronise automatiquement en temps réel.</div>
-    <div id="bkSyncInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px">✅ JSONBin configuré</div>
-    <button class="btn btn-ghost" onclick="forceSyncNow()">🔄 Forcer la synchronisation</button>
+    <div class="bk-title" data-i18n="bkSyncTitle">☁️ Synchronisation</div>
+    <div class="bk-text" id="bkSyncTextEl" data-i18n="bkSyncText">Synchronise automatiquement en temps réel.</div>
+    <div id="bkSyncInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px">✅ …</div>
+    <button class="btn btn-ghost" onclick="forceSyncNow()" data-i18n="bkSyncBtn">🔄 Forcer la synchronisation</button>
   </div>
   <div class="bk-card danger">
     <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
@@ -369,15 +369,15 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <button onclick="closeTokenSetup()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
     </div>
     <div class="modal-inner">
-      <div class="wine-title">🔑 Token GitHub</div>
-      <div class="wine-cell" style="margin-bottom:12px">Stocké uniquement sur ton téléphone — jamais dans le code</div>
+      <div class="wine-title" data-i18n="tokenTitle">🔑 Token GitHub</div>
+      <div class="wine-cell" style="margin-bottom:12px" data-i18n="tokenDesc">Stocké uniquement sur ton téléphone — jamais dans le code</div>
       <div class="form-group">
-        <label>Personal Access Token</label>
+        <label data-i18n="tokenLabel">Personal Access Token</label>
         <input type="password" id="tokenInput" placeholder="ghp_..." style="font-family:monospace;font-size:.8rem">
-        <div style="margin-top:4px;font-size:.7rem;opacity:.5">GitHub → Settings → Developer settings → Tokens (classic)</div>
+        <div style="margin-top:4px;font-size:.7rem;opacity:.5" data-i18n="tokenHint">GitHub → Settings → Developer settings → Tokens (classic)</div>
       </div>
-      <button class="btn btn-primary" onclick="saveToken()">💾 Enregistrer & tester</button>
-      <button class="btn btn-ghost" onclick="closeTokenSetup()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveToken()" data-i18n="tokenSaveBtn">💾 Enregistrer & tester</button>
+      <button class="btn btn-ghost" onclick="closeTokenSetup()" data-i18n="cancelBtn">Annuler</button>
     </div>
   </div>
 </div>
@@ -390,23 +390,23 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <button onclick="closeNotice()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
     </div>
     <div class="modal-inner">
-      <div class="wine-title" id="noticeTitle">📝 Notice</div>
+      <div class="wine-title" id="noticeTitle" data-i18n="noticeTitle">📝 Notice</div>
       <div class="wine-cell" id="noticeWineName" style="margin-bottom:12px"></div>
       <div class="form-group">
         <label data-i18n="noticeWith">👥 Avec qui ?</label>
-        <input type="text" id="noticeWith" placeholder="ex: Danielle, famille, amis…">
+        <input type="text" id="noticeWith" data-i18n-placeholder="noticeWithPh">
       </div>
       <div class="form-group">
         <label data-i18n="noticeOccasion">🎉 Occasion / Raison</label>
-        <input type="text" id="noticeOccasion" placeholder="ex: Anniversaire, dîner, fête…">
+        <input type="text" id="noticeOccasion" data-i18n-placeholder="noticeOccasionPh">
       </div>
       <div class="form-group">
         <label data-i18n="noticeTaste">⭐ Avis / Dégustation</label>
-        <textarea id="noticeTaste" placeholder="ex: Excellent, trop jeune, à point, accord parfait avec…" rows="3"></textarea>
+        <textarea id="noticeTaste" data-i18n-placeholder="noticeTastePh" rows="3"></textarea>
       </div>
       <div class="form-group">
         <label data-i18n="noticeNotes">📝 Notes libres</label>
-        <textarea id="noticeNotes" placeholder="Tout ce que vous voulez noter…" rows="2"></textarea>
+        <textarea id="noticeNotes" data-i18n-placeholder="noticeNotesPh" rows="2"></textarea>
       </div>
       <button class="btn btn-primary" id="noticeSaveBtn" onclick="saveNotice()" data-i18n="noticeSave">💾 Enregistrer la notice</button>
       <button class="btn btn-ghost" onclick="closeNotice()" data-i18n="btnCancel">Annuler</button>
@@ -419,7 +419,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <div class="modal">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
       <div class="modal-handle" style="margin:0"></div>
-      <button onclick="closeModal()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px" title="Fermer">✕</button>
+      <button onclick="closeModal()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px" id="btnCloseModal">✕</button>
     </div>
     <div class="modal-inner">
 
@@ -443,7 +443,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 
       <!-- MODE ÉDITION -->
       <div id="modeEdit" style="display:none">
-        <div class="wine-title" id="eTitle">Ajouter une bouteille</div>
+        <div class="wine-title" id="eTitle" data-i18n="addBottleTitle">Ajouter une bouteille</div>
         <div class="wine-cell"  id="eCell"></div>
 
         <div id="photoZone" style="margin-bottom:8px">
@@ -458,7 +458,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
             <button type="button" onclick="document.getElementById('photoCam').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer" data-i18n="btnCamera">📷 Prendre une photo</button>
             <button type="button" onclick="document.getElementById('photoGal').click()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.3);color:var(--cream-d);border-radius:8px;padding:10px 6px;font-family:Georgia,serif;font-size:.82rem;cursor:pointer" data-i18n="btnGallery">🖼️ Galerie photos</button>
           </div>
-          <div style="text-align:center;margin-top:5px;font-size:.7rem;color:#c9a84c;opacity:.7">✨ Analyse IA automatique de l'étiquette</div>
+          <div style="text-align:center;margin-top:5px;font-size:.7rem;color:#c9a84c;opacity:.7" data-i18n="aiPhotoHint">✨ Analyse IA automatique de l'étiquette</div>
         </div>
         <input type="file" id="photoCam" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
         <input type="file" id="photoGal" accept="image/*" style="display:none" onchange="handlePhoto(event)">
@@ -466,7 +466,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
         <div class="ai-box" id="aiBox"></div>
 
         <div class="form-group">
-          <label id="label-type">Type de vin <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(détecté auto depuis la photo)</span></label>
+          <label id="label-type" data-i18n="labelType">Type de vin <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(détecté auto depuis la photo)</span></label>
           <input type="hidden" id="fType" value="red">
           <div class="type-btns">
             <button type="button" onclick="selectType('red')"       id="tb-red"       class="type-btn">🍷 Rouge</button>
@@ -477,36 +477,36 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
           </div>
         </div>
 
-        <div class="form-group"><label id="label-name">Nom / Appellation *</label><input type="text" id="fName" placeholder="ex: Château Margaux, Sancerre…"></div>
+        <div class="form-group"><label id="label-name" data-i18n="labelName">Nom / Appellation *</label><input type="text" id="fName" data-i18n-placeholder="phName"></div>
         <div class="form-row">
-          <div><label id="label-vintage">Millésime</label><input type="number" id="fVintage" placeholder="2020" min="1900" max="2099"></div>
-          <div><label id="label-price">Prix (€)</label><input type="number" id="fPrice" placeholder="0.00" step="0.01"></div>
+          <div><label id="label-vintage" data-i18n="labelVintage">Millésime</label><input type="number" id="fVintage" placeholder="2020" min="1900" max="2099"></div>
+          <div><label id="label-price" data-i18n="labelPrice">Prix (€)</label><input type="number" id="fPrice" placeholder="0.00" step="0.01"></div>
         </div>
-        <div class="form-group"><label id="label-shop">Lieu d'achat</label><input type="text" id="fShop" placeholder="ex: Cave Nicolas, Supermarché…"></div>
-        <div class="form-group"><label id="label-region">Région / Appellation</label><input type="text" id="fRegion" placeholder="ex: Bordeaux, Bourgogne…"></div>
-        <div class="form-group"><label id="label-date">Date d'achat</label><input type="date" id="fDate"></div>
-        <div class="form-group"><label id="label-aromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" placeholder="ex: Fruits rouges, vanille, épices…" rows="2"></textarea></div>
-        <div class="form-group"><label id="label-pairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" placeholder="ex: Viandes rouges, fromages affinés…" rows="2"></textarea></div>
-        <div class="form-group"><label id="label-conservation">🕰️ Conservation / Garde</label><textarea id="fConservation" placeholder="ex: À boire entre 2025-2030, optimum 2027…" rows="2"></textarea></div>
-        <div class="form-group"><label id="label-noteslib">📝 Notes</label><textarea id="fNotesLib" placeholder="Notes personnelles, occasions, remarques…" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-shop" data-i18n="labelShop">Lieu d'achat</label><input type="text" id="fShop" data-i18n-placeholder="phShop"></div>
+        <div class="form-group"><label id="label-region" data-i18n="labelRegion">Région / Appellation</label><input type="text" id="fRegion" data-i18n-placeholder="phRegion"></div>
+        <div class="form-group"><label id="label-date" data-i18n="labelDate">Date d'achat</label><input type="date" id="fDate"></div>
+        <div class="form-group"><label id="label-aromas" data-i18n="labelAromas">🌸 Arômes <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fAromas" data-i18n-placeholder="phAromas" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-pairing" data-i18n="labelPairing">🍽️ Accords mets-vins <span style="font-size:.7rem;color:#c9a84c;opacity:.7">(rempli auto par IA)</span></label><textarea id="fPairing" data-i18n-placeholder="phPairing" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-conservation" data-i18n="labelConservation">🕰️ Conservation / Garde</label><textarea id="fConservation" data-i18n-placeholder="phConservation" rows="2"></textarea></div>
+        <div class="form-group"><label id="label-noteslib" data-i18n="labelNotes">📝 Notes</label><textarea id="fNotesLib" data-i18n-placeholder="phNotes" rows="2"></textarea></div>
 
         <div id="eSearchBtns" style="margin-bottom:10px"></div>
 
         <button class="btn btn-ghost" id="pasteBtn" onclick="pasteBottle()" style="display:none;margin-top:8px">📋 Coller — <span id="pasteName"></span></button>
         <div id="cellPickerWrap" style="display:none">
           <div class="cell-picker-wrap">
-            <div class="cell-picker-title" id="cellPickerTitle">📍 Choisir une alvéole</div>
+            <div class="cell-picker-title" id="cellPickerTitle" data-i18n="cellPickerTitle">📍 Choisir une alvéole</div>
             <div class="cell-picker" id="cellPickerGrid1" style="grid-template-columns:repeat(12,24px);justify-content:center"></div>
-            <div onclick="togglePickerShelf()" id="cellPickerShelf2Toggle" style="margin-top:8px;font-size:.85rem;color:#ffffff;font-weight:bold;cursor:pointer;padding:6px;text-align:center;background:rgba(255,255,255,.08);border-radius:6px">▼ Voir aussi Étagères 2 + 3</div>
+            <div onclick="togglePickerShelf()" id="cellPickerShelf2Toggle" style="margin-top:8px;font-size:.85rem;color:#ffffff;font-weight:bold;cursor:pointer;padding:6px;text-align:center;background:rgba(255,255,255,.08);border-radius:6px">▼ …</div>
             <div id="cellPickerGrid2Wrap" style="display:none;margin-top:8px">
-              <div style="font-size:.72rem;color:var(--gold);margin-bottom:4px;opacity:.7;text-align:center">— Étagère 2 —</div>
+              <div style="font-size:.72rem;color:var(--gold);margin-bottom:4px;opacity:.7;text-align:center" id="pickerLabel2">— Étagère 2 —</div>
               <div class="cell-picker" id="cellPickerGrid2" style="grid-template-columns:repeat(7,24px);justify-content:center"></div>
-              <div style="font-size:.72rem;color:#a8d8f0;margin:6px 0 4px;opacity:.8;text-align:center">— Garde-manger / Frigo —</div>
+              <div style="font-size:.72rem;color:#a8d8f0;margin:6px 0 4px;opacity:.8;text-align:center" id="pickerLabel3">— Garde-manger / Frigo —</div>
               <div class="cell-picker" id="cellPickerGrid3" style="grid-template-columns:repeat(5,24px);justify-content:center"></div>
             </div>
           </div>
-          <button class="btn btn-primary" id="btnMoveConfirm" onclick="confirmMove()" style="display:none;margin-bottom:6px">✅ Confirmer le déplacement</button>
-          <button class="btn btn-ghost" id="btnMoveCancel" onclick="cancelMove();cancelEdit()" style="display:none">Annuler</button>
+          <button class="btn btn-primary" id="btnMoveConfirm" onclick="confirmMove()" style="display:none;margin-bottom:6px" data-i18n="btnConfirmMove">✅ Confirmer le déplacement</button>
+          <button class="btn btn-ghost" id="btnMoveCancel" onclick="cancelMove();cancelEdit()" style="display:none" data-i18n="cancelBtn">Annuler</button>
         </div>
         <button class="btn btn-primary" onclick="saveBottle()" style="margin-top:8px" data-i18n="btnSave">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="goToShelf(curIdx)" style="margin-top:4px;opacity:.6" data-i18n="btnBack">← Retour à l'étagère</button>
@@ -594,6 +594,17 @@ const I18N = {
     sortByNum:'🔢 N° alvéole', sortOldNew:'📅 Ancien → Récent', sortNewOld:'📅 Récent → Ancien',
     emptyCell:(n)=>`Vide — Alvéole ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Alvéole ${n}`,
     aiPhotoHint:'✨ Analyse IA automatique de l\'étiquette',
+    btnSearchTitle:'Rechercher', btnAddTitle:'Ajouter une bouteille', syncTitle:'Synchroniser',
+    addBottleTitle:'Ajouter une bouteille', cellPickerTitle:'📍 Choisir une alvéole',
+    btnConfirmMove:'✅ Confirmer le déplacement', cancelBtn:'Annuler',
+    bkSyncTitle:'☁️ Synchronisation', bkSyncBtn:'🔄 Forcer la synchronisation',
+    tokenTitle:'🔑 Token GitHub', tokenDesc:'Stocké uniquement sur ton téléphone — jamais dans le code',
+    tokenLabel:'Personal Access Token', tokenHint:'GitHub → Settings → Developer settings → Tokens (classic)',
+    tokenSaveBtn:'💾 Enregistrer & tester',
+    phName:'ex: Château Margaux, Sancerre…', phShop:'ex: Cave Nicolas, Supermarché…',
+    phRegion:'ex: Bordeaux, Bourgogne…', phAromas:'ex: Fruits rouges, vanille, épices…',
+    phPairing:'ex: Viandes rouges, fromages affinés…', phConservation:'ex: À boire entre 2025-2030…',
+    phNotes:'Notes personnelles, occasions, remarques…',
   },
   de: {
     hTitle:'Der Weinkeller', hTitleSub:'von Danielle &amp; Pascal', hSub:'Persönliche Sammlung',
@@ -645,6 +656,17 @@ const I18N = {
     sortByNum:'🔢 Nr. Fach', sortOldNew:'📅 Alt → Neu', sortNewOld:'📅 Neu → Alt',
     emptyCell:(n)=>`Leer — Fach ${n}`, filledCell:(name,v,n)=>`${name}${v?' '+v:''} — Fach ${n}`,
     aiPhotoHint:'✨ Automatische KI-Etikettenanalyse',
+    btnSearchTitle:'Suchen', btnAddTitle:'Flasche hinzufügen', syncTitle:'Synchronisieren',
+    addBottleTitle:'Flasche hinzufügen', cellPickerTitle:'📍 Fach auswählen',
+    btnConfirmMove:'✅ Verschieben bestätigen', cancelBtn:'Abbrechen',
+    bkSyncTitle:'☁️ Synchronisation', bkSyncBtn:'🔄 Synchronisation erzwingen',
+    tokenTitle:'🔑 GitHub-Token', tokenDesc:'Nur auf deinem Gerät gespeichert — nie im Code',
+    tokenLabel:'Personal Access Token', tokenHint:'GitHub → Settings → Developer settings → Tokens (classic)',
+    tokenSaveBtn:'💾 Speichern & testen',
+    phName:'z.B. Château Margaux, Riesling…', phShop:'z.B. Weinhandlung, Supermarkt…',
+    phRegion:'z.B. Bordeaux, Burgund…', phAromas:'z.B. Rote Früchte, Vanille, Gewürze…',
+    phPairing:'z.B. Rotes Fleisch, gereifter Käse…', phConservation:'z.B. Trinken zwischen 2025-2030…',
+    phNotes:'Persönliche Notizen, Anlässe, Bemerkungen…',
   }
 };
 let lang = localStorage.getItem('pascal_lang') || 'fr';
@@ -670,12 +692,23 @@ function setLang(l) {
     const key = el.dataset.i18nPh;
     if(I18N[lang][key]) el.placeholder = I18N[lang][key];
   });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if(I18N[lang][key]) el.placeholder = I18N[lang][key];
+  });
   // Titres header
   document.getElementById('hTitle').childNodes[0].textContent = t('hTitle');
   const sub = document.getElementById('hTitleSub');
   if (sub) sub.innerHTML = t('hTitleSub');
   const bkSync = document.getElementById('bkSyncTextEl');
   if (bkSync) bkSync.textContent = t('bkSyncText');
+  // Titles des boutons header
+  const btnSearch = document.getElementById('btnSearchHeader');
+  if (btnSearch) btnSearch.title = t('btnSearchTitle');
+  const btnAdd = document.getElementById('btnAddHeader');
+  if (btnAdd) btnAdd.title = t('btnAddTitle');
+  const syncBtn = document.getElementById('sSyncStatus');
+  if (syncBtn) syncBtn.title = t('syncTitle');
   // Formulaire labels dynamiques — on re-génère via updateFormLabels
   updateFormLabels();
   // TYPES labels
@@ -707,13 +740,26 @@ function updateFormLabels() {
     el.innerHTML = main + (hint?` <span style="font-size:.7rem;color:#c9a84c;opacity:.7">${hint}</span>`:'');
   });
   // Placeholders
-  const phs = { fName:t('labelNamePh'), fShop:t('labelShopPh'), fRegion:t('labelRegionPh'), fAromas:t('labelAromasPh'), fPairing:t('labelPairingPh') };
+  const phs = { fName:t('labelNamePh')||t('phName'), fShop:t('labelShopPh')||t('phShop'), fRegion:t('labelRegionPh')||t('phRegion'), fAromas:t('labelAromasPh')||t('phAromas'), fPairing:t('labelPairingPh')||t('phPairing'), fConservation:t('phConservation'), fNotesLib:t('phNotes') };
   Object.entries(phs).forEach(([id,ph])=>{ const el=document.getElementById(id); if(el) el.placeholder=ph; });
   // Bouton sauvegarder / annuler
   const btnS=document.querySelector('[data-i18n="btnSave"]'); if(btnS) btnS.innerHTML=t('btnSave');
   const btnC=document.querySelector('[data-i18n="btnCancel"]'); if(btnC) btnC.innerHTML=t('btnCancel');
   // Photo hint
   const ph=document.getElementById('photoHint'); if(ph) ph.textContent=t('aiPhotoHint');
+  // Notice placeholders
+  const noticeFields = { noticeWith:'noticeWithPh', noticeOccasion:'noticeOccasionPh', noticeTaste:'noticeTastePh', noticeNotes:'noticeNotesPh' };
+  Object.entries(noticeFields).forEach(([id,key])=>{ const el=document.getElementById(id); if(el) el.placeholder=t(key); });
+  // Titres dynamiques
+  const elCPT=document.getElementById('cellPickerTitle'); if(elCPT) elCPT.textContent=t('cellPickerTitle');
+  const elCM=document.getElementById('btnMoveConfirm'); if(elCM) elCM.textContent=t('btnConfirmMove');
+  const elMC=document.getElementById('btnMoveCancel'); if(elMC) elMC.textContent=t('cancelBtn');
+  // AddFromTable button
+  const afb=document.getElementById('addFromTableBtn'); if(afb) afb.textContent='➕ '+t('btnAddTitle');
+  // History back buttons
+  document.querySelectorAll('[data-i18n="btnBack"]').forEach(el=>{ el.textContent=t('btnBack'); });
+  // Backup sync labels
+  const bkSB=document.querySelector('[data-i18n="bkSyncBtn"]'); if(bkSB) bkSB.textContent=t('bkSyncBtn');
 }
 
 
@@ -854,10 +900,10 @@ function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
         const dst = cellar[idx];
         if (dst) {
           cellar[idx] = src; cellar[dragSrcIdx] = dst;
-          showToast(`🔄 Échange alvéoles ${dragSrcIdx+1} ↔ ${idx+1}`);
+          showToast(`🔄 ${lang==='de'?`Fächer ${dragSrcIdx+1} ↔ ${idx+1} getauscht`:`Échange alvéoles ${dragSrcIdx+1} ↔ ${idx+1}`);
         } else {
           cellar[idx] = src; cellar[dragSrcIdx] = null;
-          showToast(`✅ ${lang==='de'?'Verschoben':'Déplacée'} → alvéole ${idx+1}`);
+          showToast(`✅ ${lang==='de'?`Verschoben → Fach ${idx+1}`:`Déplacée → alvéole ${idx+1}`}`);
         }
         dragSrcIdx = null;
         save(); renderShelves(); renderTable();
@@ -879,7 +925,7 @@ function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
   // Légende
   const leg = document.getElementById(legendId);
   leg.innerHTML = Object.entries(TYPES).map(([k,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${v.bg};border:1px solid ${v.border}"></div>${v.label}</div>`).join('') +
-    `<div class="legend-item"><div class="legend-dot" style="background:${EMPTY_BG};border:1px solid #6a5640"></div>Vide</div>`;
+    `<div class="legend-item"><div class="legend-dot" style="background:${EMPTY_BG};border:1px solid #6a5640"></div>${t('filterEmpty')}</div>`;
 }
 
 function moveBottle() {
@@ -932,7 +978,7 @@ function confirmMove() {
   cellar[curMoveTarget] = cellar[curIdx];
   cellar[curIdx] = null;
   save(); renderShelves(); renderTable();
-  showToast(`✅ ${lang==='de'?'Verschoben':'Déplacée'} → alvéole ${curMoveTarget+1}`);
+  showToast(`✅ ${lang==='de'?`Verschoben → Fach ${curMoveTarget+1}`:`Déplacée → alvéole ${curMoveTarget+1}`}`);
   curMoveTarget = null;
   cancelMove();
   closeModal();
@@ -1015,6 +1061,11 @@ function togglePickerShelf() {
   tog.textContent = visible
     ? (lang==='de'?'▼ Regale 2 + 3 anzeigen':'▼ Voir aussi Étagères 2 + 3')
     : (lang==='de'?'▲ Regale 2 + 3 ausblenden':'▲ Masquer Étagères 2 + 3');
+  // labels section picker
+  const pl2 = document.getElementById('pickerLabel2');
+  const pl3 = document.getElementById('pickerLabel3');
+  if (pl2) pl2.textContent = `— ${t('shelf2name')} —`;
+  if (pl3) pl3.textContent = lang==='de'?'— Speisekammer / Kühl —':`— ${t('shelf3name')||'Garde-manger / Frigo'} —`;
 }
 
 
@@ -1096,7 +1147,7 @@ function renderHistory() {
     return `<div class="hist-card" id="hcard-${i}" ontouchstart="startLongPress(${i},event)" ontouchend="cancelLongPress()" onmousedown="startLongPress(${i},event)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()">
       <div class="hist-icon">${TYPES[h.type]?.emoji||'🍾'}</div>
       <div style="flex:1;min-width:0">
-        <div class="hist-name">${h.name||'Sans nom'}</div>
+        <div class="hist-name">${h.name||(lang==='de'?'Ohne Namen':'Sans nom')}</div>
         <div class="hist-meta">${h.vintage||'?'}${h.region?' · '+h.region:''}${h.shop?' · '+h.shop:''}</div>
         ${h.aromas?`<div class="hist-meta">🌸 ${h.aromas}</div>`:''}
         ${h.price?`<div class="hist-meta">💶 ${parseFloat(h.price).toFixed(2).replace('.',',')} €</div>`:''}
@@ -1231,7 +1282,7 @@ function showView(b, idx) {
   const tc=TYPES[b.type]||{};
   document.getElementById('vBadge').textContent=(tc.emoji||'')+(tc.label?' '+tc.label:'');
   document.getElementById('vBadge').style.cssText=`background:${tc.badge||'rgba(100,100,100,.3)'};color:${tc.bc||'#ccc'};border:1px solid ${tc.border||'#555'}`;
-  document.getElementById('vName').textContent=b.name||'Sans nom';
+  document.getElementById('vName').textContent=b.name||(lang==='de'?'Ohne Namen':'Sans nom');
   const shelf = idx < S1_TOTAL ? 1 : 2;
   document.getElementById('vCell').textContent = t('cellLabel', shelf, idx+1);
   const pw=document.getElementById('vPhotoWrap');
@@ -1282,7 +1333,7 @@ function showEdit(b, idx) {
   // Masquer le sélecteur (visible seulement depuis "Ajouter depuis tableau")
   document.getElementById('cellPickerWrap').style.display = 'none';
   const pasteBtn=document.getElementById('pasteBtn'), pasteName=document.getElementById('pasteName');
-  if(pasteBtn){const show=!b&&clipboard;pasteBtn.style.display=show?'':'none';if(show&&pasteName)pasteName.textContent=clipboard.name||'bouteille copiée';}
+  if(pasteBtn){const show=!b&&clipboard;pasteBtn.style.display=show?'':'none';if(show&&pasteName)pasteName.textContent=clipboard.name||(lang==='de'?'kopierte Flasche':'bouteille copiée');}
   // Boutons recherche si on a un nom
   document.getElementById('eSearchBtns').innerHTML = buildSearchBtns(b?.name, b?.vintage);
 }
@@ -1291,7 +1342,7 @@ function switchEdit() { showEdit(cellar[curIdx], curIdx); }
 function cancelEdit()  { cellar[curIdx]?showView(cellar[curIdx],curIdx):closeModal(); }
 
 function saveBottle() {
-  if(curIdx===null||curIdx<0||curIdx>=TOTAL){showToast('⚠️ Erreur : alvéole invalide');return;}
+  if(curIdx===null||curIdx<0||curIdx>=TOTAL){showToast(lang==='de'?'⚠️ Fehler: ungültiges Fach':'⚠️ Erreur : alvéole invalide');return;}
   const name=document.getElementById('fName').value.trim();
   if(!name){showToast(t('toastInvalidName'));return;}
   const type=document.getElementById('fType').value;
@@ -1389,7 +1440,7 @@ function hideAiBox(){const b=document.getElementById('aiBox');b.classList.remove
 
 async function callProxy(body){
   const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const d=await r.json(); if(d.error)throw new Error(d.error.message||'Erreur API');
+  const d=await r.json(); if(d.error)throw new Error(d.error.message||(lang==='de'?'API-Fehler':'Erreur API'));
   // Extraire TOUS les blocs texte (y compris après tool_use/tool_result)
   return (d.content||[]).map(i=>i.type==='text'?i.text:'').filter(Boolean).join('\n').trim();
 }
@@ -1450,11 +1501,11 @@ function renderStats() {
   const vides = TOTAL - total;
 
   const byType          = groupBy(bottles, b=>b.type);
-  const byRegion        = groupBy(bottles, b=>(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||'Non renseignée');
-  const byVintage       = groupBy(bottles, b=>b.vintage||'Non renseigné');
-  const byShop          = groupBy(bottles, b=>b.shop||'Non renseigné');
-  const byShelf         = groupBy(bottles, b=>b._i<S1_TOTAL?'Étagère 1':'Étagère 2');
-  const byRegionType    = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const t=TYPES[b.type]?.label||null; return r&&t?`${r} · ${t}`:r||t||'Non renseigné'; });
+  const byRegion        = groupBy(bottles, b=>(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||(lang==='de'?'Nicht angegeben':'Non renseignée'));
+  const byVintage       = groupBy(bottles, b=>b.vintage||(lang==='de'?'Nicht angegeben':'Non renseigné'));
+  const byShop          = groupBy(bottles, b=>b.shop||(lang==='de'?'Nicht angegeben':'Non renseigné'));
+  const byShelf         = groupBy(bottles, b=>b._i<S1_TOTAL?t('shelf1name'):t('shelf2name'));
+  const byRegionType    = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const tp=TYPES[b.type]?.label||null; const nr=lang==='de'?'Nicht angegeben':'Non renseigné'; return r&&tp?`${r} · ${tp}`:r||tp||nr; });
   const byRegionVintage = groupBy(bottles, b=>{ const r=(b.region||'').trim().replace(/\s+aoc|\s+aop|\s+igp/gi,'').trim()||null; const v=b.vintage||null; return r&&v?`${r} ${v}`:null; });
 
   function renderGroup(entries, maxN, colorFn, showPct=true) {
@@ -1467,7 +1518,7 @@ function renderStats() {
       return `<div class="stat-card">
         <div class="stat-card-row">
           <span class="stat-card-label">${k}</span>
-          <span class="stat-card-val">${arr.length} bouteille${arr.length>1?'s':''} ${showPct?`<small style="color:var(--cream-d);opacity:.5;font-weight:normal">${pct}%</small>`:''}</span>
+          <span class="stat-card-val">${arr.length} ${lang==='de'?`Flasche${arr.length>1?'n':''}`:(`bouteille${arr.length>1?'s':''}`)} ${showPct?`<small style="color:var(--cream-d);opacity:.5;font-weight:normal">${pct}%</small>`:''}</span>
         </div>
         ${val>0?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">Valeur : ${val.toFixed(2).replace('.',',')} €</div>`:''}
         <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.max(4,Math.round(arr.length/maxCount*100))}%;background:${color}"></div></div>
@@ -1534,7 +1585,7 @@ async function jbSave() {
     const n = cellar.filter(Boolean).length;
     setSyncStatus('ok', n + (lang==='de'?' Fl.':' btl.'));
   } catch(e) {
-    setSyncStatus('error', 'Erreur sync');
+    setSyncStatus('error', lang==='de'?'Sync-Fehler':'Erreur sync');
     console.warn('JSONBin save error:', e);
   }
 }
@@ -1589,7 +1640,7 @@ async function jbLoad(force) {
     setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
     if (force) showToast(lang==='de'?'✅ Synchronisiert!':'✅ Synchronisé !');
   } catch(e) {
-    setSyncStatus('error', 'Erreur');
+    setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
     console.warn('JSONBin load:', e);
   }
 }
@@ -1614,7 +1665,7 @@ function save() {
     try {
       localStorage.setItem('pascal_cellar', JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
       localStorage.setItem('pascal_history', JSON.stringify(history));
-    } catch(e2) { showToast('⚠️ Erreur sauvegarde locale'); }
+    } catch(e2) { showToast(lang==='de'?'⚠️ Fehler lokale Speicherung':'⚠️ Erreur sauvegarde locale'); }
   }
   updateStats();
   clearTimeout(_ghSaveTimer);
@@ -1647,7 +1698,7 @@ async function saveToken() {
   if (!val || val.startsWith('•')) { closeTokenSetup(); return; }
   localStorage.setItem('pascal_gh_token', val);
   closeTokenSetup();
-  showToast('🔑 Token enregistré — test de connexion…');
+  showToast(lang==='de'?'🔑 Token gespeichert — Verbindungstest…':'🔑 Token enregistré — test de connexion…');
   await loadFromGitHub();
 }
 
@@ -1767,11 +1818,11 @@ function exportForDanielle(){
     + '.steps b{color:#c9a84c}</style></head><body>'
     + '<div class="card">'
     + '<div style="font-size:2.5rem;margin-bottom:10px">\uD83C\uDF77</div>'
-    + '<h1>La Cave<br>de Danielle &amp; Pascal</h1>'
-    + '<div class="sub">Partagé le ' + date + '</div>'
-    + '<div class="info">\uD83C\uDF7E ' + bottleCount + ' bouteille' + (bottleCount>1?'s':'') + ' &nbsp;·&nbsp; \uD83D\uDCDC ' + history.length + ' consommée' + (history.length>1?'s':'') + '</div>'
-    + '<button class="btn" onclick="go()">\uD83D\uDCF2 Voir notre cave</button>'
-    + '<div class="steps"><b>Comment ça marche :</b><br>1. Clique sur le bouton ci-dessus<br>2. Tu seras redirigée vers la cave<br>3. Toutes les bouteilles seront visibles !</div>'
+    + '<h1>' + (lang==='de'?'Der Weinkeller<br>von Danielle &amp; Pascal':'La Cave<br>de Danielle &amp; Pascal') + '</h1>'
+    + '<div class="sub">' + (lang==='de'?'Geteilt am ':'Partagé le ') + date + '</div>'
+    + '<div class="info">\uD83C\uDF7E ' + bottleCount + (lang==='de'?(' Flasche'+(bottleCount>1?'n':'')):((' bouteille'+(bottleCount>1?'s':'')))) + ' &nbsp;·&nbsp; \uD83D\uDCDC ' + history.length + (lang==='de'?' konsumiert':(' consommée'+(history.length>1?'s':''))) + '</div>'
+    + '<button class="btn" onclick="go()">\uD83D\uDCF2 ' + (lang==='de'?'Unseren Keller ansehen':'Voir notre cave') + '</button>'
+    + '<div class="steps"><b>' + (lang==='de'?"So geht's :"+"":'Comment ça marche :') + '</b><br>' + (lang==='de'?'1. Klicke auf den Button<br>2. Du wirst weitergeleitet<br>3. Alle Flaschen sind sichtbar !':'1. Clique sur le bouton ci-dessus<br>2. Tu seras redirigée vers la cave<br>3. Toutes les bouteilles seront visibles !') + '</div>'
     + '</div>'
     + '<' + sc + '>function go(){window.location.href="' + shareUrl + '";}</' + sc + '>'
     + '</body></html>';
@@ -1801,7 +1852,9 @@ function exportData(){
   a.click(); URL.revokeObjectURL(url);
   const n = cellarWithPhotos.filter(Boolean).length;
   const nPhotos = cellarWithPhotos.filter(b=>b&&b.photo).length;
-  showToast(`✅ ${n} bouteilles exportées dont ${nPhotos} avec photo`);
+  showToast(lang==='de'
+    ? `✅ ${n} Flaschen exportiert, davon ${nPhotos} mit Foto`
+    : `✅ ${n} bouteilles exportées dont ${nPhotos} avec photo`);
 }
 
 function importData(evt){
@@ -1810,7 +1863,7 @@ function importData(evt){
   rd.onload=e=>{
     try{
       const d=JSON.parse(e.target.result);
-      if(!Array.isArray(d.cellar))throw new Error('Format invalide');
+      if(!Array.isArray(d.cellar))throw new Error(lang==='de'?'Ungültiges Format':'Format invalide');
       if(!confirm(t('confirmImport', fmtDate(d.exportDate))))return;
       // Restaurer les bouteilles
       cellar = Array.from({length:TOTAL},(_,i)=>d.cellar[i]||null);
@@ -1825,7 +1878,9 @@ function importData(evt){
       });
       history=d.history||[];
       save(); renderShelves(); renderTable(); renderHistory();
-      showToast(`✅ Cave importée — ${cellar.filter(Boolean).length} bouteilles, ${nPhotos} photos restaurées`);
+      showToast(lang==='de'
+        ? `✅ Keller importiert — ${cellar.filter(Boolean).length} Flaschen, ${nPhotos} Fotos wiederhergestellt`
+        : `✅ Cave importée — ${cellar.filter(Boolean).length} bouteilles, ${nPhotos} photos restaurées`);
     }catch(err){showToast('❌ '+err.message);}
   };
   rd.readAsText(f); evt.target.value='';
@@ -1847,9 +1902,13 @@ function switchView(name,btn){
   if(name==='stats')   renderStats();
   if(name==='backup'){
     const f=cellar.filter(Boolean).length,v=cellar.reduce((a,b)=>a+(b?parseFloat(b.price)||0:0),0);
-    document.getElementById('bkInfo').textContent=`${f} bouteilles · ${history.length} archives · ${v.toFixed(2).replace('.',',')} €`;
+    document.getElementById('bkInfo').textContent = lang==='de'
+      ? `${f} Flaschen · ${history.length} Archive · ${v.toFixed(2).replace('.',',')} €`
+      : `${f} bouteilles · ${history.length} archives · ${v.toFixed(2).replace('.',',')} €`;
     const hasToken = !!getToken();
-    document.getElementById('bkSyncInfo').textContent = hasToken ? '✅ Token configuré — sync active' : '⚠️ Token non configuré';
+    document.getElementById('bkSyncInfo').textContent = hasToken
+      ? (lang==='de'?'✅ Token konfiguriert — Sync aktiv':'✅ Token configuré — sync active')
+      : (lang==='de'?'⚠️ Token nicht konfiguriert':'⚠️ Token non configuré');
   }
 }
 
