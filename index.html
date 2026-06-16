@@ -900,10 +900,10 @@ function buildShelfGrid(gridId, legendId, startIdx, rows, cols) {
         const dst = cellar[idx];
         if (dst) {
           cellar[idx] = src; cellar[dragSrcIdx] = dst;
-          showToast(`🔄 ${lang==='de'?`Fächer ${dragSrcIdx+1} ↔ ${idx+1} getauscht`:`Échange alvéoles ${dragSrcIdx+1} ↔ ${idx+1}`);
+          showToast('🔄 ' + (lang==='de'?`Fächer ${dragSrcIdx+1} ↔ ${idx+1} getauscht`:`Échange alvéoles ${dragSrcIdx+1} ↔ ${idx+1}`));
         } else {
           cellar[idx] = src; cellar[dragSrcIdx] = null;
-          showToast(`✅ ${lang==='de'?`Verschoben → Fach ${idx+1}`:`Déplacée → alvéole ${idx+1}`}`);
+          showToast('✅ ' + (lang==='de'?`Verschoben → Fach ${idx+1}`:`Déplacée → alvéole ${idx+1}`));
         }
         dragSrcIdx = null;
         save(); renderShelves(); renderTable();
@@ -978,7 +978,7 @@ function confirmMove() {
   cellar[curMoveTarget] = cellar[curIdx];
   cellar[curIdx] = null;
   save(); renderShelves(); renderTable();
-  showToast(`✅ ${lang==='de'?`Verschoben → Fach ${curMoveTarget+1}`:`Déplacée → alvéole ${curMoveTarget+1}`}`);
+  showToast('✅ ' + (lang==='de'?`Verschoben → Fach ${curMoveTarget+1}`:`Déplacée → alvéole ${curMoveTarget+1}`));
   curMoveTarget = null;
   cancelMove();
   closeModal();
@@ -1256,7 +1256,10 @@ function closeModal() {
 function buildSearchBtns(name, vintage) {
   if (!name) return '';
   const searchTerm = [name, vintage].filter(Boolean).join(' ');
-  const qGAI = encodeURIComponent(searchTerm + ' vin arômes accords mets prix conservation');
+  const prompt = lang==='de'
+    ? searchTerm + ' Wein: 6 Aromen, 6 Speisen, Preis, Lagerung'
+    : searchTerm + ' vin: 6 arômes, 6 accords, prix, garde';
+  const qGAI = encodeURIComponent(prompt);
   return `<a href="https://www.google.com/search?q=${qGAI}&udm=50" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:7px 12px;border-radius:6px;font-size:.82rem;text-decoration:none;margin-right:5px;margin-bottom:6px">🤖 Google IA</a>`;
 }
 
@@ -1264,8 +1267,10 @@ function updateGoogleAILink(name, vintage) {
   const link = document.getElementById('googleAILink');
   if (!link) return;
   if (name) {
-    const q = encodeURIComponent([name, vintage].filter(Boolean).join(' ') + ' vin arômes accords mets prix conservation');
-    link.href = 'https://www.google.com/search?q=' + q + '&udm=50';
+    const prompt = lang==='de'
+      ? [name, vintage].filter(Boolean).join(' ') + ' Wein: 6 Aromen, 6 Speisen, Preis, Lagerung'
+      : [name, vintage].filter(Boolean).join(' ') + ' vin: 6 arômes, 6 accords, prix, garde';
+    link.href = 'https://www.google.com/search?q=' + encodeURIComponent(prompt) + '&udm=50';
     link.style.pointerEvents = '';
     link.style.opacity = '1';
     link.textContent = '🤖 Google IA — ' + name;
@@ -1273,7 +1278,7 @@ function updateGoogleAILink(name, vintage) {
     link.href = '#';
     link.style.pointerEvents = 'none';
     link.style.opacity = '.4';
-    link.textContent = '🤖 Google IA — saisissez d\'abord le nom';
+    link.textContent = lang==='de'?'🤖 Google IA — zuerst Namen eingeben':'🤖 Google IA — saisissez d\'abord le nom';
   }
 }
 
