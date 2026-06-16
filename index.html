@@ -601,7 +601,7 @@ const I18N = {
     tokenTitle:'🔑 Token GitHub', tokenDesc:'Stocké uniquement sur ton téléphone — jamais dans le code',
     tokenLabel:'Personal Access Token', tokenHint:'GitHub → Settings → Developer settings → Tokens (classic)',
     tokenSaveBtn:'💾 Enregistrer & tester',
-    phName:'ex: Château Margaux, Sancerre…', phShop:'ex: Cave Nicolas, Supermarché…',
+    labelConservation:'🕰️ Conservation / Garde', labelNotes:'📝 Notes',
     phRegion:'ex: Bordeaux, Bourgogne…', phAromas:'ex: Fruits rouges, vanille, épices…',
     phPairing:'ex: Viandes rouges, fromages affinés…', phConservation:'ex: À boire entre 2025-2030…',
     phNotes:'Notes personnelles, occasions, remarques…',
@@ -663,7 +663,7 @@ const I18N = {
     tokenTitle:'🔑 GitHub-Token', tokenDesc:'Nur auf deinem Gerät gespeichert — nie im Code',
     tokenLabel:'Personal Access Token', tokenHint:'GitHub → Settings → Developer settings → Tokens (classic)',
     tokenSaveBtn:'💾 Speichern & testen',
-    phName:'z.B. Château Margaux, Riesling…', phShop:'z.B. Weinhandlung, Supermarkt…',
+    labelConservation:'🕰️ Lagerung / Reifezeit', labelNotes:'📝 Notizen',
     phRegion:'z.B. Bordeaux, Burgund…', phAromas:'z.B. Rote Früchte, Vanille, Gewürze…',
     phPairing:'z.B. Rotes Fleisch, gereifter Käse…', phConservation:'z.B. Trinken zwischen 2025-2030…',
     phNotes:'Persönliche Notizen, Anlässe, Bemerkungen…',
@@ -1300,8 +1300,8 @@ function showView(b, idx) {
     [t('infoDate'),    b.date?fmtDate(b.date):'—'],
     [t('infoAromas'),       b.aromas||'—'],
     [t('infoPairing'),      b.pairing||'—'],
-    ['🕰️ Conservation',    b.conservation||'—'],
-    ['📝 Notes',            b.noteslib||'—']
+    ['🕰️ ' + (lang==='de'?'Lagerung':'Conservation'),    b.conservation||'—'],
+    ['📝 ' + (lang==='de'?'Notizen':'Notes'),              b.noteslib||'—']
   ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
   // Boutons recherche
   document.getElementById('vSearchBtns').innerHTML = buildSearchBtns(b.name, b.vintage);
@@ -1525,7 +1525,7 @@ function renderStats() {
           <span class="stat-card-label">${k}</span>
           <span class="stat-card-val">${arr.length} ${lang==='de'?`Flasche${arr.length>1?'n':''}`:(`bouteille${arr.length>1?'s':''}`)} ${showPct?`<small style="color:var(--cream-d);opacity:.5;font-weight:normal">${pct}%</small>`:''}</span>
         </div>
-        ${val>0?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">Valeur : ${val.toFixed(2).replace('.',',')} €</div>`:''}
+        ${val>0?`<div style="font-size:.72rem;color:var(--cream-d);opacity:.45;margin-top:2px">${t('infoPrice')} : ${val.toFixed(2).replace('.',',')} €</div>`:''}
         <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.max(4,Math.round(arr.length/maxCount*100))}%;background:${color}"></div></div>
       </div>`;
     }).join('');
