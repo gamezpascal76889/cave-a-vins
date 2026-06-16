@@ -1257,8 +1257,8 @@ function buildSearchBtns(name, vintage) {
   if (!name) return '';
   const searchTerm = [name, vintage].filter(Boolean).join(' ');
   const prompt = lang==='de'
-    ? searchTerm + ' Wein kurz: Aromen, Speisen, Durchschnittspreis, Lagerung'
-    : searchTerm + ' vin résumé: arômes, mets, prix moyen, garde';
+    ? searchTerm + ' Wein, antworte in 4 Zeilen ohne Titel: Aromen: ... | Speisen: ... | Preis: ... | Lagerung: ...'
+    : searchTerm + ' vin, réponds en 4 lignes sans titre: Arômes: ... | Mets: ... | Prix: ... | Garde: ...';
   const qGAI = encodeURIComponent(prompt);
   return `<a href="https://www.google.com/search?q=${qGAI}&udm=50" target="_blank" style="display:inline-block;background:rgba(30,120,60,.5);border:1px solid rgba(60,180,90,.3);color:#90ffb0;padding:7px 12px;border-radius:6px;font-size:.82rem;text-decoration:none;margin-right:5px;margin-bottom:6px">🤖 Google IA</a>`;
 }
@@ -1268,8 +1268,8 @@ function updateGoogleAILink(name, vintage) {
   if (!link) return;
   if (name) {
     const prompt = lang==='de'
-      ? [name, vintage].filter(Boolean).join(' ') + ' Wein kurz: Aromen, Speisen, Durchschnittspreis, Lagerung'
-      : [name, vintage].filter(Boolean).join(' ') + ' vin résumé: arômes, mets, prix moyen, garde';
+      ? [name, vintage].filter(Boolean).join(' ') + ' Wein, antworte in 4 Zeilen ohne Titel: Aromen: ... | Speisen: ... | Preis: ... | Lagerung: ...'
+      : [name, vintage].filter(Boolean).join(' ') + ' vin, réponds en 4 lignes sans titre: Arômes: ... | Mets: ... | Prix: ... | Garde: ...';
     link.href = 'https://www.google.com/search?q=' + encodeURIComponent(prompt) + '&udm=50';
     link.style.pointerEvents = '';
     link.style.opacity = '1';
