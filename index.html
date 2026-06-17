@@ -1291,7 +1291,8 @@ function showView(b, idx) {
   const shelf = idx < S1_TOTAL ? 1 : 2;
   document.getElementById('vCell').textContent = t('cellLabel', shelf, idx+1);
   const pw=document.getElementById('vPhotoWrap');
-  if(b.photo){pw.style.display='';document.getElementById('vPhoto').src=b.photo;}else pw.style.display='none';
+  const photo = b.photo || localStorage.getItem('pascal_photo_'+idx) || null;
+  if(photo){pw.style.display='';document.getElementById('vPhoto').src=photo;}else pw.style.display='none';
   document.getElementById('vInfoCard').innerHTML=[
     [t('infoVintage'), b.vintage||'—'],
     [t('infoPrice'),   b.price?parseFloat(b.price).toFixed(2).replace('.',',')+' €':'—'],
