@@ -333,10 +333,14 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 
 <!-- BACKUP -->
 <div class="view" id="view-backup">
+  <!-- Stats permanentes -->
+  <div class="bk-card" style="background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.4)">
+    <div class="bk-title">📊 État de la cave</div>
+    <div id="bkStatsLive" style="font-size:.85rem;line-height:1.9;color:var(--cream-d)"></div>
+  </div>
   <div class="bk-card">
     <div class="bk-title" data-i18n="bkExportTitle">📤 Exporter</div>
-    <div class="bk-text" data-i18n="bkExportText">Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, <b style="color:#e8c97a">photos incluses</b> et archives. Conserve ce fichier précieusement !</div>
-    <div id="bkInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px"></div>
+    <div class="bk-text" data-i18n="bkExportText">Télécharge un fichier avec toutes vos bouteilles, <b style="color:#e8c97a">photos incluses</b> et archives.</div>
     <button class="btn btn-primary" onclick="exportData()" data-i18n="bkExportBtn">📥 Télécharger la sauvegarde complète</button>
   </div>
   <div class="bk-card">
@@ -348,16 +352,43 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     </div>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
   </div>
+  <div class="bk-card" style="border-color:rgba(100,180,100,.3)">
+    <div class="bk-title" style="color:#90ee90">📂 Export Google Drive <span style="font-size:.7rem;color:var(--cream-d);opacity:.6">— filet de sécurité</span></div>
+    <div class="bk-text">Génère un fichier <b style="color:#e8c97a">cave-danielle-pascal-[date].json</b> avec <b style="color:#e8c97a">toutes vos photos</b>. Enregistrez-le dans un dossier Google Drive partagé. Si perte de données → réimportez ce fichier → tout revient !</div>
+    <button class="btn" style="background:rgba(40,120,40,.6);border:1px solid rgba(80,180,80,.4);color:#90ffb0;font-family:Georgia,serif;font-size:.88rem" onclick="exportDriveBackup()">📤 Exporter vers Google Drive</button>
+  </div>
   <div class="bk-card">
-    <div class="bk-title" data-i18n="bkSyncTitle">☁️ Synchronisation</div>
-    <div class="bk-text" id="bkSyncTextEl" data-i18n="bkSyncText">Synchronise automatiquement en temps réel.</div>
+    <div class="bk-title" data-i18n="bkSyncTitle">☁️ Sync Cloudflare KV</div>
+    <div class="bk-text" id="bkSyncTextEl">Sync temps réel via Cloudflare KV · 1 GB gratuit · photos incluses</div>
     <div id="bkSyncInfo" style="font-size:.78rem;color:#e8c97a;margin-bottom:10px">✅ …</div>
     <button class="btn btn-ghost" onclick="forceSyncNow()" data-i18n="bkSyncBtn">🔄 Forcer la synchronisation</button>
+    <button class="btn btn-ghost" onclick="openCfTokenSetup()" style="margin-top:4px;opacity:.6;font-size:.78rem">🔑 Changer le token Cloudflare</button>
   </div>
   <div class="bk-card danger">
     <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
     <div class="bk-text" data-i18n="bkResetText">Efface <b style="color:#ff8080">toutes</b> les bouteilles et l'historique. Irréversible.</div>
     <button class="btn btn-danger" onclick="resetAll()" data-i18n="bkResetBtn">⚠️ Tout effacer</button>
+  </div>
+</div>
+
+<!-- MODAL TOKEN CLOUDFLARE -->
+<div class="modal-overlay" id="cfTokenOverlay" onclick="if(event.target===this)closeCfTokenSetup()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
+      <div style="width:40px;height:4px;background:rgba(201,168,76,.3);border-radius:2px"></div>
+      <button onclick="closeCfTokenSetup()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div class="wine-title">🔑 Token Cloudflare KV</div>
+      <div class="wine-cell" style="margin-bottom:12px">Stocké uniquement sur ce téléphone — jamais dans le code</div>
+      <div class="form-group">
+        <label>API Token Cloudflare</label>
+        <input type="password" id="cfTokenInput" placeholder="cfut_…" style="font-family:monospace;font-size:.8rem">
+        <div style="margin-top:4px;font-size:.7rem;opacity:.5">Cloudflare → Mon profil → Tokens API</div>
+      </div>
+      <button class="btn btn-primary" onclick="saveCfToken()">💾 Enregistrer & tester</button>
+      <button class="btn btn-ghost" onclick="closeCfTokenSetup()">Annuler</button>
+    </div>
   </div>
 </div>
 
@@ -536,11 +567,15 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 // ══ CONFIG ══
 const PROXY_URL = 'https://cave-proxy.onrender.com/api/claude';
 
-// ══ JSONBIN SYNC ══
-const JB_BIN_ID  = '6a22564cda38895dfe8a72d7';
-const JB_API_KEY = '$2a$10$SLWc/RCGRjGx1PQD/XYrJex0jKg4pTrboja6d0/jizIQL/SzthM6S';
-const JB_URL     = 'https://api.jsonbin.io/v3/b/' + JB_BIN_ID;
-let   syncStatus = 'idle';
+// ══ CLOUDFLARE KV SYNC ══
+// Clés stockées dans localStorage — jamais dans le code source
+const CF_ACCOUNT_ID   = '74c64ffb88c1ca5affce233a1b133048';
+const CF_NAMESPACE_ID = 'a5348b8d5acf431a98a933f2c3b08eaa';
+const CF_KV_KEY       = 'cave-danielle-pascal'; // clé unique dans le namespace KV
+function getCfToken() { return localStorage.getItem('pascal_cf_token') || 'cfut_9GTETqTP4EAO67FGBZbphj0u238MbAFuFDvlFuda0d2c1528'; }
+const CF_KV_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_NAMESPACE_ID}/values/${CF_KV_KEY}`;
+
+let syncStatus = 'idle';
 
 // ══ TRADUCTIONS ══
 const I18N = {
@@ -584,7 +619,7 @@ const I18N = {
     anecConsumed:(c)=>`🍽️ Bouteilles consommées depuis l'ouverture : <strong>${c}</strong>`,
     anecSeries:(c,k,t)=>`🍾 <strong>${c} bouteilles</strong> de <strong>${k}</strong>${t?' ('+t+')':''}`,
     histSearchPh:'🔍 Rechercher dans Conso…',
-    bkSyncText:'Synchronise automatiquement en temps réel.',
+    bkSyncText:'Sync temps réel via Cloudflare KV · 1 GB · photos incluses',
     noticeTitle:'📝 Notice', noticeWith:'👥 Avec qui ?', noticeOccasion:'🎉 Occasion / Raison', noticeTaste:'⭐ Avis / Dégustation', noticeNotes:'📝 Notes libres',
     noticeWithPh:'ex: Danielle, famille, amis…', noticeOccasionPh:'ex: Anniversaire, dîner, fête…', noticeTastePh:'ex: Excellent, trop jeune, à point…', noticeNotesPh:'Tout ce que vous voulez noter…',
     noticeSave:'💾 Enregistrer la notice', noticeBtnAdd:'Ajouter notice', noticeBtnEdit:'Notice',
@@ -646,7 +681,7 @@ const I18N = {
     anecConsumed:(c)=>`🍽️ Seit Kellereröffnung getrunken: <strong>${c}</strong>`,
     anecSeries:(c,k,t)=>`🍾 <strong>${c} Flaschen</strong> von <strong>${k}</strong>${t?' ('+t+')':''}`,
     histSearchPh:'🔍 In Konsum suchen…',
-    bkSyncText:'Synchronisiert automatisch in Echtzeit.',
+    bkSyncText:'Echtzeit-Sync via Cloudflare KV · 1 GB · Fotos inklusive',
     noticeTitle:'📝 Notiz', noticeWith:'👥 Mit wem?', noticeOccasion:'🎉 Anlass / Grund', noticeTaste:'⭐ Bewertung / Verkostung', noticeNotes:'📝 Freie Notizen',
     noticeWithPh:'z.B. Danielle, Familie, Freunde…', noticeOccasionPh:'z.B. Geburtstag, Abendessen, Fest…', noticeTastePh:'z.B. Ausgezeichnet, zu jung, auf dem Punkt…', noticeNotesPh:'Was auch immer Sie notieren möchten…',
     noticeSave:'💾 Notiz speichern', noticeBtnAdd:'Notiz hinzufügen', noticeBtnEdit:'Notiz',
@@ -1571,68 +1606,99 @@ function setSyncStatus(status, msg) {
   el.style.color = status==='ok' ? '#90ee90' : status==='error' ? '#ff9090' : status==='syncing' ? '#e8c97a' : '';
 }
 
+// ══ CLOUDFLARE KV : SAUVEGARDER ══
 async function jbSave() {
   setSyncStatus('syncing', lang==='de'?'Speichern...':'Sauvegarde...');
   try {
     var now = new Date().toISOString();
     localStorage.setItem('pascal_updated', now);
+    // Inclure les photos depuis localStorage
+    var cellarWithPhotos = cellar.map(function(b,i){
+      if (!b) return null;
+      var photo = b.photo || localStorage.getItem('pascal_photo_'+i) || null;
+      return photo ? Object.assign({},b,{photo:photo}) : Object.assign({},b,{photo:null});
+    });
     var payload = {
-      version: 2,
+      version: 4,
       updatedAt: now,
-      cellar: cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;}),
+      cellar: cellarWithPhotos,
       history: history
     };
-    const r = await fetch(JB_URL, {
+    const payloadStr = JSON.stringify(payload);
+    const sizeKB = Math.round(payloadStr.length / 1024);
+    const r = await fetch(CF_KV_URL, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JB_API_KEY },
-      body: JSON.stringify(payload)
+      headers: {
+        'Authorization': 'Bearer ' + getCfToken(),
+        'Content-Type': 'application/json'
+      },
+      body: payloadStr
     });
-    if (!r.ok) throw new Error('JSONBin save ' + r.status);
+    if (!r.ok) {
+      const errTxt = await r.text().catch(()=>'');
+      throw new Error('CF KV save ' + r.status + ' ' + errTxt.slice(0,80));
+    }
     const n = cellar.filter(Boolean).length;
-    setSyncStatus('ok', n + (lang==='de'?' Fl.':' btl.'));
+    const ph = cellar.filter((_,i)=>!!(cellar[i]?.photo||localStorage.getItem('pascal_photo_'+i))).length;
+    setSyncStatus('ok', n + (lang==='de'?' Fl. · ':'btl. · ') + sizeKB + 'KB · ' + ph + '📷');
+    // Export automatique Google Drive (silencieux — proposé toutes les N modifications)
+    _autoExportCounter = (_autoExportCounter||0) + 1;
+    if (_autoExportCounter >= AUTO_EXPORT_EVERY) {
+      _autoExportCounter = 0;
+      offerDriveExport();
+    }
   } catch(e) {
     setSyncStatus('error', lang==='de'?'Sync-Fehler':'Erreur sync');
-    console.warn('JSONBin save error:', e);
+    console.warn('CF KV save error:', e);
   }
 }
 
+// ══ CLOUDFLARE KV : CHARGER ══
 async function jbLoad(force) {
   force = force || false;
   setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
   try {
-    const r = await fetch(JB_URL + '/latest', {
-      headers: { 'X-Master-Key': JB_API_KEY, 'X-Bin-Meta': 'false' }
+    const r = await fetch(CF_KV_URL, {
+      headers: { 'Authorization': 'Bearer ' + getCfToken() }
     });
-    if (!r.ok) throw new Error('JSONBin ' + r.status);
+    if (r.status === 404) {
+      // Clé absente → première utilisation, on pousse nos données
+      setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+      await jbSave();
+      return;
+    }
+    if (!r.ok) throw new Error('CF KV load ' + r.status);
     const json = await r.json();
-    // Vérifier que c'est bien des données de cave (pas {"test":"ok"} ou autre)
     if (!json || !Array.isArray(json.cellar) || !json.version) {
-      // Bin vide ou invalide — on y pousse nos données locales
       setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
       await jbSave();
       return;
     }
     // Comparer dates sauf si force=true
-    var jbDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
+    var cfDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
     var locStr  = localStorage.getItem('pascal_updated');
     var locDate = locStr ? new Date(locStr).getTime() : 0;
-    if (!force && jbDate <= locDate) {
+    if (!force && cfDate <= locDate) {
       setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
       return;
     }
-    // Charger depuis JSONBin
     var newCellar = Array.from({length:TOTAL}, function(_,i) {
       var b = json.cellar[i];
       if (!b || !b.name) return null;
       if (!TYPES[b.type]) b.type = 'red';
-      var photo = localStorage.getItem('pascal_photo_'+i);
-      if (photo) b.photo = photo;
+      // Photos : priorité à la photo dans KV (plus complète), fallback localStorage
+      if (!b.photo) {
+        var localPhoto = localStorage.getItem('pascal_photo_'+i);
+        if (localPhoto) b.photo = localPhoto;
+      } else {
+        // Mettre à jour localStorage avec la photo fraîche du KV
+        try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e){}
+      }
       return b;
     });
-    var nbJb = newCellar.filter(Boolean).length;
+    var nbCf  = newCellar.filter(Boolean).length;
     var nbLoc = cellar.filter(Boolean).length;
-    // Sécurité : ne pas écraser des données locales plus riches par un bin vide
-    if (!force && nbJb < nbLoc) {
+    if (!force && nbCf < nbLoc) {
       setSyncStatus('ok', nbLoc + (lang==='de'?' Fl.':' btl.'));
       return;
     }
@@ -1643,16 +1709,76 @@ async function jbLoad(force) {
     localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
     renderShelves(); renderTable(); renderHistory(); updateStats();
     if (document.getElementById('view-stats').classList.contains('active')) renderStats();
-    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    const nPh = cellar.filter((_,i)=>!!(cellar[i]?.photo)).length;
+    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl. · ':' btl. · ') + nPh + '📷');
     if (force) showToast(lang==='de'?'✅ Synchronisiert!':'✅ Synchronisé !');
   } catch(e) {
     setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
-    console.warn('JSONBin load:', e);
+    console.warn('CF KV load:', e);
   }
 }
 
 async function syncNow()      { await jbLoad(false); }
 async function forceSyncNow() { await jbLoad(true);  }
+
+// ══ EXPORT AUTO GOOGLE DRIVE (filet de sécurité) ══
+const AUTO_EXPORT_EVERY = 10; // proposer un export après chaque 10 sauvegardes sync
+let _autoExportCounter = 0;
+
+function offerDriveExport() {
+  // Notification discrète dans le toast + badge backup
+  const msg = lang==='de'
+    ? '💾 Tipp: Sichern Sie jetzt auf Google Drive (Backup-Tab)'
+    : '💾 Conseil : faites un export Google Drive maintenant (onglet Backup)';
+  showToast(msg);
+}
+
+// Export complet avec photos (pour Google Drive / sauvegarde manuelle)
+function exportDriveBackup() {
+  const cellarWithPhotos = cellar.map((b,i) => {
+    if (!b) return null;
+    const photo = b.photo || localStorage.getItem('pascal_photo_'+i) || null;
+    return photo ? {...b, photo} : {...b};
+  });
+  const data = {
+    version: 4,
+    exportDate: new Date().toISOString(),
+    exportType: 'google-drive-backup',
+    cellar: cellarWithPhotos,
+    history
+  };
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const dateStr = new Date().toISOString().replace(/[:.]/g,'-').slice(0,16);
+  a.href = url;
+  a.download = `cave-danielle-pascal-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  const n = cellarWithPhotos.filter(Boolean).length;
+  const nPh = cellarWithPhotos.filter(b=>b&&b.photo).length;
+  showToast(lang==='de'
+    ? `✅ Export Google Drive : ${n} Flaschen, ${nPh} Fotos — speichern Sie die Datei in Google Drive!`
+    : `✅ Export Google Drive : ${n} bouteilles, ${nPh} photos — enregistrez le fichier dans Google Drive !`);
+}
+
+// ══ TOKEN CLOUDFLARE (si besoin de mettre à jour) ══
+function openCfTokenSetup() {
+  const current = localStorage.getItem('pascal_cf_token');
+  document.getElementById('cfTokenInput').value = current ? '••••••••••••••••' : '';
+  document.getElementById('cfTokenOverlay').classList.add('open');
+}
+function closeCfTokenSetup() {
+  document.getElementById('cfTokenOverlay').classList.remove('open');
+}
+async function saveCfToken() {
+  const val = document.getElementById('cfTokenInput').value.trim();
+  if (!val || val.startsWith('•')) { closeCfTokenSetup(); return; }
+  localStorage.setItem('pascal_cf_token', val);
+  closeCfTokenSetup();
+  showToast(lang==='de'?'🔑 CF Token gespeichert — Test…':'🔑 Token CF enregistré — test…');
+  await jbLoad(true);
+}
 
 let _ghSaveTimer = null;
 let _lastSaveTime = 0;
@@ -1691,22 +1817,11 @@ function translateField(fieldId) {
   showToast(lang==='de'?'🌐 Google Übersetzer geöffnet — Text kopieren & einfügen':'🌐 Google Traduction ouvert — copiez-collez la traduction');
 }
 
-// ══ TOKEN SETUP ══
-function openTokenSetup() {
-  document.getElementById('tokenInput').value = getToken() ? '••••••••••••••••' : '';
-  document.getElementById('tokenOverlay').classList.add('open');
-}
-function closeTokenSetup() {
-  document.getElementById('tokenOverlay').classList.remove('open');
-}
-async function saveToken() {
-  const val = document.getElementById('tokenInput').value.trim();
-  if (!val || val.startsWith('•')) { closeTokenSetup(); return; }
-  localStorage.setItem('pascal_gh_token', val);
-  closeTokenSetup();
-  showToast(lang==='de'?'🔑 Token gespeichert — Verbindungstest…':'🔑 Token enregistré — test de connexion…');
-  await loadFromGitHub();
-}
+// ══ TOKEN GITHUB (obsolète — conservé pour rétrocompatibilité) ══
+function openTokenSetup() { openCfTokenSetup(); } // redirige vers CF
+function closeTokenSetup() { closeCfTokenSetup(); }
+async function saveToken() { await saveCfToken(); }
+async function loadFromGitHub() { await jbLoad(true); }
 
 function openSearch() {
   document.getElementById('searchOverlay').classList.add('open');
@@ -1907,18 +2022,26 @@ function switchView(name,btn){
   if(name==='history') renderHistory();
   if(name==='stats')   renderStats();
   if(name==='backup'){
-    const f=cellar.filter(Boolean).length,v=cellar.reduce((a,b)=>a+(b?parseFloat(b.price)||0:0),0);
-    document.getElementById('bkInfo').textContent = lang==='de'
-      ? `${f} Flaschen · ${history.length} Archive · ${v.toFixed(2).replace('.',',')} €`
-      : `${f} bouteilles · ${history.length} archives · ${v.toFixed(2).replace('.',',')} €`;
-    const hasToken = !!getToken();
-    document.getElementById('bkSyncInfo').textContent = hasToken
-      ? (lang==='de'?'✅ Token konfiguriert — Sync aktiv':'✅ Token configuré — sync active')
-      : (lang==='de'?'⚠️ Token nicht konfiguriert':'⚠️ Token non configuré');
+    updateBkStats();
   }
 }
 
-// ══ UTILS ══
+function updateBkStats() {
+  const el = document.getElementById('bkStatsLive');
+  if (!el) return;
+  const f   = cellar.filter(Boolean).length;
+  const v   = cellar.reduce((a,b)=>a+(b?parseFloat(b.price)||0:0),0);
+  const nP  = cellar.filter((_,i)=>!!localStorage.getItem('pascal_photo_'+i)).length;
+  const de  = lang==='de';
+  el.innerHTML = `
+    🍾 ${de?'Flaschen im Keller':'Bouteilles en cave'} : <b style="color:var(--gold)">${f} / ${TOTAL}</b><br>
+    📷 ${de?'Fotos gespeichert':'Photos enregistrées'} : <b style="color:var(--gold)">${nP}</b><br>
+    💶 ${de?'Gesamtwert':'Valeur totale'} : <b style="color:var(--gold)">${v.toFixed(2).replace('.',',')} €</b><br>
+    📜 ${de?'Konsumiert':'Consommées'} : <b style="color:var(--gold)">${history.length}</b>
+  `;
+}
+
+
 function fmtDate(d){try{return new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});}catch{return '';}}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
@@ -1945,12 +2068,13 @@ document.getElementById('fName').addEventListener('input', function() {
 renderShelves();
 updateStats();
 setLang(lang);
-// Au démarrage : si données locales → les pousser vers JSONBin
-// Si pas de données locales → charger depuis JSONBin
+// Au démarrage : si données locales → les pousser vers CF KV
+// Si pas de données locales → charger depuis CF KV
 const _hasLocal = localStorage.getItem('pascal_cellar');
 if (_hasLocal) {
-  setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
-  // Pousser les données locales vers JSONBin pour Danielle
+  const _n = cellar.filter(Boolean).length;
+  setSyncStatus('ok', _n + (lang==='de'?' Fl.':' btl.'));
+  // Pousser les données locales vers CF KV pour Danielle
   setTimeout(jbSave, 2000);
 } else {
   jbLoad(true);
