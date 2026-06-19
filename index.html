@@ -355,7 +355,8 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <div class="bk-card" style="border-color:rgba(100,180,100,.3)">
     <div class="bk-title" style="color:#90ee90">📂 Export Google Drive <span style="font-size:.7rem;color:var(--cream-d);opacity:.6">— filet de sécurité</span></div>
     <div class="bk-text">Génère un fichier <b style="color:#e8c97a">cave-danielle-pascal-[date].json</b> avec <b style="color:#e8c97a">toutes vos photos</b>. Enregistrez-le dans un dossier Google Drive partagé. Si perte de données → réimportez ce fichier → tout revient !</div>
-    <button class="btn" style="background:rgba(40,120,40,.6);border:1px solid rgba(80,180,80,.4);color:#90ffb0;font-family:Georgia,serif;font-size:.88rem" onclick="exportDriveBackup()">📤 Exporter vers Google Drive</button>
+    <button id="btnDriveExport" class="btn" style="background:rgba(40,120,40,.6);border:1px solid rgba(80,180,80,.4);color:#90ffb0;font-family:Georgia,serif;font-size:.88rem" onclick="exportDriveBackup()">📤 Sauvegarder sur Google Drive</button>
+    <button class="btn btn-ghost" onclick="openGdriveSetup()" style="margin-top:4px;opacity:.55;font-size:.75rem">⚙️ Configurer Google Client ID</button>
   </div>
   <div class="bk-card">
     <div class="bk-title" data-i18n="bkSyncTitle">☁️ Sync Cloudflare KV</div>
@@ -368,6 +369,34 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <div class="bk-title danger" data-i18n="bkResetTitle">🗑️ Réinitialiser</div>
     <div class="bk-text" data-i18n="bkResetText">Efface <b style="color:#ff8080">toutes</b> les bouteilles et l'historique. Irréversible.</div>
     <button class="btn btn-danger" onclick="resetAll()" data-i18n="bkResetBtn">⚠️ Tout effacer</button>
+  </div>
+</div>
+
+<!-- MODAL GOOGLE DRIVE CLIENT ID -->
+<div class="modal-overlay" id="gdriveSetupOverlay" onclick="if(event.target===this)closeGdriveSetup()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px">
+      <div style="width:40px;height:4px;background:rgba(201,168,76,.3);border-radius:2px"></div>
+      <button onclick="closeGdriveSetup()" style="background:none;border:none;color:rgba(245,237,224,.45);font-size:1.3rem;cursor:pointer;padding:2px 6px">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div class="wine-title">☁️ Google Drive — Configuration</div>
+      <div class="wine-cell" style="margin-bottom:12px;font-size:.8rem;line-height:1.5">
+        Pour uploader automatiquement, tu as besoin d'un <b>OAuth 2.0 Client ID</b> Google.<br><br>
+        <b>Étapes :</b><br>
+        1. Va sur <a href="https://console.cloud.google.com" target="_blank" style="color:#e8c97a">console.cloud.google.com</a><br>
+        2. Crée un projet → Active <b>Google Drive API</b><br>
+        3. Identifiants → Créer → ID client OAuth 2.0 → <b>Application Web</b><br>
+        4. Origines JS autorisées : <code style="font-size:.75rem;background:rgba(255,255,255,.1);padding:1px 4px">https://gamezpascal76889.github.io</code><br>
+        5. Copie l'<b>ID client</b> (format: …apps.googleusercontent.com)
+      </div>
+      <div class="form-group">
+        <label>Google OAuth Client ID</label>
+        <input type="text" id="gdriveClientIdInput" placeholder="xxxx.apps.googleusercontent.com" style="font-family:monospace;font-size:.72rem">
+      </div>
+      <button class="btn btn-primary" onclick="saveGdriveClientId()">💾 Enregistrer</button>
+      <button class="btn btn-ghost" onclick="closeGdriveSetup()">Annuler</button>
+    </div>
   </div>
 </div>
 
@@ -571,9 +600,16 @@ const PROXY_URL = 'https://cave-proxy.onrender.com/api/claude';
 // Clés stockées dans localStorage — jamais dans le code source
 const CF_ACCOUNT_ID   = '74c64ffb88c1ca5affce233a1b133048';
 const CF_NAMESPACE_ID = 'a5348b8d5acf431a98a933f2c3b08eaa';
-const CF_KV_KEY       = 'cave-danielle-pascal'; // clé unique dans le namespace KV
-function getCfToken() { return localStorage.getItem('pascal_cf_token') || 'cfut_9GTETqTP4EAO67FGBZbphj0u238MbAFuFDvlFuda0d2c1528'; }
+const CF_KV_KEY       = 'cave-danielle-pascal';
+// ⚠️ Token stocké UNIQUEMENT dans localStorage — jamais dans le code
+function getCfToken() { return localStorage.getItem('pascal_cf_token') || ''; }
 const CF_KV_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_NAMESPACE_ID}/values/${CF_KV_KEY}`;
+
+// ══ GOOGLE DRIVE — OAuth2 PKCE (upload automatique sans serveur) ══
+const GDRIVE_FOLDER_ID = '1Avl7R6_mvrF8_dV-QzinbiocxnymdzQX';
+const GDRIVE_FILENAME  = 'cave-danielle-pascal.json'; // nom fixe → écrase l'ancien
+function getGdriveClientId() { return localStorage.getItem('pascal_gdrive_client_id') || ''; }
+let _gdriveToken = null; // access token en mémoire (session uniquement)
 
 let syncStatus = 'idle';
 
@@ -1733,33 +1769,134 @@ function offerDriveExport() {
   showToast(msg);
 }
 
-// Export complet avec photos (pour Google Drive / sauvegarde manuelle)
-function exportDriveBackup() {
+// ══ GOOGLE DRIVE UPLOAD AUTOMATIQUE ══
+
+// Étape 1 : construire le JSON complet avec photos
+function buildBackupBlob() {
   const cellarWithPhotos = cellar.map((b,i) => {
     if (!b) return null;
     const photo = b.photo || localStorage.getItem('pascal_photo_'+i) || null;
     return photo ? {...b, photo} : {...b};
   });
-  const data = {
-    version: 4,
-    exportDate: new Date().toISOString(),
-    exportType: 'google-drive-backup',
-    cellar: cellarWithPhotos,
-    history
-  };
-  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const dateStr = new Date().toISOString().replace(/[:.]/g,'-').slice(0,16);
-  a.href = url;
-  a.download = `cave-danielle-pascal-${dateStr}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  const n = cellarWithPhotos.filter(Boolean).length;
-  const nPh = cellarWithPhotos.filter(b=>b&&b.photo).length;
-  showToast(lang==='de'
-    ? `✅ Export Google Drive : ${n} Flaschen, ${nPh} Fotos — speichern Sie die Datei in Google Drive!`
-    : `✅ Export Google Drive : ${n} bouteilles, ${nPh} photos — enregistrez le fichier dans Google Drive !`);
+  const data = { version:4, exportDate:new Date().toISOString(), exportType:'google-drive-backup', cellar:cellarWithPhotos, history };
+  return { blob: new Blob([JSON.stringify(data)], {type:'application/json'}), cellarWithPhotos };
+}
+
+// Étape 2 : chercher l'ID du fichier existant (pour l'écraser)
+async function gdriveGetFileId(token) {
+  const q = encodeURIComponent(`name='${GDRIVE_FILENAME}' and '${GDRIVE_FOLDER_ID}' in parents and trashed=false`);
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  const j = await r.json();
+  return (j.files && j.files.length > 0) ? j.files[0].id : null;
+}
+
+// Étape 3 : uploader (créer ou écraser)
+async function gdriveUpload(token, blob) {
+  const existingId = await gdriveGetFileId(token);
+  const metadata = existingId ? {} : { name: GDRIVE_FILENAME, parents: [GDRIVE_FOLDER_ID] };
+  const form = new FormData();
+  if (!existingId) form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+  form.append('file', blob, GDRIVE_FILENAME);
+  const url = existingId
+    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  const method = existingId ? 'PATCH' : 'POST';
+  const r = await fetch(url, { method, headers: {'Authorization':'Bearer '+token}, body: form });
+  if (!r.ok) { const e = await r.text(); throw new Error('Drive upload ' + r.status + ' ' + e.slice(0,100)); }
+  return await r.json();
+}
+
+// Étape 4 : OAuth2 PKCE — ouvre une popup de connexion Google
+async function gdriveAuthenticate() {
+  const clientId = getGdriveClientId();
+  if (!clientId) {
+    openGdriveSetup();
+    return null;
+  }
+  // Générer code_verifier et code_challenge (PKCE)
+  const verifier = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2,'0')).join('');
+  const enc = new TextEncoder();
+  const digest = await crypto.subtle.digest('SHA-256', enc.encode(verifier));
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  localStorage.setItem('_gdrive_verifier', verifier);
+  const params = new URLSearchParams({
+    client_id: clientId, redirect_uri: location.origin + location.pathname,
+    response_type: 'code', scope: 'https://www.googleapis.com/auth/drive.file',
+    code_challenge: challenge, code_challenge_method: 'S256', access_type: 'offline', prompt: 'consent'
+  });
+  // Ouvrir popup OAuth
+  const popup = window.open('https://accounts.google.com/o/oauth2/v2/auth?' + params, 'gdrive_auth', 'width=500,height=600');
+  return new Promise((resolve) => {
+    const timer = setInterval(async () => {
+      try {
+        if (!popup || popup.closed) { clearInterval(timer); resolve(null); return; }
+        const url = popup.location.href;
+        if (url && url.includes('code=')) {
+          clearInterval(timer);
+          popup.close();
+          const code = new URL(url).searchParams.get('code');
+          // Échanger le code contre un access token
+          const resp = await fetch('https://oauth2.googleapis.com/token', {
+            method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({ code, client_id:clientId, redirect_uri:location.origin+location.pathname,
+              grant_type:'authorization_code', code_verifier:localStorage.getItem('_gdrive_verifier') })
+          });
+          const t = await resp.json();
+          if (t.access_token) { _gdriveToken = t.access_token; resolve(t.access_token); }
+          else { console.warn('GDrive token error:', t); resolve(null); }
+        }
+      } catch(e) { /* popup pas encore redirigée — normal */ }
+    }, 500);
+  });
+}
+
+// Fonction principale appelée par le bouton
+async function exportDriveBackup() {
+  const btn = document.getElementById('btnDriveExport');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ Upload…'; }
+  try {
+    if (!getGdriveClientId()) { openGdriveSetup(); if(btn){btn.disabled=false;btn.innerHTML='📤 Sauvegarder sur Google Drive';} return; }
+    let token = _gdriveToken;
+    if (!token) { showToast(lang==='de'?'🔑 Google-Anmeldung erforderlich…':'🔑 Connexion Google requise…'); token = await gdriveAuthenticate(); }
+    if (!token) { showToast('❌ Connexion Google annulée'); if(btn){btn.disabled=false;btn.innerHTML='📤 Sauvegarder sur Google Drive';} return; }
+    showToast(lang==='de'?'⏳ Upload vers Google Drive…':'⏳ Upload vers Google Drive…');
+    const { blob, cellarWithPhotos } = buildBackupBlob();
+    await gdriveUpload(token, blob);
+    const n   = cellarWithPhotos.filter(Boolean).length;
+    const nPh = cellarWithPhotos.filter(b=>b&&b.photo).length;
+    const sizeKB = Math.round(blob.size/1024);
+    showToast(lang==='de'
+      ? `✅ Google Drive : ${n} Fl. · ${nPh} Fotos · ${sizeKB}KB — Datei überschrieben!`
+      : `✅ Google Drive : ${n} btl. · ${nPh} photos · ${sizeKB}KB — fichier écrasé !`);
+    if(btn){btn.disabled=false;btn.innerHTML='📤 Sauvegarder sur Google Drive';}
+  } catch(e) {
+    console.warn('GDrive export error:', e);
+    // Si token expiré, réinitialiser et retenter
+    if (e.message && e.message.includes('401')) {
+      _gdriveToken = null;
+      showToast('🔑 Session expirée — reconnexion…');
+      if(btn){btn.disabled=false;btn.innerHTML='📤 Sauvegarder sur Google Drive';}
+      setTimeout(exportDriveBackup, 800);
+      return;
+    }
+    showToast('❌ Erreur Google Drive — ' + e.message.slice(0,60));
+    if(btn){btn.disabled=false;btn.innerHTML='📤 Sauvegarder sur Google Drive';}
+  }
+}
+
+// ══ SETUP GOOGLE DRIVE CLIENT ID ══
+function openGdriveSetup() {
+  document.getElementById('gdriveClientIdInput').value = getGdriveClientId();
+  document.getElementById('gdriveSetupOverlay').classList.add('open');
+}
+function closeGdriveSetup() { document.getElementById('gdriveSetupOverlay').classList.remove('open'); }
+function saveGdriveClientId() {
+  const val = document.getElementById('gdriveClientIdInput').value.trim();
+  if (val) { localStorage.setItem('pascal_gdrive_client_id', val); _gdriveToken = null; }
+  closeGdriveSetup();
+  showToast(lang==='de'?'✅ Google Client ID gespeichert':'✅ Google Client ID enregistrée');
 }
 
 // ══ TOKEN CLOUDFLARE (si besoin de mettre à jour) ══
@@ -2068,16 +2205,23 @@ document.getElementById('fName').addEventListener('input', function() {
 renderShelves();
 updateStats();
 setLang(lang);
-// Au démarrage : si données locales → les pousser vers CF KV
-// Si pas de données locales → charger depuis CF KV
-const _hasLocal = localStorage.getItem('pascal_cellar');
-if (_hasLocal) {
-  const _n = cellar.filter(Boolean).length;
-  setSyncStatus('ok', _n + (lang==='de'?' Fl.':' btl.'));
-  // Pousser les données locales vers CF KV pour Danielle
-  setTimeout(jbSave, 2000);
+// Vérifier token CF au démarrage
+if (!getCfToken()) {
+  setSyncStatus('error', 'Token CF manquant');
+  setTimeout(() => {
+    showToast('⚠️ Token Cloudflare manquant — va dans Backup pour le configurer');
+  }, 1500);
 } else {
-  jbLoad(true);
+  // Si données locales → pousser vers CF KV pour Danielle
+  // Sinon → charger depuis CF KV
+  const _hasLocal = localStorage.getItem('pascal_cellar');
+  if (_hasLocal) {
+    const _n = cellar.filter(Boolean).length;
+    setSyncStatus('ok', _n + (lang==='de'?' Fl.':' btl.'));
+    setTimeout(jbSave, 2000);
+  } else {
+    jbLoad(true);
+  }
 }
 </script>
 </body>
