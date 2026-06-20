@@ -21,18 +21,19 @@
 body { font-family: Georgia, serif; background: var(--bx); color: var(--cream); min-height: 100vh; max-width: 560px; margin: 0 auto; }
 
 /* ── HEADER ── */
-.header { background: linear-gradient(180deg,#1a0d08,rgba(44,24,16,.97)); border-bottom: 2px solid var(--gold); padding: 10px 14px 8px; position: sticky; top:0; z-index:50; }
+.header { background: linear-gradient(180deg,#1a0d08,rgba(44,24,16,.97)); border-bottom: 2px solid var(--gold); padding: 8px 14px 6px; position: sticky; top:0; z-index:50; }
 .header-top { display:flex; align-items:center; gap:10px; }
 .header-icon { font-size:1.6rem; }
 .header-text { flex:1; }
 .header-title { font-style:italic; font-size:1.12rem; color:var(--gold); letter-spacing:.04em; }
 .header-sub { font-size:.65rem; color:var(--cream-d); opacity:.5; letter-spacing:.1em; text-transform:uppercase; }
-.header-stats { display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
-.stat { background:rgba(201,168,76,.12); border:1px solid rgba(201,168,76,.28); border-radius:4px; padding:2px 8px; color:var(--gold-l); font-size:.72rem; }
+.header-stats { display:flex; gap:5px; margin-top:5px; flex-wrap:nowrap; align-items:center; overflow:hidden; }
+.stat { background:rgba(201,168,76,.12); border:1px solid rgba(201,168,76,.28); border-radius:4px; padding:2px 7px; color:var(--gold-l); font-size:.7rem; white-space:nowrap; }
 .stat-total { background:rgba(201,168,76,.2); border-color:rgba(201,168,76,.5); }
+.stat-sync { margin-left:auto; flex-shrink:0; }
 
 /* ── NAV ── */
-.nav { display:flex; background:rgba(0,0,0,.35); border-bottom:1px solid rgba(201,168,76,.18); }
+.nav { display:flex; background:rgba(26,13,8,.98); border-bottom:1px solid rgba(201,168,76,.18); position:sticky; z-index:49; }
 .nav-btn { flex:1; padding:9px 2px; border:none; background:none; color:rgba(245,237,224,.4); font-family:Georgia,serif; font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; cursor:pointer; border-bottom:2px solid transparent; transition:color .2s,border-color .2s; }
 .nav-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
 
@@ -228,10 +229,9 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   </div>
   <div class="header-stats">
     <span class="stat stat-total" id="sTotal">…</span>
-    <span class="stat" id="sVal">0,00 €</span>
     <span class="stat" id="sE1">…</span>
     <span class="stat" id="sE2">…</span>
-    <span class="stat" id="sSyncStatus" style="cursor:pointer" onclick="syncNow()">☁️ Sync</span>
+    <span class="stat stat-sync" id="sSyncStatus" style="cursor:pointer" onclick="syncNow()">☁️ Sync</span>
   </div>
 </div>
 
@@ -254,10 +254,6 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
   <!-- Étagère 1 -->
   <div id="shelf-panel-1">
     <div class="shelf-wrap">
-      <div class="shelf-header">
-        <div class="shelf-name" id="shelfName1">🏛️ …</div>
-        <div class="shelf-badge" id="badge1">…</div>
-      </div>
       <div id="shelfGrid1"></div>
     </div>
     <div class="legend" id="legend1"></div>
@@ -266,19 +262,11 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <!-- Étagère 2 + 3 -->
   <div id="shelf-panel-2" style="display:none">
     <div class="shelf-wrap" style="max-width:360px">
-      <div class="shelf-header">
-        <div class="shelf-name" id="shelfName2">🏛️ …</div>
-        <div class="shelf-badge" id="badge2">…</div>
-      </div>
       <div id="shelfGrid2"></div>
     </div>
     <div class="legend" id="legend2"></div>
     <div style="margin-top:14px;display:flex;justify-content:center">
       <div class="shelf-wrap" style="border-color:#4a9ec4;max-width:200px;width:100%">
-        <div class="shelf-header">
-          <div class="shelf-name" id="shelfName3" style="color:#a8d8f0">🍽️ …</div>
-          <div class="shelf-badge" id="badge3">…</div>
-        </div>
         <div id="shelfGrid3"></div>
       </div>
     </div>
@@ -749,6 +737,12 @@ function t(key, ...args) {
   if(typeof val === 'function') return val(...args);
   return val || I18N['fr'][key] || key;
 }
+function setNavTop() {
+  const h = document.querySelector('.header');
+  const nav = document.querySelector('.nav');
+  if (h && nav) nav.style.top = h.offsetHeight + 'px';
+}
+
 function setLang(l) {
   lang = l;
   localStorage.setItem('pascal_lang', l);
@@ -892,15 +886,10 @@ function updateStats() {
   const f2 = cellar.slice(S1_TOTAL, S1_TOTAL+S2_TOTAL).filter(Boolean).length;
   const f3 = cellar.slice(S1_TOTAL+S2_TOTAL).filter(Boolean).length;
   const fT = f1 + f2 + f3;
-  const v  = cellar.reduce((a,b) => a+(b?parseFloat(b.price)||0:0), 0);
-  document.getElementById('sTotal').textContent = t('statTotal', fT);
-  document.getElementById('sVal').textContent   = v.toFixed(2).replace('.',',') + ' €';
+  // Format compact : 67/176 btl.
+  document.getElementById('sTotal').textContent = fT + '/' + TOTAL + (lang==='de'?' Fl.':' btl.');
   document.getElementById('sE1').textContent    = t('statE1', f1);
   document.getElementById('sE2').textContent    = t('statE2', f2+f3);
-  document.getElementById('badge1').textContent = t('bottleCount', f1, S1_TOTAL);
-  document.getElementById('badge2').textContent = t('bottleCount', f2, S2_TOTAL);
-  const b3 = document.getElementById('badge3');
-  if(b3) b3.textContent = t('bottleCount', f3, S3_TOTAL);
 }
 
 // ══ SHELF ══
@@ -2151,6 +2140,8 @@ document.getElementById('fName').addEventListener('input', function() {
 renderShelves();
 updateStats();
 setLang(lang);
+setNavTop();
+window.addEventListener('resize', setNavTop);
 // Au démarrage : toujours charger depuis KV pour avoir les données les plus récentes
 setTimeout(() => jbLoad(false), 1500);
 // Auto-refresh toutes les 2 minutes pour voir les modifs de Danielle
