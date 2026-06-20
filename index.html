@@ -412,7 +412,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
       <div class="wine-cell" style="margin-bottom:12px">Stocké uniquement sur ce téléphone — jamais dans le code</div>
       <div class="form-group">
         <label>API Token Cloudflare</label>
-        <input type="password" id="cfTokenInput" placeholder="cfut_…" style="font-family:monospace;font-size:.8rem">
+        <input type="text" id="cfTokenInput" placeholder="cfut_…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" style="font-family:monospace;font-size:.75rem;word-break:break-all">
         <div style="margin-top:4px;font-size:.7rem;opacity:.5">Cloudflare → Mon profil → Tokens API</div>
       </div>
       <button class="btn btn-primary" onclick="saveCfToken()">💾 Enregistrer & tester</button>
@@ -1902,7 +1902,7 @@ function saveGdriveClientId() {
 // ══ TOKEN CLOUDFLARE (si besoin de mettre à jour) ══
 function openCfTokenSetup() {
   const current = localStorage.getItem('pascal_cf_token');
-  document.getElementById('cfTokenInput').value = current ? '••••••••••••••••' : '';
+  document.getElementById('cfTokenInput').value = current || '';
   document.getElementById('cfTokenOverlay').classList.add('open');
 }
 function closeCfTokenSetup() {
