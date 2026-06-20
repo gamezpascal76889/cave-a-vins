@@ -603,7 +603,7 @@ const CF_NAMESPACE_ID = 'a5348b8d5acf431a98a933f2c3b08eaa';
 const CF_KV_KEY       = 'cave-danielle-pascal';
 // ⚠️ Token stocké UNIQUEMENT dans localStorage — jamais dans le code
 function getCfToken() { return localStorage.getItem('pascal_cf_token') || ''; }
-const CF_KV_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_NAMESPACE_ID}/values/${CF_KV_KEY}`;
+const CF_KV_URL = 'https://cave-kv-proxy.gamezpascal.workers.dev';
 
 // ══ GOOGLE DRIVE — OAuth2 PKCE (upload automatique sans serveur) ══
 const GDRIVE_FOLDER_ID = '1Avl7R6_mvrF8_dV-QzinbiocxnymdzQX';
@@ -1664,10 +1664,7 @@ async function jbSave() {
     const sizeKB = Math.round(payloadStr.length / 1024);
     const r = await fetch(CF_KV_URL, {
       method: 'PUT',
-      headers: {
-        'Authorization': 'Bearer ' + getCfToken(),
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: payloadStr
     });
     if (!r.ok) {
@@ -1694,9 +1691,7 @@ async function jbLoad(force) {
   force = force || false;
   setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
   try {
-    const r = await fetch(CF_KV_URL, {
-      headers: { 'Authorization': 'Bearer ' + getCfToken() }
-    });
+    const r = await fetch(CF_KV_URL);
     if (r.status === 404) {
       // Clé absente → première utilisation, on pousse nos données
       setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
