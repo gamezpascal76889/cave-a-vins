@@ -1149,6 +1149,27 @@ function switchShelf(n) {
   document.getElementById('stab2').classList.toggle('active', n===2);
 }
 
+// ══ SWIPE entre étagères ══
+(function() {
+  let startX = 0, startY = 0;
+  const shelfView = () => document.getElementById('view-shelf');
+  document.addEventListener('touchstart', e => {
+    if (!shelfView().classList.contains('active')) return;
+    if (document.getElementById('modalOverlay').classList.contains('open')) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (!shelfView().classList.contains('active')) return;
+    if (document.getElementById('modalOverlay').classList.contains('open')) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+    if (dx < 0 && curShelf === 1) switchShelf(2); // swipe gauche → étagère 2
+    if (dx > 0 && curShelf === 2) switchShelf(1); // swipe droite → étagère 1
+  }, { passive: true });
+})();
+
 // ══ TABLE ══
 function renderTable() {
   const q  = document.getElementById('tSearch').value.toLowerCase();
