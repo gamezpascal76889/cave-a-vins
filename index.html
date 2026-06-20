@@ -1705,11 +1705,12 @@ async function jbLoad(force) {
       await jbSave();
       return;
     }
-    // Comparer dates sauf si force=true
+    // Comparer dates — charger seulement si KV plus récent (ou force)
     var cfDate  = json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
     var locStr  = localStorage.getItem('pascal_updated');
     var locDate = locStr ? new Date(locStr).getTime() : 0;
     if (!force && cfDate <= locDate) {
+      // Nos données locales sont déjà à jour
       setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
       return;
     }
@@ -1727,12 +1728,6 @@ async function jbLoad(force) {
       }
       return b;
     });
-    var nbCf  = newCellar.filter(Boolean).length;
-    var nbLoc = cellar.filter(Boolean).length;
-    if (!force && nbCf < nbLoc) {
-      setSyncStatus('ok', nbLoc + (lang==='de'?' Fl.':' btl.'));
-      return;
-    }
     cellar  = newCellar;
     history = json.history || [];
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
@@ -2200,23 +2195,18 @@ document.getElementById('fName').addEventListener('input', function() {
 renderShelves();
 updateStats();
 setLang(lang);
-// Vérifier token CF au démarrage
+// Au démarrage : toujours charger depuis KV pour avoir les données les plus récentes
+// (que ce soit Pascal ou Danielle qui a fait la dernière modification)
 if (!getCfToken()) {
   setSyncStatus('error', 'Token CF manquant');
   setTimeout(() => {
     showToast('⚠️ Token Cloudflare manquant — va dans Backup pour le configurer');
   }, 1500);
 } else {
-  // Si données locales → pousser vers CF KV pour Danielle
-  // Sinon → charger depuis CF KV
-  const _hasLocal = localStorage.getItem('pascal_cellar');
-  if (_hasLocal) {
-    const _n = cellar.filter(Boolean).length;
-    setSyncStatus('ok', _n + (lang==='de'?' Fl.':' btl.'));
-    setTimeout(jbSave, 2000);
-  } else {
-    jbLoad(true);
-  }
+  // Toujours charger depuis KV au démarrage
+  setTimeout(() => jbLoad(false), 1500);
+  // Auto-refresh toutes les 2 minutes pour voir les modifs de Danielle
+  setInterval(() => jbLoad(false), 2 * 60 * 1000);
 }
 </script>
 </body>
