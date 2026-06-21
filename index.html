@@ -212,6 +212,18 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 .stat-empty { text-align:center; padding:40px 20px; opacity:.35; font-style:italic; }
 @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
 </style>
+<script>
+// Définie ici pour être disponible dès le chargement du HTML
+function closeSplash() {
+  var s = document.getElementById('splashScreen');
+  if (!s) return;
+  s.style.opacity = '0';
+  s.style.pointerEvents = 'none';
+  setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 650);
+  // Déclencher la sync KV après l'entrée
+  setTimeout(function(){ if(typeof jbLoad === 'function') jbLoad(false); }, 400);
+}
+</script>
 </head>
 <body>
 <!-- ══ SPLASH SCREEN ══ -->
