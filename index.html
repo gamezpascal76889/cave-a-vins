@@ -324,7 +324,7 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 <div class="view" id="view-backup">
   <!-- Stats permanentes -->
   <div class="bk-card" style="background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.4)">
-    <div class="bk-title">📊 État de la cave</div>
+    <div class="bk-title" data-i18n="bkCaveTitle">📊 État de la cave</div>
     <div id="bkStatsLive" style="font-size:.85rem;line-height:1.9;color:var(--cream-d)"></div>
   </div>
   <div class="bk-card">
@@ -342,9 +342,9 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
   </div>
   <div class="bk-card" style="border-color:rgba(100,180,100,.3)">
-    <div class="bk-title" style="color:#90ee90">📂 Backup Google Drive</div>
-    <div class="bk-text">Télécharge <b style="color:#e8c97a">cave-danielle-pascal.json</b> avec toutes tes photos sur ton téléphone. Ensuite ouvre Google Drive → dossier Cave à Vins → <b style="color:#e8c97a">+</b> → Importer pour écraser l'ancien fichier.</div>
-    <button id="btnDriveExport" class="btn" style="background:rgba(40,120,40,.6);border:1px solid rgba(80,180,80,.4);color:#90ffb0;font-family:Georgia,serif;font-size:.88rem" onclick="exportDriveBackup()">💾 Télécharger le backup</button>
+    <div class="bk-title" style="color:#90ee90" data-i18n="bkDriveTitle">📂 Backup Google Drive</div>
+    <div class="bk-text" data-i18n="bkDriveText">Télécharge <b style="color:#e8c97a">cave-danielle-pascal.json</b> avec toutes tes photos sur ton téléphone. Ensuite ouvre Google Drive → dossier Cave à Vins → <b style="color:#e8c97a">+</b> → Importer pour écraser l'ancien fichier.</div>
+    <button id="btnDriveExport" class="btn" style="background:rgba(40,120,40,.6);border:1px solid rgba(80,180,80,.4);color:#90ffb0;font-family:Georgia,serif;font-size:.88rem" onclick="exportDriveBackup()" data-i18n="bkDriveBtn">💾 Télécharger le backup</button>
   </div>
   <div class="bk-card">
     <div class="bk-title" data-i18n="bkSyncTitle">☁️ Sync Cloudflare KV</div>
@@ -619,6 +619,10 @@ const I18N = {
     thShelf:'Ét.', thType:'Type', thName:'Nom', thVintage:'Mill.', thPrice:'Prix',
     tblEmpty:'Aucun résultat', tblVide:'Vide', tblSee:'Voir',
     bkExportTitle:'📤 Exporter', bkExportText:'Télécharge un fichier <b style="color:#f5ede0">cave-pascal.json</b> avec toutes vos bouteilles, photos et archives.', bkExportBtn:'📥 Télécharger la sauvegarde',
+    bkCaveTitle:'📊 État de la cave',
+    bkDriveTitle:'📂 Backup Google Drive',
+    bkDriveText:'Télécharge <b style="color:#e8c97a">cave-danielle-pascal.json</b> avec toutes tes photos sur ton téléphone. Ensuite ouvre Google Drive → dossier Cave à Vins → <b style="color:#e8c97a">+</b> → Importer pour écraser l\'ancien fichier.',
+    bkDriveBtn:'💾 Télécharger le backup',
     bkImportTitle:'📂 Importer', bkImportText:'⚠️ L\'import <b style="color:#ffb060">remplace</b> toutes les données actuelles. Faites d\'abord un export !', bkImportDrop:'Choisir un fichier .json',
     bkResetTitle:'🗑️ Réinitialiser', bkResetText:'Efface <b style="color:#ff8080">toutes</b> les bouteilles et l\'historique. Irréversible.', bkResetBtn:'⚠️ Tout effacer',
     btnEdit:'✏️ Modifier', btnCopy:'📋 Copier cette bouteille', btnMove:'↕️ Déplacer vers autre alvéole', btnConsume:'🍽️ Consommer / Sortir', btnClear:'🗑️ Vider l\'alvéole', btnBack:'← Retour à l\'étagère',
@@ -671,7 +675,7 @@ const I18N = {
   },
   de: {
     hTitle:'Der Weinkeller', hTitleSub:'von Danielle &amp; Pascal', hSub:'Persönliche Sammlung',
-    navShelves:'🗄️ Regale', navTable:'📋 Tabelle', navStats:'📊 Statistik', navHistory:'📜 Konsum', navBackup:'💾 Backup',
+    navShelves:'🗄️ Regale', navTable:'📋 Tabelle', navStats:'📊 Stat', navHistory:'📜 Konsum', navBackup:'💾 Backup',
     shelf1tab:'🗄️ Regal 1 · 120 Fächer', shelf2tab:'🗄️ Regale 2 + 3',
     shelf1name:'🏛️ Regal 1', shelf2name:'🏛️ Regal 2',
     bottleCount:(f,t)=>`${f} Flasche${f!==1?'n':''} · ${t-f} leer${t-f!==1?'e':''}`,
@@ -681,6 +685,10 @@ const I18N = {
     thShelf:'Reg.', thType:'Typ', thName:'Name', thVintage:'Jahr.', thPrice:'Preis',
     tblEmpty:'Keine Ergebnisse', tblVide:'Leer', tblSee:'Ansehen',
     bkExportTitle:'📤 Exportieren', bkExportText:'Lädt eine Datei <b style="color:#f5ede0">cave-pascal.json</b> mit allen Flaschen, Fotos und Archiven herunter.', bkExportBtn:'📥 Sicherung herunterladen',
+    bkCaveTitle:'📊 Zusammenfassung',
+    bkDriveTitle:'📂 Google Drive Backup',
+    bkDriveText:'Lädt <b style="color:#e8c97a">cave-danielle-pascal.json</b> mit allen Fotos auf dein Telefon. Dann öffne Google Drive → Ordner Cave à Vins → <b style="color:#e8c97a">+</b> → Datei importieren, um die alte zu überschreiben.',
+    bkDriveBtn:'💾 Backup herunterladen',
     bkImportTitle:'📂 Importieren', bkImportText:'⚠️ Import <b style="color:#ffb060">ersetzt</b> alle aktuellen Daten. Zuerst exportieren!', bkImportDrop:'.json-Datei auswählen',
     bkResetTitle:'🗑️ Zurücksetzen', bkResetText:'Löscht <b style="color:#ff8080">alle</b> Flaschen und den Verlauf. Unwiderruflich.', bkResetBtn:'⚠️ Alles löschen',
     btnEdit:'✏️ Bearbeiten', btnCopy:'📋 Flasche kopieren', btnMove:'↕️ In anderes Fach verschieben', btnConsume:'🍽️ Trinken / Entfernen', btnClear:'🗑️ Fach leeren', btnBack:'← Zurück zum Regal',
@@ -1853,7 +1861,9 @@ function exportDriveBackup() {
   const n   = cellarWithPhotos.filter(Boolean).length;
   const nPh = cellarWithPhotos.filter(b=>b&&b.photo).length;
   const sizeKB = Math.round(blob.size/1024);
-  showToast(`✅ Fichier téléchargé : ${n} bouteilles · ${nPh} photos · ${sizeKB}KB — glisse-le dans Google Drive !`);
+  showToast(lang==='de'
+    ? `✅ Backup heruntergeladen : ${n} Fl. · ${nPh} Fotos · ${sizeKB}KB — in Google Drive importieren!`
+    : `✅ Fichier téléchargé : ${n} bouteilles · ${nPh} photos · ${sizeKB}KB — glisse-le dans Google Drive !`);
 }
 
 // ══ TOKEN CLOUDFLARE (si besoin de mettre à jour) ══
