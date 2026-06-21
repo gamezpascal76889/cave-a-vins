@@ -213,15 +213,12 @@ mark { background:rgba(201,168,76,.35); color:var(--gold-l); border-radius:2px; 
 @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
 </style>
 <script>
-// Définie ici pour être disponible dès le chargement du HTML
 function closeSplash() {
   var s = document.getElementById('splashScreen');
   if (!s) return;
   s.style.opacity = '0';
   s.style.pointerEvents = 'none';
   setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 650);
-  // Déclencher la sync KV après l'entrée
-  setTimeout(function(){ if(typeof jbLoad === 'function') jbLoad(false); }, 400);
 }
 </script>
 </head>
@@ -261,7 +258,7 @@ function closeSplash() {
   <button class="nav-btn active" onclick="switchView('shelf',this)" data-i18n="navShelves">🗄️ Étagères</button>
   <button class="nav-btn" onclick="switchView('table',this)" data-i18n="navTable">📋 Tableau</button>
   <button class="nav-btn" onclick="switchView('stats',this)" data-i18n="navStats">📊 Stats</button>
-  <button class="nav-btn" onclick="switchView('history',this)" data-i18n="navHistory">📜 Archives</button>
+  <button class="nav-btn" onclick="switchView('history',this)" data-i18n="navHistory">📜 Conso</button>
   <button class="nav-btn" onclick="switchView('backup',this)" data-i18n="navBackup">💾 Backup</button>
 </nav>
 
@@ -2205,7 +2202,8 @@ updateStats();
 setLang(lang);
 setNavTop();
 window.addEventListener('resize', setNavTop);
-// Le chargement KV se fait au tap sur le splash screen (closeSplash)
+// Charger depuis KV immédiatement (en arrière-plan pendant le splash)
+setTimeout(() => jbLoad(false), 500);
 // Auto-refresh toutes les 2 minutes ensuite
 setInterval(() => jbLoad(false), 2 * 60 * 1000);
 </script>
