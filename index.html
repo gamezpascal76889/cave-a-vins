@@ -1557,8 +1557,11 @@ function consume() {
   const b=cellar[curIdx]; if(!b)return;
   history.push({...b, cell:curIdx+1, consumedAt:new Date().toISOString()});
   cellar[curIdx]=null; save(); renderShelves(); renderTable(); renderHistory();
+  closeModal();
+  // Basculer immédiatement vers l'onglet Conso
+  const consoBtn = document.querySelectorAll('.nav-btn')[3];
+  switchView('history', consoBtn);
   showToast(t('toastConsumed'));
-  goToShelf(curIdx);
 }
 
 function clearCell() {
