@@ -1506,9 +1506,12 @@ function showEdit(b, idx) {
   document.getElementById('fNotesLib').value     = b?.noteslib     || '';
   // Mettre à jour le lien Google IA si nom disponible
   updateGoogleAILink(b?.name, b?.vintage);
-  curPhoto = b?.photo||null;
+  // Récupérer la photo : d'abord depuis b.photo, sinon depuis localStorage
+  curPhoto = b?.photo || (idx !== null ? localStorage.getItem('pascal_photo_'+idx) : null) || null;
   const prev=document.getElementById('photoPreview'), img=document.getElementById('photoImg');
   if(curPhoto){img.src=curPhoto;prev.style.display='';}else{prev.style.display='none';img.src='';}
+  // Mettre à jour b.photo si on a trouvé une photo dans localStorage
+  if(curPhoto && b && !b.photo) b.photo = curPhoto;
   hideAiBox();
   // Masquer le sélecteur (visible seulement depuis "Ajouter depuis tableau")
   document.getElementById('cellPickerWrap').style.display = 'none';
@@ -1921,8 +1924,13 @@ function save() {
   try {
     const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
     cellar.forEach((b,i) => {
-      if (b?.photo) { try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {} }
-      else { localStorage.removeItem('pascal_photo_'+i); }
+      if (b?.photo) {
+        // Sauvegarder la photo en localStorage
+        try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {}
+      }
+      // NE PAS supprimer la photo si b existe mais n'a pas de photo en mémoire
+      // (elle est peut-être déjà dans localStorage depuis avant)
+      if (!b) { localStorage.removeItem('pascal_photo_'+i); }
     });
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
     localStorage.setItem('pascal_history', JSON.stringify(history));
