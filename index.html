@@ -1186,22 +1186,37 @@ function switchShelf(n) {
 
 // ══ SWIPE entre étagères ══
 (function() {
-  let startX = 0, startY = 0;
+  let startX = 0, startY = 0, blocked = false;
   const shelfView = () => document.getElementById('view-shelf');
+  const isScrollable = el => {
+    // Bloquer le swipe si le doigt est dans une zone scrollable (hors body)
+    while (el && el !== document.body && el !== document.documentElement) {
+      const s = window.getComputedStyle(el);
+      const ov = s.overflowY;
+      if ((ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight + 2) return true;
+      // Aussi bloquer si c'est une vue active avec du contenu long
+      if (el.classList && (el.classList.contains('view') || el.classList.contains('hist-list') || el.classList.contains('modal-inner'))) return true;
+      el = el.parentElement;
+    }
+    return false;
+  };
   document.addEventListener('touchstart', e => {
-    if (!shelfView().classList.contains('active')) return;
-    if (document.getElementById('modalOverlay').classList.contains('open')) return;
+    blocked = false;
+    if (!shelfView().classList.contains('active')) { blocked = true; return; }
+    if (document.getElementById('modalOverlay').classList.contains('open')) { blocked = true; return; }
+    if (isScrollable(e.target)) { blocked = true; return; }
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', e => {
+    if (blocked) return;
     if (!shelfView().classList.contains('active')) return;
     if (document.getElementById('modalOverlay').classList.contains('open')) return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
     if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
-    if (dx < 0 && curShelf === 1) switchShelf(2); // swipe gauche → étagère 2
-    if (dx > 0 && curShelf === 2) switchShelf(1); // swipe droite → étagère 1
+    if (dx < 0 && curShelf === 1) switchShelf(2);
+    if (dx > 0 && curShelf === 2) switchShelf(1);
   }, { passive: true });
 })();
 
@@ -1400,25 +1415,38 @@ function swipeToBottle(idx) {
 
 // Gestion du swipe tactile sur la modal
 (function() {
-  let startX = 0, startY = 0;
+  let startX = 0, startY = 0, blocked = false;
+  const isScrollable = el => {
+    // Bloquer le swipe si le doigt est dans une zone scrollable (hors body)
+    while (el && el !== document.body && el !== document.documentElement) {
+      const s = window.getComputedStyle(el);
+      const ov = s.overflowY;
+      if ((ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight + 2) return true;
+      // Aussi bloquer si c'est une vue active avec du contenu long
+      if (el.classList && (el.classList.contains('view') || el.classList.contains('hist-list') || el.classList.contains('modal-inner'))) return true;
+      el = el.parentElement;
+    }
+    return false;
+  };
   document.addEventListener('touchstart', e => {
-    if (!document.getElementById('modalOverlay').classList.contains('open')) return;
-    if (document.getElementById('modeEdit').style.display !== 'none') return;
+    blocked = false;
+    if (!document.getElementById('modalOverlay').classList.contains('open')) { blocked = true; return; }
+    if (document.getElementById('modeEdit').style.display !== 'none') { blocked = true; return; }
+    if (isScrollable(e.target)) { blocked = true; return; }
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', e => {
+    if (blocked) return;
     if (!document.getElementById('modalOverlay').classList.contains('open')) return;
     if (document.getElementById('modeEdit').style.display !== 'none') return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return; // pas assez horizontal
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
     if (dx < 0) {
-      // Swipe gauche → bouteille suivante
       const next = document.getElementById('swipeNext');
       if (next && next.dataset.target >= 0) swipeToBottle(next.dataset.target);
     } else {
-      // Swipe droite → bouteille précédente
       const prev = document.getElementById('swipePrev');
       if (prev && prev.dataset.target >= 0) swipeToBottle(prev.dataset.target);
     }
