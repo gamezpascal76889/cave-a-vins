@@ -1186,35 +1186,20 @@ function switchShelf(n) {
 
 // ══ SWIPE entre étagères ══
 (function() {
-  let startX = 0, startY = 0, blocked = false;
-  const shelfView = () => document.getElementById('view-shelf');
-  const isScrollable = el => {
-    // Bloquer le swipe si le doigt est dans une zone scrollable (hors body)
-    while (el && el !== document.body && el !== document.documentElement) {
-      const s = window.getComputedStyle(el);
-      const ov = s.overflowY;
-      if ((ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight + 2) return true;
-      // Aussi bloquer si c'est une vue active avec du contenu long
-      if (el.classList && (el.classList.contains('view') || el.classList.contains('hist-list') || el.classList.contains('modal-inner'))) return true;
-      el = el.parentElement;
-    }
-    return false;
-  };
+  let startX = 0, startY = 0;
+  const isShelfActive = () => document.getElementById('view-shelf').classList.contains('active');
+  const isModalOpen  = () => document.getElementById('modalOverlay').classList.contains('open');
   document.addEventListener('touchstart', e => {
-    blocked = false;
-    if (!shelfView().classList.contains('active')) { blocked = true; return; }
-    if (document.getElementById('modalOverlay').classList.contains('open')) { blocked = true; return; }
-    if (isScrollable(e.target)) { blocked = true; return; }
+    if (!isShelfActive() || isModalOpen()) return;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', e => {
-    if (blocked) return;
-    if (!shelfView().classList.contains('active')) return;
-    if (document.getElementById('modalOverlay').classList.contains('open')) return;
+    if (!isShelfActive() || isModalOpen()) return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+    // Seulement si mouvement clairement horizontal (dx dominant et > 70px)
+    if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.5) return;
     if (dx < 0 && curShelf === 1) switchShelf(2);
     if (dx > 0 && curShelf === 2) switchShelf(1);
   }, { passive: true });
@@ -1278,7 +1263,7 @@ function renderHistory() {
   list.innerHTML = items.map(h=>{
     const i = h._i;
     const hasNotice = h.notice_with||h.notice_occasion||h.notice_taste||h.notice_notes;
-    return `<div class="hist-card" id="hcard-${i}" ontouchstart="startLongPress(${i},event)" ontouchend="cancelLongPress()" onmousedown="startLongPress(${i},event)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()">
+    return `<div class="hist-card" id="hcard-${i}" onmousedown="startLongPress(${i},event)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()">
       <div class="hist-icon">${TYPES[h.type]?.emoji||'🍾'}</div>
       <div style="flex:1;min-width:0">
         <div class="hist-name">${h.name||(lang==='de'?'Ohne Namen':'Sans nom')}</div>
@@ -1306,6 +1291,14 @@ function renderHistory() {
       </div>
     </div>`;
   }).join('');
+  // Touch events passifs pour ne pas bloquer le scroll
+  items.forEach(h => {
+    const card = document.getElementById('hcard-'+h._i);
+    if (!card) return;
+    card.addEventListener('touchstart', e => startLongPress(h._i, e), { passive: true });
+    card.addEventListener('touchmove',  () => cancelLongPress(),       { passive: true });
+    card.addEventListener('touchend',   () => cancelLongPress(),       { passive: true });
+  });
 }
 
 // ══ NOTICES CONSO ══
@@ -1415,34 +1408,20 @@ function swipeToBottle(idx) {
 
 // Gestion du swipe tactile sur la modal
 (function() {
-  let startX = 0, startY = 0, blocked = false;
-  const isScrollable = el => {
-    // Bloquer le swipe si le doigt est dans une zone scrollable (hors body)
-    while (el && el !== document.body && el !== document.documentElement) {
-      const s = window.getComputedStyle(el);
-      const ov = s.overflowY;
-      if ((ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight + 2) return true;
-      // Aussi bloquer si c'est une vue active avec du contenu long
-      if (el.classList && (el.classList.contains('view') || el.classList.contains('hist-list') || el.classList.contains('modal-inner'))) return true;
-      el = el.parentElement;
-    }
-    return false;
-  };
+  let startX = 0, startY = 0;
+  const isModalOpen  = () => document.getElementById('modalOverlay').classList.contains('open');
+  const isEditMode   = () => document.getElementById('modeEdit').style.display !== 'none';
   document.addEventListener('touchstart', e => {
-    blocked = false;
-    if (!document.getElementById('modalOverlay').classList.contains('open')) { blocked = true; return; }
-    if (document.getElementById('modeEdit').style.display !== 'none') { blocked = true; return; }
-    if (isScrollable(e.target)) { blocked = true; return; }
+    if (!isModalOpen() || isEditMode()) return;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', e => {
-    if (blocked) return;
-    if (!document.getElementById('modalOverlay').classList.contains('open')) return;
-    if (document.getElementById('modeEdit').style.display !== 'none') return;
+    if (!isModalOpen() || isEditMode()) return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+    // Seulement si clairement horizontal
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
     if (dx < 0) {
       const next = document.getElementById('swipeNext');
       if (next && next.dataset.target >= 0) swipeToBottle(next.dataset.target);
