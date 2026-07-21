@@ -1846,6 +1846,13 @@ async function jbLoad(force) {
     });
     cellar  = newCellar;
     history = json.history || [];
+    // Sauvegarder photos individuellement d'abord
+    cellar.forEach((b,i) => {
+      if (b?.photo) {
+        try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e){}
+        b.photo = null; // libérer la mémoire vive après sauvegarde
+      }
+    });
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
     localStorage.setItem('pascal_history', JSON.stringify(history));
     localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
@@ -1929,23 +1936,19 @@ let _lastSaveTime = 0;
 function save() {
   _lastSaveTime = Date.now();
   try {
-    const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
+    // 1. Sauvegarder d'abord toutes les photos individuellement
     cellar.forEach((b,i) => {
       if (b?.photo) {
-        // Sauvegarder la photo en localStorage
         try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {}
       }
-      // NE PAS supprimer la photo si b existe mais n'a pas de photo en mémoire
-      // (elle est peut-être déjà dans localStorage depuis avant)
       if (!b) { localStorage.removeItem('pascal_photo_'+i); }
     });
+    // 2. Puis sauvegarder la cave SANS les photos (économie de place)
+    const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
     localStorage.setItem('pascal_history', JSON.stringify(history));
   } catch(e) {
-    try {
-      localStorage.setItem('pascal_cellar', JSON.stringify(cellar.map(b=>b?{...b,photo:null}:null)));
-      localStorage.setItem('pascal_history', JSON.stringify(history));
-    } catch(e2) { showToast(lang==='de'?'⚠️ Fehler lokale Speicherung':'⚠️ Erreur sauvegarde locale'); }
+    showToast(lang==='de'?'⚠️ Fehler lokale Speicherung':'⚠️ Erreur sauvegarde locale');
   }
   updateStats();
   clearTimeout(_ghSaveTimer);
