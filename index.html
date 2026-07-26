@@ -1811,6 +1811,11 @@ async function jbSave() {
 // ══ CLOUDFLARE KV : CHARGER ══
 async function jbLoad(force) {
   force = force || false;
+  // Ne pas charger depuis KV si on vient de sauvegarder (évite d'écraser les nouvelles photos)
+  if (!force && _lastSaveTime && (Date.now() - _lastSaveTime) < 30000) {
+    setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl.':' btl.'));
+    return;
+  }
   setSyncStatus('syncing', lang==='de'?'Laden...':'Chargement...');
   try {
     const r = await fetch(CF_KV_URL);
