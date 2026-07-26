@@ -1623,6 +1623,12 @@ function handlePhoto(evt) {
     curPhoto=compressed;
     document.getElementById('photoImg').src=compressed;
     document.getElementById('photoPreview').style.display='';
+    // Sauvegarder immédiatement dans localStorage — ne pas attendre la sauvegarde
+    if (curIdx !== null && curIdx >= 0) {
+      try { localStorage.setItem('pascal_photo_'+curIdx, compressed); } catch(err) {}
+      // Mettre aussi à jour cellar en mémoire
+      if (cellar[curIdx]) cellar[curIdx].photo = compressed;
+    }
     await analyzeLabel(compressed);
   };
   rd.readAsDataURL(file); evt.target.value='';
