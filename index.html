@@ -1845,25 +1845,20 @@ async function jbLoad(force) {
       var b = json.cellar[i];
       if (!b || !b.name) return null;
       if (!TYPES[b.type]) b.type = 'red';
-      // Photos : priorité à la photo dans KV (plus complète), fallback localStorage
-      if (!b.photo) {
-        var localPhoto = localStorage.getItem('pascal_photo_'+i);
-        if (localPhoto) b.photo = localPhoto;
-      } else {
-        // Mettre à jour localStorage avec la photo fraîche du KV
+      // TOUJOURS privilégier la photo locale — elle est plus récente
+      var localPhoto = localStorage.getItem('pascal_photo_'+i);
+      if (localPhoto) {
+        b.photo = localPhoto; // photo locale prioritaire
+      } else if (b.photo) {
+        // Pas de photo locale → sauvegarder celle du KV
         try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e){}
       }
       return b;
     });
     cellar  = newCellar;
     history = json.history || [];
-    // Sauvegarder photos individuellement d'abord
-    cellar.forEach((b,i) => {
-      if (b?.photo) {
-        try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e){}
-        b.photo = null; // libérer la mémoire vive après sauvegarde
-      }
-    });
+    // Libérer la mémoire vive (photos déjà dans localStorage)
+    cellar.forEach((b,i) => { if (b?.photo) b.photo = null; });
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
     localStorage.setItem('pascal_history', JSON.stringify(history));
     localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
@@ -2243,7 +2238,8 @@ if (_hasLocal) {
   setTimeout(() => jbLoad(true), 300);
 }
 // Auto-refresh toutes les 2 minutes
-setInterval(() => jbLoad(false), 2 * 60 * 1000);
+// Auto-refresh désactivé — sync manuelle via bouton ☁️ Sync
+// Pour éviter d'écraser les photos locales récentes
 </script>
 </body>
 </html>
