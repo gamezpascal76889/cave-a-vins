@@ -1861,7 +1861,12 @@ async function jbLoad(force) {
     cellar.forEach((b,i) => { if (b?.photo) b.photo = null; });
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
     localStorage.setItem('pascal_history', JSON.stringify(history));
-    localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
+    // Ne mettre à jour pascal_updated que si la date KV est plus récente
+    var locStr2 = localStorage.getItem('pascal_updated');
+    var locDate2 = locStr2 ? new Date(locStr2).getTime() : 0;
+    if (cfDate > locDate2) {
+      localStorage.setItem('pascal_updated', json.updatedAt || new Date().toISOString());
+    }
     renderShelves(); renderTable(); renderHistory(); updateStats();
     if (document.getElementById('view-stats').classList.contains('active')) renderStats();
     const nPh = cellar.filter((_,i)=>!!(cellar[i]?.photo)).length;
@@ -2227,19 +2232,19 @@ updateStats();
 setLang(lang);
 setNavTop();
 window.addEventListener('resize', setNavTop);
-// Afficher d'abord les données locales, puis sync KV en arrière-plan
+// Stratégie sync :
+// - Si données locales → on les affiche et on pousse vers KV (au cas où Danielle n'a pas la dernière version)
+// - Si pas de données locales → on charge depuis KV
+// On ne charge JAMAIS depuis KV automatiquement si on a des données locales
+// (évite d'écraser les photos récentes)
 const _hasLocal = cellar.filter(Boolean).length > 0;
 if (_hasLocal) {
-  // On a des données locales → les afficher immédiatement
-  // puis charger le KV en arrière-plan pour voir si Danielle a modifié
-  setTimeout(() => jbLoad(false), 1000);
+  // Pousser nos données vers KV après 2s (pour Danielle)
+  setTimeout(() => jbSave(), 2000);
 } else {
-  // Pas de données locales → charger depuis KV dès que possible
+  // Pas de données locales → charger depuis KV
   setTimeout(() => jbLoad(true), 300);
 }
-// Auto-refresh toutes les 2 minutes
-// Auto-refresh désactivé — sync manuelle via bouton ☁️ Sync
-// Pour éviter d'écraser les photos locales récentes
 </script>
 </body>
 </html>
