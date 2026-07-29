@@ -1774,6 +1774,8 @@ async function jbSave() {
     var cellarWithPhotos = cellar.map(function(b,i){
       if (!b) return null;
       var photo = b.photo || localStorage.getItem('pascal_photo_'+i) || null;
+      if (!photo) console.warn('⚠️ Photo manquante alvéole', i+1, b.name);
+      else console.log('✅ Photo présente alvéole', i+1, b.name, photo.length, 'chars');
       return photo ? Object.assign({},b,{photo:photo}) : Object.assign({},b,{photo:null});
     });
     var payload = {
@@ -1950,7 +1952,10 @@ function save() {
     // 1. Sauvegarder d'abord toutes les photos individuellement
     cellar.forEach((b,i) => {
       if (b?.photo) {
-        try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {}
+        console.log('💾 save() photo alvéole', i+1, b.name, b.photo.length, 'chars');
+        try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {
+          console.error('❌ Erreur localStorage photo', i+1, e);
+        }
       }
       if (!b) { localStorage.removeItem('pascal_photo_'+i); }
     });
@@ -1958,7 +1963,16 @@ function save() {
     const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
     localStorage.setItem('pascal_history', JSON.stringify(history));
+    // Vérification immédiate
+    cellar.forEach((b,i) => {
+      if (b?.photo) {
+        const check = localStorage.getItem('pascal_photo_'+i);
+        if (!check) console.error('❌ Photo perdue immédiatement après save() alvéole', i+1);
+        else console.log('✅ Photo vérifiée en localStorage alvéole', i+1);
+      }
+    });
   } catch(e) {
+    console.error('❌ Erreur save()', e);
     showToast(lang==='de'?'⚠️ Fehler lokale Speicherung':'⚠️ Erreur sauvegarde locale');
   }
   updateStats();
