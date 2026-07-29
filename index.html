@@ -1847,20 +1847,20 @@ async function jbLoad(force) {
       var b = json.cellar[i];
       if (!b || !b.name) return null;
       if (!TYPES[b.type]) b.type = 'red';
-      // TOUJOURS privilégier la photo locale — elle est plus récente
+      // Fusionner : photo locale prioritaire si elle existe
+      // sinon prendre la photo du KV et la sauvegarder en local
       var localPhoto = localStorage.getItem('pascal_photo_'+i);
       if (localPhoto) {
         b.photo = localPhoto; // photo locale prioritaire
       } else if (b.photo) {
-        // Pas de photo locale → sauvegarder celle du KV
+        // Photo dans KV mais pas en local → sauvegarder en local
         try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e){}
+        b.photo = null; // libérer mémoire vive
       }
       return b;
     });
     cellar  = newCellar;
     history = json.history || [];
-    // Libérer la mémoire vive (photos déjà dans localStorage)
-    cellar.forEach((b,i) => { if (b?.photo) b.photo = null; });
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellar.map(function(b){return b?Object.assign({},b,{photo:null}):null;})));
     localStorage.setItem('pascal_history', JSON.stringify(history));
     // Ne mettre à jour pascal_updated que si la date KV est plus récente
@@ -1871,9 +1871,15 @@ async function jbLoad(force) {
     }
     renderShelves(); renderTable(); renderHistory(); updateStats();
     if (document.getElementById('view-stats').classList.contains('active')) renderStats();
-    const nPh = cellar.filter((_,i)=>!!(cellar[i]?.photo)).length;
+    const nPh = cellar.filter((_,i)=>!!localStorage.getItem('pascal_photo_'+i)).length;
     setSyncStatus('ok', cellar.filter(Boolean).length + (lang==='de'?' Fl. · ':' btl. · ') + nPh + '📷');
     if (force) showToast(lang==='de'?'✅ Synchronisiert!':'✅ Synchronisé !');
+    // Pousser vers KV si on a des photos locales que le KV n'avait pas
+    var localHasMore = cellar.some((_,i) => cellar[i] && localStorage.getItem('pascal_photo_'+i) && !json.cellar[i]?.photo);
+    if (localHasMore) {
+      console.log('📤 Photos locales manquantes dans KV → on pousse');
+      setTimeout(() => jbSave(), 1000);
+    }
   } catch(e) {
     setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
     console.warn('CF KV load:', e);
@@ -2253,8 +2259,10 @@ window.addEventListener('resize', setNavTop);
 // (évite d'écraser les photos récentes)
 const _hasLocal = cellar.filter(Boolean).length > 0;
 if (_hasLocal) {
-  // Pousser nos données vers KV après 2s (pour Danielle)
-  setTimeout(() => jbSave(), 2000);
+  // On a des données locales → vérifier si le KV est plus récent
+  // Si oui → charger depuis KV (Danielle ou autre appareil a modifié)
+  // Si non → pousser nos données vers KV
+  setTimeout(() => jbLoad(false), 1500);
 } else {
   // Pas de données locales → charger depuis KV
   setTimeout(() => jbLoad(true), 300);
