@@ -1769,13 +1769,10 @@ async function jbSave() {
   setSyncStatus('syncing', lang==='de'?'Speichern...':'Sauvegarde...');
   try {
     var now = new Date().toISOString();
-    localStorage.setItem('pascal_updated', now);
     // Inclure les photos depuis localStorage
     var cellarWithPhotos = cellar.map(function(b,i){
       if (!b) return null;
       var photo = b.photo || localStorage.getItem('pascal_photo_'+i) || null;
-      if (!photo) console.warn('⚠️ Photo manquante alvéole', i+1, b.name);
-      else console.log('✅ Photo présente alvéole', i+1, b.name, photo.length, 'chars');
       return photo ? Object.assign({},b,{photo:photo}) : Object.assign({},b,{photo:null});
     });
     var payload = {
@@ -1795,10 +1792,11 @@ async function jbSave() {
       const errTxt = await r.text().catch(()=>'');
       throw new Error('CF KV save ' + r.status + ' ' + errTxt.slice(0,80));
     }
+    // ✅ PUT réussi → seulement maintenant on met à jour pascal_updated
+    localStorage.setItem('pascal_updated', now);
     const n = cellar.filter(Boolean).length;
     const ph = cellar.filter((_,i)=>!!(cellar[i]?.photo||localStorage.getItem('pascal_photo_'+i))).length;
     setSyncStatus('ok', n + (lang==='de'?' Fl. · ':'btl. · ') + sizeKB + 'KB · ' + ph + '📷');
-    // Export automatique Google Drive (silencieux — proposé toutes les N modifications)
     _autoExportCounter = (_autoExportCounter||0) + 1;
     if (_autoExportCounter >= AUTO_EXPORT_EVERY) {
       _autoExportCounter = 0;
@@ -1806,7 +1804,8 @@ async function jbSave() {
     }
   } catch(e) {
     setSyncStatus('error', lang==='de'?'Sync-Fehler':'Erreur sync');
-    console.warn('CF KV save error:', e);
+    // Ne PAS mettre à jour pascal_updated en cas d'échec
+    // Ainsi la prochaine sync pourra réessayer
   }
 }
 
@@ -1865,7 +1864,6 @@ async function jbLoad(force) {
         }
       });
       if (photosAdded > 0) {
-        console.log('📥 ' + photosAdded + ' photos récupérées depuis KV');
         showToast('📥 ' + photosAdded + ' photo(s) récupérée(s) depuis le cloud');
       }
       // Toujours pousser nos données vers KV pour les autres appareils
@@ -1878,7 +1876,6 @@ async function jbLoad(force) {
     if (force) showToast(lang==='de'?'✅ Synchronisiert!':'✅ Synchronisé !');
   } catch(e) {
     setSyncStatus('error', lang==='de'?'Fehler':'Erreur');
-    console.warn('CF KV load:', e);
   }
 }
 
@@ -1954,7 +1951,6 @@ function save() {
     // 1. Sauvegarder d'abord toutes les photos individuellement
     cellar.forEach((b,i) => {
       if (b?.photo) {
-        console.log('💾 save() photo alvéole', i+1, b.name, b.photo.length, 'chars');
         try { localStorage.setItem('pascal_photo_'+i, b.photo); } catch(e) {
           console.error('❌ Erreur localStorage photo', i+1, e);
         }
@@ -1965,16 +1961,7 @@ function save() {
     const cellarNoPhoto = cellar.map(b => b ? {...b, photo:null} : null);
     localStorage.setItem('pascal_cellar',  JSON.stringify(cellarNoPhoto));
     localStorage.setItem('pascal_history', JSON.stringify(history));
-    // Vérification immédiate
-    cellar.forEach((b,i) => {
-      if (b?.photo) {
-        const check = localStorage.getItem('pascal_photo_'+i);
-        if (!check) console.error('❌ Photo perdue immédiatement après save() alvéole', i+1);
-        else console.log('✅ Photo vérifiée en localStorage alvéole', i+1);
-      }
-    });
   } catch(e) {
-    console.error('❌ Erreur save()', e);
     showToast(lang==='de'?'⚠️ Fehler lokale Speicherung':'⚠️ Erreur sauvegarde locale');
   }
   updateStats();
